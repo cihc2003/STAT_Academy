@@ -9,7 +9,7 @@ namespace STAT_Academy.Api.Data
         {
         }
 
-        public DbSet<Usuario> Usuarios { get; set; }
-    }
+        public DbSet<UsuarioModel> Usuario { get; set; }
     }
 }
+
