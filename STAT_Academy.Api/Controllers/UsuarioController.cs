@@ -21,5 +21,16 @@ namespace STAT_Academy.Api.Controllers
         {
             return _usuarioService.GetAll();
         }
+        [HttpGet("tipo/{tipo}")]
+        public IActionResult FiltrarPorTipo(int tipo)
+        {
+            return Ok(_usuarioService.FiltrarPorTipo(tipo));
+        }
+
+        [HttpGet("activos")]
+        public IActionResult Activos()
+        {
+            return Ok(_usuarioService.UsuariosActivos());
+        }
     }
 }

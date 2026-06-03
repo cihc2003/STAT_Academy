@@ -23,5 +23,19 @@ namespace STAT_Academy.Api.Services
             return _context.Usuario.ToList();
         }
 
+        public List<UsuarioModel> FiltrarPorTipo(int tipo)
+        {
+            return _context.Usuario
+                .Where(u => u.fk_Tipo_Usuario == tipo)
+                .ToList();
+        }
+
+        public List<UsuarioModel> UsuariosActivos()
+        {
+            return _context.Usuario
+                .Where(u => u.estado == true)
+                .ToList();
+        }
+
     }
 }
