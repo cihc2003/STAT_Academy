@@ -10,6 +10,13 @@ namespace STAT_Academy.Api.Data
         }
 
         public DbSet<UsuarioModel> Usuario { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UsuarioModel>()
+                .HasIndex(u => u.email)
+                .IsUnique();
+        }
     }
 }
 
