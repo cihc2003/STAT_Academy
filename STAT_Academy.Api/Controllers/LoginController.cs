@@ -29,5 +29,13 @@ namespace STAT_Academy.Api.Controllers
 
             return Ok(usuario);
         }
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            return Ok(new
+            {
+                mensaje = "Sesión cerrada correctamente"
+            });
+        }
     }
 }
