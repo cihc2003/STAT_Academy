@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Panel Administrador";
+}
+
+<h1>Panel Administrador</h1>
+
+<hr />
+
+<h2>Gestión de Usuarios</h2>
+
+<button>
+    Crear Cliente
+</button>
+
+<button>
+    Crear Tutor
+</button>
+
+<button>
+    Crear Administrador
+</button>
+
+<hr />
+
+<h2>Filtros</h2>
+
+<select>
+
+    <option value="">
+        Todos
+    </option>
+
+    <option value="1">
+        Administradores
+    </option>
+
+    <option value="2">
+        Tutores
+    </option>
+
+    <option value="3">
+        Clientes
+    </option>
+
+</select>
+
+<button>
+    Filtrar
+</button>
+
+<hr />
+
+<table border="1">
+
+    <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Estado</th>
+        <th>Tipo</th>
+        <th>Último Login</th>
+        <th>Acciones</th>
+    </tr>
+
+    <tr>
+        <td>1</td>
+        <td>admin@statacademy.com</td>
+        <td>Activo</td>
+        <td>ADMIN</td>
+        <td>03/08/2026</td>
+
+        <td>
+
+            <button>
+                Editar
+            </button>
+
+            <button>
+                Cambiar Rol
+            </button>
+
+            <button>
+                Bloquear
+            </button>
+
+            <button>
+                Desbloquear
+            </button>
+
+        </td>
+
+    </tr>
+
+</table>
+
+<hr />
+
+<button>
+    Cerrar Sesión
+</button>
