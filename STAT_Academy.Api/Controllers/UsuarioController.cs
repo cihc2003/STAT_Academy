@@ -5,7 +5,7 @@ using STAT_Academy.Api.Services;
 namespace STAT_Academy.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class UsuarioController : ControllerBase
     {
         private readonly UsuarioService _usuarioService;
