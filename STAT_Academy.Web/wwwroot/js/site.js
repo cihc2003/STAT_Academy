@@ -1,4 +1,24 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿const navToggle = document.querySelector('.nav-toggle');
+const navLinks = document.querySelector('.nav-links');
 
-// Write your JavaScript code.
+if (navToggle && navLinks) {
+    navToggle.addEventListener('click', () => {
+        const open = navLinks.classList.toggle('open');
+        navToggle.setAttribute('aria-expanded', open.toString());
+    });
+}
+
+const courseSearch = document.querySelector('#courseSearch');
+const courses = document.querySelectorAll('[data-course]');
+
+if (courseSearch && courses.length) {
+    courseSearch.addEventListener('input', () => {
+        const term = courseSearch.value.trim().toLowerCase();
+
+        courses.forEach((course) => {
+            const content = `${course.dataset.course} ${course.textContent}`.toLowerCase();
+            course.style.display = content.includes(term) ? '' : 'none';
+        });
+    });
+}
+

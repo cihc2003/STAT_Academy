@@ -1,0 +1,8 @@
+@model IEnumerable<Enrollment>
+@{ ViewData["Title"] = "Mis cursos"; }
+<section class="section"><div class="container">
+    <h1>Mis cursos</h1>
+    <div class="card-grid three">
+    @foreach (var item in Model) { <article class="card p-4"><span class="tag">@item.Status</span><h3>@item.Course?.Title</h3><p>@item.Course?.Description</p><a class="text-link" asp-action="Course" asp-route-id="@item.CourseId">Ver aula</a></article> }
+    </div>
+</div></section>

@@ -1,0 +1,26 @@
+@model IEnumerable<Product>
+@{
+    ViewData["Title"] = "Productos";
+}
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Productos</h1>
+            <a class="btn btn-primary" asp-action="ProductForm">Nuevo producto</a>
+        </div>
+        <form class="row g-2 mb-3">
+            <div class="col-md-5"><input class="form-control" name="search" placeholder="Buscar por nombre"></div>
+            <div class="col-md-4"><select class="form-select" name="category"><option value="">Todas las categorías</option>@foreach (var c in (IEnumerable<string>)ViewBag.Categories){<option>@c</option>}</select></div>
+            <div class="col-md-3"><button class="btn btn-primary w-100">Filtrar</button></div>
+        </form>
+        <div class="table-card"><table class="table align-middle mb-0"><thead><tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Existencias</th><th>Estado</th><th></th></tr></thead><tbody>
+        @foreach (var item in Model) {
+            <tr><td>@item.Name</td><td>@item.Category</td><td>@item.Price.ToString("C")</td><td>@item.Stock</td><td><span class="status-pill">@(item.IsActive ? "Activo" : "Inactivo")</span></td><td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" asp-action="ProductForm" asp-route-id="@item.Id">Editar</a>
+                <form asp-action="ToggleProduct" asp-route-id="@item.Id" method="post" class="d-inline"><button class="btn btn-sm btn-outline-secondary">Cambiar estado</button></form>
+            </td></tr>
+        }
+        </tbody></table></div>
+    </section>
+</div>

@@ -1,0 +1,6 @@
+@model IEnumerable<Order>
+@{ ViewData["Title"] = "Pedidos"; }
+<div class="container admin-shell"><partial name="_AdminNav" /><section><h1>Pedidos</h1>
+<div class="table-card"><table class="table mb-0"><thead><tr><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th></tr></thead><tbody>
+@foreach (var item in Model) { <tr><td>@item.User?.FullName</td><td>@item.CreatedAt.ToLocalTime().ToShortDateString()</td><td>@item.Total.ToString("C")</td><td><span class="status-pill">@item.Status</span></td></tr> }
+</tbody></table></div></section></div>

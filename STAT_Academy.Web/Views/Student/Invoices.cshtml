@@ -1,0 +1,3 @@
+@model IEnumerable<Invoice>
+@{ ViewData["Title"] = "Mis facturas"; }
+<section class="section"><div class="container"><h1>Mis facturas</h1><div class="table-card"><table class="table mb-0"><thead><tr><th>Número</th><th>Fecha</th><th>Total</th></tr></thead><tbody>@foreach(var f in Model){<tr><td>@f.Number</td><td>@f.IssuedAt.ToLocalTime().ToShortDateString()</td><td>@f.Total.ToString("C")</td></tr>}</tbody></table></div></div></section>

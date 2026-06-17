@@ -1,0 +1,15 @@
+@model IEnumerable<Course>
+@{ ViewData["Title"] = "Cursos"; }
+<section class="page-hero"><div class="container"><span class="eyebrow">Formación STAT Academy</span><h1>Cursos profesionales</h1><p>Programas para estudiantes, tutores y profesionales de salud.</p></div></section>
+<section class="section"><div class="container">
+    <form class="search-panel row g-2">
+        <div class="col-md-5"><input class="form-control" name="search" placeholder="Buscar curso"></div>
+        <div class="col-md-4"><select class="form-select" name="category"><option value="">Todas</option>@foreach (var c in (IEnumerable<string>)ViewBag.Categories){<option>@c</option>}</select></div>
+        <div class="col-md-3"><button class="btn btn-primary w-100">Filtrar</button></div>
+    </form>
+    <div class="card-grid three">
+    @foreach (var item in Model) {
+        <article class="card course-card"><div class="visual visual-stats"></div><div class="card-body"><span class="tag">@item.Category</span><h3>@item.Title</h3><p>@item.Description</p><div class="course-meta"><span>@item.DurationWeeks semanas</span><strong>@item.Price.ToString("C")</strong></div><a class="text-link" asp-action="Details" asp-route-id="@item.Id">Ver curso</a></div></article>
+    }
+    </div>
+</div></section>

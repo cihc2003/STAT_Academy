@@ -1,0 +1,89 @@
+@{
+    ViewData["Title"] = "Cursos";
+    ViewData["Page"] = "Cursos";
+}
+
+<section class="page-hero">
+    <div class="container">
+        <span class="eyebrow">Catálogo académico</span>
+        <h1>Cursos de datos, estadística y tecnología</h1>
+        <p>Elige una ruta de aprendizaje y avanza con clases estructuradas, proyectos guiados y recursos descargables.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="search-panel">
+            <label for="courseSearch">Buscar cursos</label>
+            <input id="courseSearch" type="search" placeholder="Busca por nombre, categoría o herramienta">
+        </div>
+
+        <div class="category-heading">
+            <h2>Estadística y análisis</h2>
+            <p>Fundamentos cuantitativos para interpretar datos con criterio.</p>
+        </div>
+        <div class="card-grid three courses-list">
+            <article class="card course-card" data-course="estadística aplicada estadística inferencia">
+                <div class="visual visual-stats" role="img" aria-label="Gráficos de estadística"></div>
+                <div class="card-body">
+                    <span class="tag">Estadística</span>
+                    <h3>Estadística Aplicada</h3>
+                    <p>Medidas descriptivas, probabilidad, intervalos e interpretación de resultados.</p>
+                    <div class="course-meta"><span>8 semanas</span><strong>$89</strong></div>
+                </div>
+            </article>
+            <article class="card course-card" data-course="análisis de datos limpieza visualización panel">
+                <div class="visual visual-data" role="img" aria-label="Panel de datos"></div>
+                <div class="card-body">
+                    <span class="tag">Análisis</span>
+                    <h3>Análisis de Datos</h3>
+                    <p>Limpieza, exploración, gráficos y narrativa de datos para informes ejecutivos.</p>
+                    <div class="course-meta"><span>10 semanas</span><strong>$109</strong></div>
+                </div>
+            </article>
+            <article class="card course-card" data-course="investigación cuantitativa encuestas muestra">
+                <div class="visual visual-research" role="img" aria-label="Encuestas y muestra"></div>
+                <div class="card-body">
+                    <span class="tag">Investigación</span>
+                    <h3>Investigación Cuantitativa</h3>
+                    <p>Diseña encuestas, define muestras y analiza hallazgos con metodología clara.</p>
+                    <div class="course-meta"><span>6 semanas</span><strong>$79</strong></div>
+                </div>
+            </article>
+        </div>
+
+        <div class="category-heading">
+            <h2>Herramientas digitales</h2>
+            <p>Aprende software y flujos de trabajo usados por equipos de datos.</p>
+        </div>
+        <div class="card-grid three courses-list">
+            <article class="card course-card" data-course="python datos pandas cuadernos programación">
+                <div class="visual visual-python" role="img" aria-label="Código Python"></div>
+                <div class="card-body">
+                    <span class="tag">Programación</span>
+                    <h3>Python para Datos</h3>
+                    <p>Automatiza tareas, manipula datos con pandas y crea cuadernos reproducibles.</p>
+                    <div class="course-meta"><span>12 semanas</span><strong>$129</strong></div>
+                </div>
+            </article>
+            <article class="card course-card" data-course="excel avanzado tablas dinámicas fórmulas">
+                <div class="visual visual-excel" role="img" aria-label="Hoja de cálculo"></div>
+                <div class="card-body">
+                    <span class="tag">Ofimática</span>
+                    <h3>Excel Avanzado</h3>
+                    <p>Funciones, tablas dinámicas, modelos y reportes para trabajo profesional.</p>
+                    <div class="course-meta"><span>5 semanas</span><strong>$59</strong></div>
+                </div>
+            </article>
+            <article class="card course-card" data-course="power bi visualización panel inteligencia negocio">
+                <div class="visual visual-bi" role="img" aria-label="Visualización Power BI"></div>
+                <div class="card-body">
+                    <span class="tag">Inteligencia de Negocios</span>
+                    <h3>Power BI Profesional</h3>
+                    <p>Construye paneles interactivos y modelos para seguimiento de indicadores.</p>
+                    <div class="course-meta"><span>9 semanas</span><strong>$119</strong></div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,9 @@
+@model Course
+@{ ViewData["Title"] = Model.Title; var materials = (IEnumerable<CourseMaterial>)ViewBag.Materials; var tasks = (IEnumerable<CourseTask>)ViewBag.Tasks; }
+<section class="section"><div class="container">
+    <h1>@Model.Title</h1>
+    <div class="card-grid two">
+        <div class="card p-4"><h2>Materiales</h2>@foreach (var m in materials){<p><strong>Semana @m.Week:</strong> <a class="text-link" href="@m.Url">@m.Title</a></p>}</div>
+        <div class="card p-4"><h2>Tareas</h2>@foreach (var t in tasks){<p><strong>@t.Title</strong><br>@t.Instructions<br><span class="text-muted">@t.DueDate.ToShortDateString()</span></p>}</div>
+    </div>
+</div></section>

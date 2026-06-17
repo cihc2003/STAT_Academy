@@ -1,0 +1,20 @@
+@model Product
+@{ ViewData["Title"] = Model.Name; }
+<section class="section"><div class="container">
+    <div class="card p-4">
+        <span class="tag">@Model.Category</span>
+        <h1>@Model.Name</h1>
+        <p class="text-muted">@Model.Description</p>
+        <h2>@Model.Price.ToString("C")</h2>
+        <p>Proveedor: @(Model.Supplier?.Name ?? "STATMEDICAL")</p>
+        @if (User.Identity?.IsAuthenticated == true) {
+            <form asp-controller="Cart" asp-action="Add" method="post" class="d-flex gap-2 align-items-center">
+                <input type="hidden" name="productId" value="@Model.Id">
+                <input class="form-control" style="max-width:120px" type="number" min="1" name="quantity" value="1">
+                <button class="btn btn-primary">Agregar al carrito</button>
+            </form>
+        } else {
+            <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Ingresar para comprar</a>
+        }
+    </div>
+</div></section>

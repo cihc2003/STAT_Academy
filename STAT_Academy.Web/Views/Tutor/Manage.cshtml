@@ -1,0 +1,10 @@
+@model Course
+@{ ViewData["Title"] = "Gestionar curso"; var materials = (IEnumerable<CourseMaterial>)ViewBag.Materials; var tasks = (IEnumerable<CourseTask>)ViewBag.Tasks; var students = (IEnumerable<Enrollment>)ViewBag.Students; }
+<section class="section"><div class="container">
+    <h1>@Model.Title</h1>
+    <div class="card-grid two">
+        <div class="card p-4"><h2>Subir material</h2><form asp-action="AddMaterial" method="post"><input type="hidden" name="CourseId" value="@Model.Id"><div class="form-group mb-2"><label>Título</label><input name="Title"></div><div class="form-group mb-2"><label>Enlace</label><input name="Url"></div><div class="form-group mb-2"><label>Semana</label><input name="Week" type="number" value="1"></div><button class="btn btn-primary">Guardar</button></form><hr>@foreach(var m in materials){<p>@m.Week - @m.Title</p>}</div>
+        <div class="card p-4"><h2>Crear tarea</h2><form asp-action="AddTask" method="post"><input type="hidden" name="CourseId" value="@Model.Id"><div class="form-group mb-2"><label>Título</label><input name="Title"></div><div class="form-group mb-2"><label>Instrucciones</label><textarea name="Instructions"></textarea></div><div class="form-group mb-2"><label>Fecha</label><input name="DueDate" type="date"></div><button class="btn btn-primary">Guardar</button></form><hr>@foreach(var t in tasks){<p>@t.Title</p>}</div>
+    </div>
+    <div class="card p-4 mt-4"><h2>Estudiantes aprobados</h2>@foreach(var s in students){<p>@s.Student?.FullName - @s.Student?.Email</p>}</div>
+</div></section>

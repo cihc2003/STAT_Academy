@@ -1,0 +1,10 @@
+@model BlogPost
+@{ ViewData["Title"] = Model.Title; }
+<section class="section"><div class="container">
+    <article class="card p-4">
+        <span class="tag">@Model.Category</span>
+        <h1>@Model.Title</h1>
+        <p class="lead">@Model.Summary</p>
+        <p>@Model.Content</p>
+    </article>
+</div></section>

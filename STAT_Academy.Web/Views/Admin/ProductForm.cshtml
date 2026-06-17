@@ -1,0 +1,25 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Nuevo producto" : "Editar producto";
+}
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+    <section class="card p-4">
+        <h1>@ViewData["Title"]</h1>
+        <form asp-action="ProductForm" method="post">
+            <input asp-for="Id" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="row g-3">
+                <div class="col-md-6 form-group"><label asp-for="Name"></label><input asp-for="Name" /><span asp-validation-for="Name" class="text-danger"></span></div>
+                <div class="col-md-6 form-group"><label asp-for="Category"></label><input asp-for="Category" /><span asp-validation-for="Category" class="text-danger"></span></div>
+                <div class="col-md-12 form-group"><label asp-for="Description"></label><textarea asp-for="Description" rows="4"></textarea><span asp-validation-for="Description" class="text-danger"></span></div>
+                <div class="col-md-4 form-group"><label asp-for="Price"></label><input asp-for="Price" /><span asp-validation-for="Price" class="text-danger"></span></div>
+                <div class="col-md-4 form-group"><label asp-for="Stock"></label><input asp-for="Stock" /><span asp-validation-for="Stock" class="text-danger"></span></div>
+                <div class="col-md-4 form-group"><label asp-for="SupplierId">Proveedor</label><select asp-for="SupplierId" asp-items="ViewBag.Suppliers" class="form-select"><option value="">Sin proveedor</option></select></div>
+                <div class="col-12"><label class="d-flex gap-2"><input asp-for="IsActive" /> Activo</label></div>
+            </div>
+            <button class="btn btn-primary mt-3">Guardar</button>
+        </form>
+    </section>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

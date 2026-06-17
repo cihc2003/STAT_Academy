@@ -1,0 +1,75 @@
+@model IEnumerable<UserAdminViewModel>
+@{
+    ViewData["Title"] = "Usuarios";
+    var roles = (IEnumerable<string>)ViewBag.Roles;
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Usuarios</h1>
+            </div>
+        </div>
+
+        <form class="row g-2 mb-3">
+            <div class="col-md-4">
+                <input class="form-control" name="search" placeholder="Buscar por nombre o correo">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="role">
+                    <option value="">Todos los roles</option>
+                    @foreach (var role in roles)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="active">
+                    <option value="">Todos los estados</option>
+                    <option value="true">Activos</option>
+                    <option value="false">Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>@user.FullName</td>
+                        <td>@user.Email</td>
+                        <td>@user.PhoneNumber</td>
+                        <td><span class="status-pill">@user.Role</span></td>
+                        <td><span class="status-pill">@(user.IsActive ? "Activo" : "Inactivo")</span></td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" asp-action="UserForm" asp-route-id="@user.Id">Editar</a>
+                            <form asp-action="ToggleUser" asp-route-id="@user.Id" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-secondary">@(user.IsActive ? "Desactivar" : "Activar")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

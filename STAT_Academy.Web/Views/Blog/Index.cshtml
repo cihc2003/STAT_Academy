@@ -1,0 +1,8 @@
+@model IEnumerable<BlogPost>
+@{ ViewData["Title"] = "Artículos"; }
+<section class="page-hero"><div class="container"><span class="eyebrow">Artículos educativos</span><h1>Artículos y guías</h1><p>Contenido de salud, prevención, datos y formación continua.</p></div></section>
+<section class="section"><div class="container card-grid three">
+@foreach (var item in Model) {
+    <article class="card p-4"><span class="tag">@item.Category</span><h3>@item.Title</h3><p>@item.Summary</p><a class="text-link" asp-action="Details" asp-route-id="@item.Id">Leer artículo</a></article>
+}
+</div></section>

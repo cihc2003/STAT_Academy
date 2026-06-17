@@ -1,0 +1,8 @@
+@model IEnumerable<BlogPost>
+@{ ViewData["Title"] = "Artículos"; }
+<div class="container admin-shell"><partial name="_AdminNav" /><section>
+    <div class="d-flex justify-content-between align-items-center mb-3"><h1>Artículos</h1><a class="btn btn-primary" asp-action="BlogForm">Nueva publicación</a></div>
+    <div class="table-card"><table class="table mb-0"><thead><tr><th>Título</th><th>Categoría</th><th>Estado</th><th></th></tr></thead><tbody>
+    @foreach (var item in Model) { <tr><td>@item.Title</td><td>@item.Category</td><td><span class="status-pill">@(item.IsActive ? "Activa" : "Inactiva")</span></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="BlogForm" asp-route-id="@item.Id">Editar</a></td></tr> }
+    </tbody></table></div>
+</section></div>
