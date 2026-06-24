@@ -8,13 +8,13 @@ namespace STAT_Academy.Api.Models
 
         [Required]
         [EmailAddress]
-        public string email { get; set; }
+        public string? email { get; set; }
 
         [Required]
-        public string nombre { get; set; }
+        public string? nombre { get; set; }
 
         [Required]
-        public string password { get; set; }
+        public string? password { get; set; }
 
         [Required]
         public bool estado { get; set; }
@@ -29,5 +29,6 @@ namespace STAT_Academy.Api.Models
 
         [Required]
         public int fk_Tipo_Usuario { get; set; }
+        
     }
 }

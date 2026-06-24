@@ -10,6 +10,9 @@ namespace STAT_Academy.Api.Data
         }
 
         public DbSet<UsuarioModel> Usuario { get; set; }
+        public DbSet<ProveedorModel> Proveedor { get; set; }
+        public DbSet<AuditoriaModel> Auditoria { get; set; }
+        public DbSet<ProductoModel> Producto { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
