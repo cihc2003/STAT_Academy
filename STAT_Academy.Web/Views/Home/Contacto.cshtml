@@ -1,0 +1,55 @@
+﻿@{
+    ViewData["Title"] = "Contacto";
+    ViewData["Page"] = "Contacto";
+}
+
+<section class="page-hero">
+    <div class="container">
+        <span class="eyebrow">Hablemos</span>
+        <h1>Contacta con STAT Academy</h1>
+        <p>Cuéntanos qué quieres aprender y te ayudaremos a elegir el curso o ruta más adecuada para tus objetivos.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container contact-grid">
+        <form class="contact-form card" action="#" method="post">
+            <div class="form-group">
+                <label for="name">Nombre completo</label>
+                <input id="name" name="name" type="text" placeholder="Tu nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Correo electrónico</label>
+                <input id="email" name="email" type="email" placeholder="correo@ejemplo.com" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Teléfono</label>
+                <input id="phone" name="phone" type="tel" placeholder="+506 0000 0000">
+            </div>
+            <div class="form-group">
+                <label for="subject">Asunto</label>
+                <input id="subject" name="subject" type="text" placeholder="Información sobre cursos" required>
+            </div>
+            <div class="form-group full">
+                <label for="message">Mensaje</label>
+                <textarea id="message" name="message" rows="6" placeholder="Escribe tu consulta" required></textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Enviar mensaje</button>
+        </form>
+
+        <aside class="contact-info">
+            <div class="info-card">
+                <h2>Información de contacto</h2>
+                <p><strong>Dirección:</strong> Avenida 8 calle 45, San José</p>
+                <p><strong>Teléfono:</strong> +506 2412 8800</p>
+                <p><strong>Correo:</strong> hola@statacademy.edu</p>
+            </div>
+            <div class="map-card">
+                <iframe title="Mapa de ubicación de STAT Academy"
+                        src="https://www.google.com/maps?q=Ciudad%20de%20Guatemala%20Zona%2010&amp;output=embed"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </aside>
+    </div>
+</section>

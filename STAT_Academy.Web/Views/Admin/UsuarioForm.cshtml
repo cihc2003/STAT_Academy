@@ -1,0 +1,56 @@
+﻿@model STAT_Academy.Web.Models.Admin.UsuarioViewModel
+@{
+    ViewData["Title"] = "Detalle de usuario";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+    <section class="card p-4">
+        <span class="eyebrow">Administración</span>
+        <h1>Usuario</h1>
+
+        <div class="row g-3 mt-2">
+            <div class="col-md-6 form-group">
+                <label>Id</label>
+                <input class="form-control" value="@Model.id" readonly />
+            </div>
+
+            <div class="col-md-6 form-group">
+                <label>Tipo de usuario</label>
+                <input class="form-control" value="@ObtenerNombreTipoUsuario(Model.fk_Tipo_Usuario)" readonly />
+            </div>
+
+            <div class="col-md-6 form-group">
+                <label>Nombre</label>
+                <input class="form-control" value="@Model.nombre" readonly />
+            </div>
+
+            <div class="col-md-6 form-group">
+                <label>Correo</label>
+                <input class="form-control" value="@Model.email" readonly />
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+            <a class="btn btn-outline-secondary" asp-action="Usuarios">Volver</a>
+
+            <form asp-action="ToggleUser" asp-route-id="@Model.id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-danger" type="submit">Desactivar usuario</button>
+            </form>
+        </div>
+    </section>
+</div>
+
+@functions {
+    private static string ObtenerNombreTipoUsuario(int tipoUsuario)
+    {
+        return tipoUsuario switch
+        {
+            1 => "Admin",
+            2 => "Tutor",
+            3 => "Cliente",
+            _ => "Usuario"
+        };
+    }
+}

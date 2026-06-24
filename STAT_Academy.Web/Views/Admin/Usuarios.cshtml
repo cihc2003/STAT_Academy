@@ -1,0 +1,103 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.Admin.UsuarioViewModel>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Usuarios</h1>
+            </div>
+        </div>
+
+        <form class="row g-2 mb-3" method="get" asp-action="Usuarios">
+            <div class="col-md-10">
+                <input class="form-control"
+                       name="search"
+                       value="@Context.Request.Query["search"]"
+                       placeholder="Buscar por nombre o correo" />
+            </div>
+
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Tipo de usuario</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No se encontraron usuarios.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>@user.id</td>
+                                <td>@user.nombre</td>
+                                <td>@user.email</td>
+                                <td>
+                                    <span class="status-pill">
+                                        @ObtenerNombreTipoUsuario(user.fk_Tipo_Usuario)
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-action="UsuarioForm"
+                                       asp-route-id="@user.id">
+                                        Ver
+                                    </a>
+
+                                    <form asp-action="ToggleUser"
+                                          asp-route-id="@user.id"
+                                          method="post"
+                                          class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-secondary"
+                                                type="submit">
+                                            Desactivar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@functions {
+    private static string ObtenerNombreTipoUsuario(int tipoUsuario)
+    {
+        return tipoUsuario switch
+        {
+            1 => "Admin",
+            2 => "Tutor",
+            3 => "Cliente",
+            _ => "Usuario"
+        };
+    }
+}
