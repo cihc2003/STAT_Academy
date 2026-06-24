@@ -10,6 +10,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<LoginService>();
+builder.Services.AddScoped<ProveedorService>();
+builder.Services.AddScoped<AuditoriaService>();
+builder.Services.AddScoped<ProductoService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
