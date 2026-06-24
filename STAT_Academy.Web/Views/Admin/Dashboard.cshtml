@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Panel de control";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+    <section>
+        <div class="section-heading">
+            <span class="eyebrow">Administración</span>
+            <h1>Panel de control STAT Academy</h1>
+            <p>Resumen operativo de tienda, cursos, matrículas y pedidos.</p>
+        </div>
+        <div class="card-grid four">
+            <div class="stat-box"><strong>@ViewBag.Usuarios</strong><span>Usuarios</span></div>
+            <div class="stat-box"><strong>@ViewBag.Productos</strong><span>Productos</span></div>
+            <div class="stat-box"><strong>@ViewBag.Cursos</strong><span>Cursos</span></div>
+            <div class="stat-box"><strong>@ViewBag.Matriculas</strong><span>Matrículas</span></div>
+        </div>
+        <div class="card p-4 mt-4">
+            <h3>Integración API</h3>
+            <p>Estado de API de usuarios: <span class="status-pill">@(ViewBag.ApiReachable ? "Disponible" : "No disponible / revisar puerto")</span></p>
+        </div>
+    </section>
+</div>

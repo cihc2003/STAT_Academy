@@ -1,8 +1,216 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
-}
+    ViewData["Title"] = "Inicio";
+    ViewData["Page"] = "Inicio";
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+    var featuredCourses = new[]
+    {
+        new
+        {
+            Id = 1,
+            Category = "Estadística aplicada",
+            Title = "Introducción a la estadística médica",
+            Description = "Aprende los fundamentos de análisis estadístico aplicado a datos de salud."
+        },
+        new
+        {
+            Id = 2,
+            Category = "Investigación",
+            Title = "Diseño de estudios clínicos",
+            Description = "Comprende cómo estructurar estudios, variables, muestras y resultados."
+        },
+        new
+        {
+            Id = 3,
+            Category = "Análisis de datos",
+            Title = "Interpretación de resultados",
+            Description = "Convierte tablas, gráficos e indicadores en conclusiones claras y útiles."
+        }
+    };
+
+    var featuredProducts = new[]
+    {
+        new
+        {
+            Id = 1,
+            Category = "Material educativo",
+            Name = "Guía de estadística básica",
+            Description = "Material de apoyo para estudiantes y profesionales de ciencias de la salud.",
+            Stock = 25,
+            Price = 15000m
+        },
+        new
+        {
+            Id = 2,
+            Category = "Recurso digital",
+            Name = "Plantillas para análisis de datos",
+            Description = "Formatos descargables para organizar resultados y reportes académicos.",
+            Stock = 40,
+            Price = 9500m
+        },
+        new
+        {
+            Id = 3,
+            Category = "Simulación",
+            Name = "Caso práctico de investigación",
+            Description = "Ejercicio guiado para practicar análisis e interpretación de información clínica.",
+            Stock = 18,
+            Price = 12000m
+        }
+    };
+
+    var featuredPosts = new[]
+    {
+        new
+        {
+            Id = 1,
+            Category = "Salud",
+            Title = "La importancia de interpretar bien los datos",
+            Summary = "Una lectura correcta de los datos permite tomar mejores decisiones clínicas y académicas."
+        },
+        new
+        {
+            Id = 2,
+            Category = "Prevención",
+            Title = "Indicadores básicos en estudios de salud",
+            Summary = "Conoce algunos indicadores frecuentes y cómo pueden usarse en investigación."
+        },
+        new
+        {
+            Id = 3,
+            Category = "Educación",
+            Title = "Cómo estudiar estadística sin frustrarse",
+            Summary = "Consejos prácticos para avanzar paso a paso en temas cuantitativos."
+        }
+    };
+
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-copy">
+                <span class="eyebrow">STATMEDICAL presenta</span>
+                <h1>STAT Academy</h1>
+                <p>Plataforma educativa y tienda profesional para cursos de salud, recursos médicos, blog educativo y aprendizaje guiado por tutores.</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a class="btn btn-primary" asp-controller="Courses" asp-action="Index">Explorar cursos</a>
+                    <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ver tienda</a>
+                </div>
+            </div>
+            <div class="hero-panel" aria-label="Resumen visual de aprendizaje">
+                <div class="metric-card large">
+                    <span>92%</span>
+                    <p>de estudiantes aplican lo aprendido en proyectos reales</p>
+                </div>
+                <div class="chart-card">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <span class="eyebrow">Rutas destacadas</span>
+                <h2>Cursos destacados</h2>
+                <p>Programas diseñados por STATMEDICAL para aprendizaje práctico y profesional.</p>
+            </div>
+            <div class="card-grid three">
+                @foreach (var course in featuredCourses)
+                {
+                    <article class="card course-card">
+                        <div class="visual visual-stats" role="img" aria-label="Curso destacado"></div>
+                        <div class="card-body">
+                            <span class="tag">@course.Category</span>
+                            <h3>@course.Title</h3>
+                            <p>@course.Description</p>
+                            <a class="text-link" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Ver curso</a>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="section mission-section">
+        <div class="container">
+            <div class="section-heading">
+                <span class="eyebrow">Tienda</span>
+                <h2>Productos destacados</h2>
+                <p>Recursos e insumos seleccionados para prácticas, cursos y simulación.</p>
+            </div>
+            <div class="card-grid three">
+                @foreach (var product in featuredProducts)
+                {
+                    <article class="card p-4">
+                        <span class="tag">@product.Category</span>
+                        <h3>@product.Name</h3>
+                        <p>@product.Description</p>
+                        <div class="course-meta"><span>Existencias @product.Stock</span><strong>@product.Price.ToString("C")</strong></div>
+                        <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">Comprar</a>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <span class="eyebrow">Artículos educativos</span>
+                <h2>Aprendizaje continuo</h2>
+                <p>Artículos de prevención, salud, analítica y mejores prácticas.</p>
+            </div>
+            <div class="card-grid three">
+                @foreach (var post in featuredPosts)
+                {
+                    <article class="card p-4">
+                        <span class="tag">@post.Category</span>
+                        <h3>@post.Title</h3>
+                        <p>@post.Summary</p>
+                        <a class="text-link" asp-controller="Blog" asp-action="Details" asp-route-id="@post.Id">Leer más</a>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="section stats-section">
+        <div class="container stats-grid">
+            <div class="stat-box">
+                <strong>1,250+</strong>
+                <span>Estudiantes</span>
+            </div>
+            <div class="stat-box">
+                <strong>18</strong>
+                <span>Profesores</span>
+            </div>
+            <div class="stat-box">
+                <strong>24</strong>
+                <span>Cursos disponibles</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-heading">
+                <span class="eyebrow">Experiencias</span>
+                <h2>Lo que dicen nuestros estudiantes</h2>
+            </div>
+            <div class="card-grid two">
+                <article class="card testimonial-card">
+                    <p>"Las clases son claras, ordenadas y muy aplicables. Logré construir mi primer panel con datos reales."</p>
+                    <h3>Mariana López</h3>
+                    <span>Analista junior</span>
+                </article>
+                <article class="card testimonial-card">
+                    <p>"Me gustó que cada módulo termina con ejercicios prácticos. La estadística dejó de sentirse abstracta."</p>
+                    <h3>Carlos Méndez</h3>
+                    <span>Estudiante de ingeniería</span>
+                </article>
+            </div>
+        </div>
+    </section>
+}
