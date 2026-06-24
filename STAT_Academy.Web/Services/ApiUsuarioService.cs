@@ -1,116 +1,47 @@
-using System.Net;
+using STAT_Academy.Web.Models.Usuarios;
 using System.Net.Http.Json;
-using System.Text.Json;
-using STAT_Academy.Web.Data;
-using STAT_Academy.Web.Models.Api;
-using STAT_Academy.Web.Services.Mappers;
-using STAT_Academy.Web.ViewModels;
-
-namespace STAT_Academy.Web.Services;
 
 public class ApiUsuarioService
 {
     private readonly HttpClient _httpClient;
 
-    public ApiUsuarioService(HttpClient httpClient)
+    public ApiUsuarioService(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient("STATApi");
     }
 
-    public async Task<bool> EstaDisponibleAsync()
+    public async Task<List<UsuarioResponse>?> GetUsuarios()
     {
-        try
-        {
-            using var response = await _httpClient.GetAsync("Usuario/activos");
-            return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
+        return await _httpClient.GetFromJsonAsync<List<UsuarioResponse>>("api/Usuario");
     }
 
-    public async Task<List<UsuarioApiResponse>> ObtenerUsuariosAsync()
+    public async Task<UsuarioResponse?> GetUsuarioById(int id)
     {
-        return await _httpClient.GetFromJsonAsync<List<UsuarioApiResponse>>("Usuario") ?? [];
+        return await _httpClient.GetFromJsonAsync<UsuarioResponse>($"api/Usuario/{id}");
     }
 
-    public async Task<UsuarioApiResponse?> ObtenerUsuarioAsync(int id)
+    public async Task<List<UsuarioResponse>?> GetUsuariosActivos()
     {
-        return await _httpClient.GetFromJsonAsync<UsuarioApiResponse>($"Usuario/{id}");
+        return await _httpClient.GetFromJsonAsync<List<UsuarioResponse>>("api/Usuario/activos");
     }
 
-    public async Task<ApiResultado<UsuarioApiResponse>> RegistrarAsync(RegisterViewModel model)
+    public async Task<UsuarioResponse?> RegistrarUsuario(RegisterUsuarioRequest request)
     {
-        var request = new RegistroUsuarioApiRequest(model.Email, model.FullName, model.Password);
-        using var response = await _httpClient.PostAsJsonAsync("Usuario/Registrar", request);
-        return await LeerResultadoAsync<UsuarioApiResponse>(response);
+        var response = await _httpClient.PostAsJsonAsync("api/Usuario/Registrar", request);
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
     }
 
-    public async Task<ApiResultado<LoginApiResponse>> IniciarSesionAsync(LoginViewModel model)
+    public async Task<UsuarioResponse?> DesactivarUsuario(int id)
     {
-        var request = new LoginApiRequest(model.Email, model.Password);
-        using var response = await _httpClient.PostAsJsonAsync("Login", request);
-        return await LeerResultadoAsync<LoginApiResponse>(response);
-    }
+        var response = await _httpClient.PatchAsync($"api/Usuario/{id}/desactivar", null);
 
-    public async Task<ApiResultado<UsuarioApiResponse>> ActualizarAsync(int id, UserAdminViewModel model)
-    {
-        var request = new ActualizarUsuarioApiRequest(
-            model.Email,
-            model.FullName,
-            ApiRolMapper.ObtenerTipoUsuario(model.Role),
-            model.IsActive);
+        if (!response.IsSuccessStatusCode)
+            return null;
 
-        using var response = await _httpClient.PutAsJsonAsync($"Usuario/{id}", request);
-        return await LeerResultadoAsync<UsuarioApiResponse>(response);
-    }
-
-    public async Task<ApiResultado<UsuarioApiResponse>> CambiarEstadoAsync(int id, bool activar)
-    {
-        var endpoint = activar ? $"Usuario/{id}/activar" : $"Usuario/{id}/desactivar";
-        using var response = await _httpClient.PatchAsync(endpoint, null);
-        return await LeerResultadoAsync<UsuarioApiResponse>(response);
-    }
-
-    private static async Task<ApiResultado<T>> LeerResultadoAsync<T>(HttpResponseMessage response)
-    {
-        if (response.IsSuccessStatusCode)
-        {
-            var data = await response.Content.ReadFromJsonAsync<T>();
-            return ApiResultado<T>.Correcto(data!);
-        }
-
-        var mensaje = await LeerMensajeErrorAsync(response);
-        return ApiResultado<T>.Error(mensaje, response.StatusCode);
-    }
-
-    private static async Task<string> LeerMensajeErrorAsync(HttpResponseMessage response)
-    {
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            return "Usuario o contraseña incorrectos.";
-        }
-
-        var content = await response.Content.ReadAsStringAsync();
-        if (string.IsNullOrWhiteSpace(content))
-        {
-            return "No se pudo completar la solicitud con la API.";
-        }
-
-        try
-        {
-            using var document = JsonDocument.Parse(content);
-            if (document.RootElement.TryGetProperty("message", out var message))
-            {
-                return message.GetString() ?? "No se pudo completar la solicitud con la API.";
-            }
-        }
-        catch
-        {
-            // Si la API devuelve texto plano, se usa el contenido recibido.
-        }
-
-        return content.Trim('"');
+        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
     }
 }

@@ -1,24 +1,36 @@
-namespace STAT_Academy.Web.Services;
+using STAT_Academy.Web.Models.Usuarios;
+using System.Net.Http.Json;
 
-public class ApiUserGateway
+namespace STAT_Academy.Web.Services
 {
-    private readonly HttpClient _httpClient;
-
-    public ApiUserGateway(HttpClient httpClient)
+    public class ApiUserGateway
     {
-        _httpClient = httpClient;
-    }
+        private readonly HttpClient _httpClient;
 
-    public async Task<bool> ApiIsReachableAsync()
-    {
-        try
+        public ApiUserGateway(HttpClient httpClient)
         {
-            using var response = await _httpClient.GetAsync("Usuario/activos");
-            return response.IsSuccessStatusCode;
+            _httpClient = httpClient;
         }
-        catch
+
+        public async Task<UsuarioResponse?> LoginAsync(LoginViewModel model)
         {
-            return false;
+            var response = await _httpClient.PostAsJsonAsync("api/Login", new
+            {
+                email = model.Email,
+                password = model.Password
+            });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
+        }
+
+        public async Task LogoutAsync()
+        {
+            await _httpClient.PostAsync("api/Login/logout", null);
         }
     }
 }
