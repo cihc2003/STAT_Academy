@@ -96,37 +96,5 @@ namespace STAT_Academy.Web.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult Registrar()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Registrar(RegisterUsuarioRequest model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var resultado = await _apiUsuarioService.RegistrarUsuario(new RegisterUsuarioRequest
-            {
-                nombre = model.nombre,
-                email = model.email,
-                password = model.password,
-                tipo = 3
-
-            });
-
-            if (resultado == null)
-            {
-                ModelState.AddModelError("", "No se pudo registrar el usuario.");
-                return View(model);
-            }
-
-            return RedirectToAction(nameof(Login));
-        }
-
     }
 }
