@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace STAT_Academy.Api.DTOs.Usuarios
+namespace STAT_Academy.DTOs.Usuarios
 {
     public class CreateUsuarioRequest
     {

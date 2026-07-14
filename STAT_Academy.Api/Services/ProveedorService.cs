@@ -1,5 +1,5 @@
 ﻿using STAT_Academy.Api.Data;
-using STAT_Academy.Api.DTOs.Proveedor;
+using STAT_Academy.DTOs.Proveedor;
 using STAT_Academy.Api.Models;
 
 namespace STAT_Academy.Api.Services

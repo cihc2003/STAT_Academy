@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using STAT_Academy.Api.Data;
-using STAT_Academy.Api.DTOs.Producto;
+﻿using STAT_Academy.Api.Data;
+using STAT_Academy.DTOs.Producto;
 using STAT_Academy.Api.Models;
 
 namespace STAT_Academy.Api.Services
