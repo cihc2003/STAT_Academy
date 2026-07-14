@@ -24,4 +24,8 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\STAT_Academy.DTOs\STAT_Academy.DTOs.csproj" />
+  </ItemGroup>
+
 </Project>

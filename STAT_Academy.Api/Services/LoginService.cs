@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using STAT_Academy.Api.Data;
-using STAT_Academy.Api.DTOs.Login;
+using STAT_Academy.DTOs.Login;
 using STAT_Academy.Api.Models;
 
 namespace STAT_Academy.Api.Services

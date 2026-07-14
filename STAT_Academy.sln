@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STAT_Academy.Api", "STAT_Ac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STAT_Academy.Web", "STAT_Academy.Web\STAT_Academy.Web.csproj", "{89586DB6-5501-47D6-827A-DBBB70731481}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STAT_Academy.DTOs", "STAT_Academy.DTOs\STAT_Academy.DTOs.csproj", "{D16EABF8-1FB5-4209-9F1B-1B890FF28D34}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{89586DB6-5501-47D6-827A-DBBB70731481}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89586DB6-5501-47D6-827A-DBBB70731481}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89586DB6-5501-47D6-827A-DBBB70731481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D16EABF8-1FB5-4209-9F1B-1B890FF28D34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D16EABF8-1FB5-4209-9F1B-1B890FF28D34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D16EABF8-1FB5-4209-9F1B-1B890FF28D34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D16EABF8-1FB5-4209-9F1B-1B890FF28D34}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

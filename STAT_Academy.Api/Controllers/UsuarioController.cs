@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using STAT_Academy.Api.DTOs.Usuarios;
+using STAT_Academy.DTOs.Usuarios;
 using STAT_Academy.Api.Services;
 
 namespace STAT_Academy.Api.Controllers

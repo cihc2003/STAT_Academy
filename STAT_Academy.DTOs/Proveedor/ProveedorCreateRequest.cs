@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace STAT_Academy.Api.DTOs.Proveedor
+﻿namespace STAT_Academy.DTOs.Proveedor
 {
     public class ProveedorCreateRequest
     {

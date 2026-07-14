@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace STAT_Academy.Api.DTOs.Login
+namespace STAT_Academy.DTOs.Login
 {
     public class LoginResponse
     {

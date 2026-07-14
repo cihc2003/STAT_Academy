@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace STAT_Academy.Api.DTOs.Producto
+﻿
+namespace STAT_Academy.DTOs.Producto
 {
     public class ProductoCreateRequest
     {
