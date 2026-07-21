@@ -1,0 +1,110 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.Admin.ProductoViewModel>
+
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Productos</h1>
+            </div>
+
+            <a class="btn btn-primary" asp-action="ProductForm">
+                Agregar producto
+            </a>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form class="row g-2 mb-3" method="get" asp-action="Products">
+            <div class="col-md-10">
+                <input class="form-control"
+                       name="search"
+                       value="@Context.Request.Query["search"]"
+                       placeholder="Buscar por nombre o categoría" />
+            </div>
+
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Precio</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No se encontraron productos.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var producto in Model)
+                        {
+                            <tr>
+                                <td>@producto.id</td>
+                                <td>@producto.nombre</td>
+                                <td>@producto.categoria</td>
+                                <td>@producto.precio_base.ToString("C")</td>
+                                <td>@producto.stock</td>
+                                <td>
+                                    <span class="status-pill">
+                                        @(producto.estado ? "Activo" : "Inactivo")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-action="ProductForm"
+                                       asp-route-id="@producto.id">
+                                        Editar
+                                    </a>
+
+                                    @if (producto.estado)
+                                    {
+                                        <form asp-action="ToggleProduct"
+                                              asp-route-id="@producto.id"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('¿Eliminar este producto de la tienda?');">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
