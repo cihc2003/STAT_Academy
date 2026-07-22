@@ -226,4 +226,22 @@ public class AdminController : Controller
 
         return RedirectToAction(nameof(Products));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleProductOn(int id)
+    {
+        var producto = await _apiProductos.ActivarProducto(id);
+
+        if (producto == null)
+        {
+            TempData["Error"] = "No se pudo reactivar el producto.";
+        }
+        else
+        {
+            TempData["Success"] = "Producto reactivado correctamente.";
+        }
+
+        return RedirectToAction(nameof(Products));
+    }
 }

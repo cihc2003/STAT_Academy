@@ -113,5 +113,28 @@ namespace STAT_Academy.Api.Services
 
             return producto;
         }
+
+        public ProductoModel Activar(int id)
+        {
+            var producto = _context.Producto.FirstOrDefault(p => p.id == id);
+
+            if (producto == null)
+                return null;
+
+            producto.estado = true;
+            producto.fecha_edicion = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            _auditoria.Registrar(
+                "PRODUCTO",
+                "ENABLE",
+                $"Producto {producto.nombre} reactivado",
+                "admin",
+                producto.id
+            );
+
+            return producto;
+        }
     }
 }

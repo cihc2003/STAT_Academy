@@ -52,5 +52,15 @@ namespace STAT_Academy.Web.Services
 
             return await response.Content.ReadFromJsonAsync<ProductoResponse>();
         }
+
+        public async Task<ProductoResponse?> ActivarProducto(int id)
+        {
+            var response = await _httpClient.PutAsync($"api/Producto/activar/{id}", null);
+
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            return await response.Content.ReadFromJsonAsync<ProductoResponse>();
+        }
     }
 }

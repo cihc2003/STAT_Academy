@@ -99,6 +99,19 @@
                                             </button>
                                         </form>
                                     }
+                                    else
+                                    {
+                                        <form asp-action="ToggleProductOn"
+                                              asp-route-id="@producto.id"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-success" type="submit">
+                                                Reactivar
+                                            </button>
+                                        </form>
+                                    }
+
                                 </td>
                             </tr>
                         }
