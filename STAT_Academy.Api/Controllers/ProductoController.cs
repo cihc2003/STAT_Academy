@@ -44,5 +44,17 @@ namespace STAT_Academy.Api.Controllers
         {
             return Ok(_service.Desactivar(id));
         }
+
+        [HttpPut("activar/{id}")]
+        public IActionResult Activar(int id)
+        {
+            var result = _service.Activar(id);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
     }
 }
