@@ -44,7 +44,16 @@ namespace STAT_Academy.Api.Controllers
 
             return Ok(usuario);
         }
+        [HttpPatch("{id}/activar")]
+        public IActionResult Activar(int id)
+        {
+            var result = _usuarioService.ActivarUsuario(id);
 
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
         [HttpPost]
         public ActionResult<UsuarioResponse> CreateUsuario(CreateUsuarioRequest request)
         {

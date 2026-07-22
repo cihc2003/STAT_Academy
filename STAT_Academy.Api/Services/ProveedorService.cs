@@ -20,8 +20,24 @@ namespace STAT_Academy.Api.Services
             return _context.Proveedor.ToList();
         }
 
+        public ProveedorModel? GetById(int id)
+        {
+            return _context.Proveedor
+                .FirstOrDefault(p => p.id == id);
+        }
+        public List<ProveedorModel> GetActivos()
+        {
+            return _context.Proveedor
+                .Where(p => p.estado)
+                .ToList();
+        }
         public ProveedorModel Crear(ProveedorCreateRequest request)
         {
+            bool existe = _context.Proveedor.Any(p => p.nombre == request.nombre);
+
+            if (existe)
+                throw new Exception("Ya existe un proveedor con ese nombre");
+
             var proveedor = new ProveedorModel
             {
                 nombre = request.nombre,
@@ -49,10 +65,18 @@ namespace STAT_Academy.Api.Services
 
         public ProveedorModel? Editar(int id, ProveedorCreateRequest request)
         {
+            bool existe = _context.Proveedor.Any(p =>
+                p.nombre == request.nombre &&
+                p.id != id);
+            if (existe)
+                throw new Exception("Ya existe un proveedor con ese nombre");
+
             var proveedor = _context.Proveedor.FirstOrDefault(p => p.id == id);
 
             if (proveedor == null)
                 return null;
+            if (!proveedor.estado)
+                throw new Exception("El proveedor está desactivado");
 
             proveedor.nombre = request.nombre;
             proveedor.contacto = request.contacto;
@@ -66,9 +90,9 @@ namespace STAT_Academy.Api.Services
                 "PROVEEDOR",
                 "UPDATE",
                 $"Proveedor {proveedor.nombre} editado",
-                "admin"
+                "admin",
+                proveedor.id
             );
-
             return proveedor;
         }
         public ProveedorModel Desactivar(int id)
@@ -93,6 +117,28 @@ namespace STAT_Academy.Api.Services
                 "PROVEEDOR",
                 "DISABLE",
                 $"Proveedor {proveedor.nombre} desactivado",
+                "admin"
+            );
+
+            return proveedor;
+        }
+        public ProveedorModel Activar(int id)
+        {
+            var proveedor = _context.Proveedor
+                .FirstOrDefault(p => p.id == id);
+
+            if (proveedor == null)
+                return null;
+
+            proveedor.estado = true;
+            proveedor.fecha_edicion = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            _auditoria.Registrar(
+                "PROVEEDOR",
+                "ENABLE",
+                $"Proveedor {proveedor.nombre} activado",
                 "admin"
             );
 

@@ -51,5 +51,15 @@ namespace STAT_Academy.Api.Controllers
         {
             return Ok(_service.FiltrarPorProducto(id));
         }
+        [HttpGet("usuario/{usuario}")]
+        public IActionResult FiltrarPorUsuario(string usuario)
+        {
+            var data = _service.FiltrarPorUsuario(usuario);
+
+            if (!data.Any())
+                return NotFound();
+
+            return Ok(data);
+        }
     }
 }

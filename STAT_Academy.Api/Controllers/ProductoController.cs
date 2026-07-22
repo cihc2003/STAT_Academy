@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using STAT_Academy.DTOs.Producto;
+using Microsoft.EntityFrameworkCore;
+using STAT_Academy.Api.Models;
 using STAT_Academy.Api.Services;
+using STAT_Academy.DTOs.Producto;
 
 namespace STAT_Academy.Api.Controllers
 {
@@ -19,6 +21,22 @@ namespace STAT_Academy.Api.Controllers
         public IActionResult GetAll()
         {
             return Ok(_service.GetAll());
+        }
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            var proveedor = _service.GetById(id);
+
+            if (proveedor == null)
+                return NotFound();
+
+            return Ok(proveedor);
+        }
+        [HttpGet("activos")]
+        public IActionResult GetActivos()
+        {
+            return Ok(_service.GetActivos());
         }
 
         [HttpPost]
@@ -44,5 +62,16 @@ namespace STAT_Academy.Api.Controllers
         {
             return Ok(_service.Desactivar(id));
         }
+        [HttpPut("activar/{id}")]
+        public IActionResult Activar(int id)
+        {
+            var producto = _service.Activar(id);
+
+            if (producto == null)
+                return NotFound();
+
+            return Ok(producto);
+        }
+
     }
 }

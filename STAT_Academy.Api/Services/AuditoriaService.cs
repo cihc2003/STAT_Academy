@@ -7,8 +7,13 @@ namespace STAT_Academy.Api.Services
     public class AuditoriaService
     {
         private readonly ApplicationDbContext _context;
-        
 
+        public List<AuditoriaModel> FiltrarPorUsuario(string usuario)
+        {
+            return _context.Auditoria
+                .Where(a => a.usuario == usuario)
+                .ToList();
+        }
 
 
         public AuditoriaService(ApplicationDbContext context)
@@ -54,6 +59,13 @@ namespace STAT_Academy.Api.Services
         {
             return _context.Auditoria
                 .Where(a => a.entidad == "PRODUCTO" && a.entidad_id == id)
+                .ToList();
+        }
+        public List<AuditoriaModel> FiltrarPorProveedor(int id)
+        {
+            return _context.Auditoria
+                .Where(a => a.entidad == "PROVEEDOR"
+                         && a.entidad_id == id)
                 .ToList();
         }
     }

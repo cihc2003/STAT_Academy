@@ -56,6 +56,31 @@ namespace STAT_Academy.Api.Controllers
             }
         }
 
+        [HttpPatch("activar/{id}")]
+        public IActionResult Activar(int id)
+        {
+            var result = _service.Activar(id);
 
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            var proveedor = _service.GetById(id);
+
+            if (proveedor == null)
+                return NotFound();
+
+            return Ok(proveedor);
+        }
+
+        [HttpGet("activos")]
+        public IActionResult GetActivos()
+        {
+            return Ok(_service.GetActivos());
+        }
     }
 }

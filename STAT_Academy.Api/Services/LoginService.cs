@@ -9,12 +9,18 @@ namespace STAT_Academy.Api.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<UsuarioModel> _passwordHasher;
+        private readonly AuditoriaService _auditoria;
+        
 
-        public LoginService(ApplicationDbContext context)
+        public LoginService(ApplicationDbContext context,
+                    AuditoriaService auditoria)
         {
             _context = context;
+            _auditoria = auditoria;
             _passwordHasher = new PasswordHasher<UsuarioModel>();
         }
+
+
 
         public LoginResponse? Login(string email, string password)
         {
@@ -39,11 +45,24 @@ namespace STAT_Academy.Api.Services
 
             if (resultado == PasswordVerificationResult.Failed)
             {
-                usuario.intentos_login += 1;
+                usuario.intentos_login++;
                 _context.SaveChanges();
 
                 return null;
             }
+
+            usuario.intentos_login = 0;
+            usuario.ultimo_Login = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            _auditoria.Registrar(
+                "USUARIO",
+                "LOGIN",
+                $"Inicio de sesión de {usuario.email}",
+                usuario.email,
+                usuario.id
+            );
 
             usuario.intentos_login = 0;
             usuario.ultimo_Login = DateTime.UtcNow;
