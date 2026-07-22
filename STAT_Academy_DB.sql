@@ -7,7 +7,8 @@ GO
 -- =========================
 -- TABLA: TIPO_USUARIO
 -- =========================
-CREATE TABLE TIPO_USUARIO (
+CREATE TABLE TIPO_USUARIO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     Nombre VARCHAR(100),
     Estado BIT
@@ -16,26 +17,35 @@ CREATE TABLE TIPO_USUARIO (
 -- =========================
 -- TABLA: USUARIO
 -- =========================
-CREATE TABLE USUARIO (
+CREATE TABLE USUARIO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     Email VARCHAR(150),
+    Nombre VARCHAR(150),
     Password VARCHAR(255),
     Estado BIT,
     Intentos_Login INT,
     Fecha_Creacion DATETIME,
     Fecha_Edicion DATETIME,
     Ultimo_Login DATETIME,
+    reset_token_hash VARCHAR(255) NULL,
+    reset_token_expiracion DATETIME2 NULL,
+    reset_token_usado BIT NOT NULL DEFAULT 0,
+    nuevo_email_pendiente VARCHAR(150) NULL,
+    email_change_token_hash VARCHAR(255) NULL,
+    email_change_token_expiracion DATETIME2 NULL,
     FK_Tipo_Usuario INT,
 
     CONSTRAINT FK_USUARIO_TIPO
-    FOREIGN KEY (FK_Tipo_Usuario)
-    REFERENCES TIPO_USUARIO(ID)
+        FOREIGN KEY (FK_Tipo_Usuario)
+        REFERENCES TIPO_USUARIO (ID)
 );
 
 -- =========================
 -- TABLA: METODO_PAGO
 -- =========================
-CREATE TABLE METODO_PAGO (
+CREATE TABLE METODO_PAGO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     Nombre VARCHAR(100),
     Estado BIT
@@ -44,7 +54,8 @@ CREATE TABLE METODO_PAGO (
 -- =========================
 -- TABLA: PAGO
 -- =========================
-CREATE TABLE PAGO (
+CREATE TABLE PAGO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Usuario INT,
     FK_Metodo_Pago INT,
@@ -64,7 +75,8 @@ CREATE TABLE PAGO (
 -- =========================
 -- TABLA: FACTURA
 -- =========================
-CREATE TABLE FACTURA (
+CREATE TABLE FACTURA
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Usuario INT,
     FK_Pago INT,
@@ -84,7 +96,8 @@ CREATE TABLE FACTURA (
 -- =========================
 -- TABLA: PROVEEDOR
 -- =========================
-CREATE TABLE PROVEEDOR (
+CREATE TABLE PROVEEDOR
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     Nombre VARCHAR(100),
     Contacto VARCHAR(100),
@@ -98,7 +111,8 @@ CREATE TABLE PROVEEDOR (
 -- =========================
 -- TABLA: PRODUCTO
 -- =========================
-CREATE TABLE PRODUCTO (
+CREATE TABLE PRODUCTO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     Nombre VARCHAR(100),
     Categoria VARCHAR(100),
@@ -119,7 +133,8 @@ CREATE TABLE PRODUCTO (
 -- =========================
 -- TABLA: CURSO
 -- =========================
-CREATE TABLE CURSO (
+CREATE TABLE CURSO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Tutor INT,
     FK_Creador INT,
@@ -145,7 +160,8 @@ CREATE TABLE CURSO (
 -- =========================
 -- TABLA: DETALLE_FACTURA
 -- =========================
-CREATE TABLE DETALLE_FACTURA (
+CREATE TABLE DETALLE_FACTURA
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Factura INT,
     FK_Producto INT NULL,
@@ -170,7 +186,8 @@ CREATE TABLE DETALLE_FACTURA (
 -- =========================
 -- TABLA: CARRITO
 -- =========================
-CREATE TABLE CARRITO (
+CREATE TABLE CARRITO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Usuario INT,
 
@@ -182,7 +199,8 @@ CREATE TABLE CARRITO (
 -- =========================
 -- TABLA: CARRITO_DETALLE
 -- =========================
-CREATE TABLE CARRITO_DETALLE (
+CREATE TABLE CARRITO_DETALLE
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Carrito INT,
     FK_Producto INT NULL,
@@ -205,7 +223,8 @@ CREATE TABLE CARRITO_DETALLE (
 -- =========================
 -- TABLA: ESTUDIANTE_CURSO
 -- =========================
-CREATE TABLE ESTUDIANTE_CURSO (
+CREATE TABLE ESTUDIANTE_CURSO
+(
     ID_Matricula INT PRIMARY KEY IDENTITY(1,1),
     FK_Curso INT,
     FK_Estudiante INT,
@@ -225,7 +244,8 @@ CREATE TABLE ESTUDIANTE_CURSO (
 -- =========================
 -- TABLA: TAREA
 -- =========================
-CREATE TABLE TAREA (
+CREATE TABLE TAREA
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Curso INT,
     Titulo VARCHAR(100),
@@ -250,7 +270,8 @@ CREATE TABLE TAREA (
 -- =========================
 -- TABLA: ENTREGA_TAREA
 -- =========================
-CREATE TABLE ENTREGA_TAREA (
+CREATE TABLE ENTREGA_TAREA
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Tarea INT,
     FK_Estudiante INT,
@@ -272,7 +293,8 @@ CREATE TABLE ENTREGA_TAREA (
 -- =========================
 -- TABLA: MATERIAL_CURSO
 -- =========================
-CREATE TABLE MATERIAL_CURSO (
+CREATE TABLE MATERIAL_CURSO
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     FK_Curso INT,
     Titulo VARCHAR(100),
@@ -295,7 +317,8 @@ CREATE TABLE MATERIAL_CURSO (
 -- =========================
 -- TABLA: ENTRADA_BLOG
 -- =========================
-CREATE TABLE ENTRADA_BLOG (
+CREATE TABLE ENTRADA_BLOG
+(
     ID INT PRIMARY KEY IDENTITY(1,1),
     Titulo VARCHAR(150),
     Contenido VARCHAR(MAX),
@@ -312,17 +335,16 @@ CREATE TABLE ENTRADA_BLOG (
 -- =========================
 -- TABLA: Auditoria
 -- =========================
-CREATE TABLE AUDITORIA (
-    ID INT IDENTITY(1,1) PRIMARY KEY,
-    ENTIDAD VARCHAR(100),
-    ACCION VARCHAR(50),
-    DESCRIPCION VARCHAR(255),
-    USUARIO VARCHAR(100),
-    FECHA DATETIME
+CREATE TABLE AUDITORIA
+(
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    ENTIDAD VARCHAR(100) NULL,
+    ACCION VARCHAR(50) NULL,
+    DESCRIPCION VARCHAR(255) NULL,
+    USUARIO VARCHAR(150) NULL,
+    ENTIDAD_ID INT NULL,
+    FECHA DATETIME2 NOT NULL
 );
-ALTER TABLE AUDITORIA
-ADD ENTIDAD_ID INT NULL;
-
 ---------------------------------------------------------------------------
 --  Creación de usuario la base de datos
 ---------------------------------------------------------------------------
@@ -337,32 +359,28 @@ CREATE USER admin_STAT_Academy FOR LOGIN admin_STAT_Academy;
 ALTER ROLE db_owner ADD MEMBER admin_STAT_Academy;
 
 
-INSERT INTO TIPO_USUARIO (
+INSERT INTO TIPO_USUARIO
+    (
     Nombre,
     Estado
-)
-VALUES (
-    'ADMIN',
-    1
+    )
+VALUES
+    (
+        'ADMIN',
+        1
 );
 
-INSERT INTO USUARIO(
-    Email ,
-    Password,
-    Estado,
-    Intentos_Login,
-    Fecha_Creacion,
-    Fecha_Edicion,
-    Ultimo_Login,
-    FK_Tipo_Usuario
-)
-VALUES (
-    'admin@statacademy.com',
-    'Admin123*',
-    1,
-    0,
-    GETDATE(),
-    GETDATE(),
-    null,
-    1
-);
+-- =========================
+-- DATOS INICIALES
+-- =========================
+
+INSERT INTO TIPO_USUARIO
+    (
+    Nombre,
+    Estado
+    )
+VALUES
+    ('ADMIN', 1),
+    ('TUTOR', 1),
+    ('CLIENTE', 1);
+
