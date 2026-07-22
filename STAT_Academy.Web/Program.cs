@@ -31,6 +31,12 @@ builder.Services.AddHttpClient<ApiUsuarioService>(client =>
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
+builder.Services.AddHttpClient<ApiProveedorService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
 builder.Services.AddControllersWithViews();
 
 builder.Services

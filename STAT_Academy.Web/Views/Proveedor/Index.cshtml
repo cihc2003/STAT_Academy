@@ -1,0 +1,107 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.Proveedor.ProveedorResponse>
+
+@{
+    ViewData["Title"] = "Proveedores";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Proveedores</h1>
+            </div>
+
+            <a class="btn btn-primary" asp-action="SupplierForm">Nuevo proveedor</a>
+        </div>
+
+        <form class="row g-2 mb-3" method="get" asp-action="Index">
+            <div class="col-md-6">
+                <input class="form-control"
+                       name="search"
+                       value="@ViewBag.Search"
+                       placeholder="Buscar por nombre, contacto o correo" />
+            </div>
+
+            <div class="col-md-3">
+                <select class="form-select" name="active">
+                    <option value="">Todos los estados</option>
+                    <option value="true" selected="@(ViewBag.Active == true ? "selected" : null)">Activos</option>
+                    <option value="false" selected="@(ViewBag.Active == false ? "selected" : null)">Inactivos</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Contacto</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th class="text-end"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No hay proveedores registrados.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.nombre</td>
+                                <td>@item.contacto</td>
+                                <td>@item.telefono</td>
+                                <td>@item.email</td>
+                                <td>
+                                    <span class="status-pill">@(item.estado ? "Activo" : "Inactivo")</span>
+                                </td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-action="Details"
+                                       asp-route-id="@item.id">
+                                        Ver
+                                    </a>
+
+                                    <a class="btn btn-sm btn-outline-secondary"
+                                       asp-action="SupplierForm"
+                                       asp-route-id="@item.id">
+                                        Editar
+                                    </a>
+
+                                    @if (item.estado)
+                                    {
+                                        <form asp-action="ToggleSupplier"
+                                              asp-route-id="@item.id"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                Desactivar
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

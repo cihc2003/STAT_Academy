@@ -98,5 +98,10 @@ namespace STAT_Academy.Api.Services
 
             return proveedor;
         }
+
+        public ProveedorModel? GetById(int id)
+        {
+            return _context.Proveedor.FirstOrDefault(p => p.id == id);
+        }
     }
 }
