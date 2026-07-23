@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using STAT_Academy.Web.Models.Proveedor;
 
+
 namespace STAT_Academy.Web.Services;
 
 public class ApiProveedorService
@@ -51,4 +52,10 @@ public class ApiProveedorService
 
         return await response.Content.ReadFromJsonAsync<ProveedorResponse>();
     }
+
+    public async Task<List<ProveedorResponse>?> GetProveedores()
+    {
+        return await _httpClient.GetFromJsonAsync<List<ProveedorResponse>>("api/Proveedor");
+    }
+
 }

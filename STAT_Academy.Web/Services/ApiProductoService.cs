@@ -62,5 +62,10 @@ namespace STAT_Academy.Web.Services
 
             return await response.Content.ReadFromJsonAsync<ProductoResponse>();
         }
+
+        public async Task<List<ProveedorResponse>?> GetProveedores()
+        {
+            return await _httpClient.GetFromJsonAsync<List<ProveedorResponse>>("api/Proveedor");
+        }
     }
 }

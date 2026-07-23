@@ -19,7 +19,7 @@ public class AdminController : Controller
 
     public async Task<IActionResult> Dashboard()
     {
-        var usuarios = await _apiUsuarioService.GetUsuariosAsync();
+        var usuarios = await _apiUsuarios.GetUsuariosAsync();
 
         ViewBag.Users = usuarios?.Count ?? 0;
         ViewBag.Products = 0;
@@ -32,7 +32,7 @@ public class AdminController : Controller
 
     public async Task<IActionResult> Users()
     {
-        var usuarios = await _apiUsuarioService.GetUsuariosAsync() ?? [];
+        var usuarios = await _apiUsuarios.GetUsuariosAsync() ?? [];
         return View(usuarios);
     }
 
@@ -63,10 +63,9 @@ public class AdminController : Controller
         return View(rows);
     }
 
-    // GET: formulario vacío (crear) cuando id es null, o precargado (editar) cuando trae id.
     public async Task<IActionResult> ProductForm(int? id)
     {
-        var proveedores = await _apiProveedores.GetProveedores() ?? [];
+        var proveedores = await _apiProductos.GetProveedores() ?? [];
 
         if (id == null)
         {
@@ -105,7 +104,7 @@ public class AdminController : Controller
     {
         if (!ModelState.IsValid)
         {
-            model.ProveedoresDisponibles = await _apiProveedores.GetProveedores() ?? [];
+            model.ProveedoresDisponibles = await _apiProductos.GetProveedores() ?? [];
             return View(model);
         }
 
@@ -127,7 +126,7 @@ public class AdminController : Controller
         if (resultado == null)
         {
             ModelState.AddModelError("", "No se pudo guardar el producto. Verifica los datos e intenta de nuevo.");
-            model.ProveedoresDisponibles = await _apiProveedores.GetProveedores() ?? [];
+            model.ProveedoresDisponibles = await _apiProductos.GetProveedores() ?? [];
             return View(model);
         }
 
