@@ -20,6 +20,7 @@ CREATE TABLE USUARIO (
     ID INT PRIMARY KEY IDENTITY(1,1),
     Email VARCHAR(150),
     Password VARCHAR(255),
+    Nombre VARCHAR(200),
     Estado BIT,
     Intentos_Login INT,
     Fecha_Creacion DATETIME,
@@ -347,6 +348,7 @@ VALUES (
 INSERT INTO USUARIO(
     Email ,
     Password,
+    Nombre,
     Estado,
     Intentos_Login,
     Fecha_Creacion,
@@ -356,7 +358,8 @@ INSERT INTO USUARIO(
 )
 VALUES (
     'admin@statacademy.com',
-    'Admin123*',
+    'AQAAAAIAAYagAAAAEI0cGCqWtreVEes/Xj8TKUIixA/g+jOFjl5KOzuYQqbz5DbDjZEzbi1WJgvS99tfcg==',
+    'Admin Prueba',
     1,
     0,
     GETDATE(),
@@ -387,6 +390,7 @@ INSERT INTO USUARIO
 (
     Email,
     Password,
+    Nombre,
     Estado,
     Intentos_Login,
     Fecha_Creacion,
@@ -397,7 +401,8 @@ INSERT INTO USUARIO
 VALUES
 (
     'tutor@statacademy.com',
-    'Tutor123*',
+    'AQAAAAIAAYagAAAAEI0cGCqWtreVEes/Xj8TKUIixA/g+jOFjl5KOzuYQqbz5DbDjZEzbi1WJgvS99tfcg==',
+    'Tutor Prueba',
     1,
     0,
     GETDATE(),
@@ -410,6 +415,7 @@ INSERT INTO USUARIO
 (
     Email,
     Password,
+    Nombre,
     Estado,
     Intentos_Login,
     Fecha_Creacion,
@@ -420,7 +426,8 @@ INSERT INTO USUARIO
 VALUES
 (
     'estudiante@statacademy.com',
-    'Estudiante123*',
+    'AQAAAAIAAYagAAAAEI0cGCqWtreVEes/Xj8TKUIixA/g+jOFjl5KOzuYQqbz5DbDjZEzbi1WJgvS99tfcg==',
+    'Estudiante Prueba',
     1,
     0,
     GETDATE(),
