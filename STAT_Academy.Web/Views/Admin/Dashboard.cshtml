@@ -11,14 +11,11 @@
             <p>Resumen operativo de tienda, cursos, matrículas y pedidos.</p>
         </div>
         <div class="card-grid four">
-            <div class="stat-box"><strong>@ViewBag.Usuarios</strong><span>Usuarios</span></div>
-            <div class="stat-box"><strong>@ViewBag.Productos</strong><span>Productos</span></div>
-            <div class="stat-box"><strong>@ViewBag.Cursos</strong><span>Cursos</span></div>
-            <div class="stat-box"><strong>@ViewBag.Matriculas</strong><span>Matrículas</span></div>
+            <div class="stat-box"><strong>@ViewBag.Users</strong><span class="text-black">Usuarios</span></div>
+            <div class="stat-box"><strong>@ViewBag.Products</strong><span class="text-black">Productos</span></div>
+            <div class="stat-box"><strong>@ViewBag.Courses</strong><span class="text-black">Cursos</span></div>
+            <div class="stat-box"><strong>@ViewBag.Enrollments</strong><span class="text-black">Matrículas</span></div>
         </div>
-        <div class="card p-4 mt-4">
-            <h3>Integración API</h3>
-            <p>Estado de API de usuarios: <span class="status-pill">@(ViewBag.ApiReachable ? "Disponible" : "No disponible / revisar puerto")</span></p>
-        </div>
+        
     </section>
 </div>

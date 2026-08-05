@@ -44,6 +44,24 @@ builder.Services.AddHttpClient<ApiUsuarioService>(client =>
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
+builder.Services.AddHttpClient<ApiProductoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiProveedorService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiCarritoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
 builder.Services.AddControllersWithViews();
 
 builder.Services
@@ -69,6 +87,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("SoloCliente", policy =>
         policy.RequireRole("Cliente"));
 });
+
 
 var app = builder.Build();
 

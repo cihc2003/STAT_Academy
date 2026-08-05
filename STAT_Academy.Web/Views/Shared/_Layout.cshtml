@@ -33,7 +33,8 @@
                     <li><a asp-controller="Courses" asp-action="Index">Cursos</a></li>
                     <li><a asp-controller="Products" asp-action="Index">Tienda</a></li>
                     <li><a asp-controller="Blog" asp-action="Index">Artículos</a></li>
-                    <li><a asp-controller="Home" asp-action="Contacto">Contacto</a></li>
+					<li><a asp-controller="Home" asp-action="Contacto">Contacto</a></li>
+					<li><a asp-controller="Carrito" asp-action="Index">Carrito</a></li>
 
                     @if (isAuthenticated)
                     {
@@ -50,7 +51,7 @@
                         @if (User.IsInRole("Cliente"))
                         {
                             <li><a asp-controller="Student" asp-action="MisCursos">Mis cursos</a></li>
-                            <li><a asp-controller="Cart" asp-action="Index">Carrito</a></li>
+                           
                         }
 
                         <li>

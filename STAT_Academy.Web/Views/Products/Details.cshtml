@@ -1,0 +1,47 @@
+﻿@model STAT_Academy.Web.Models.Productos.ProductoResponse
+
+<section class="section">
+    <div class="container">
+        <a class="text-link" asp-controller="Products" asp-action="Index">&larr; Volver a la tienda</a>
+
+        <div class="section-heading mt-3">
+            <span class="eyebrow">@Model.categoria</span>
+            <h1>@Model.nombre</h1>
+        </div>
+
+        <article class="card p-4">
+            <p>@Model.descripcion</p>
+
+            <div class="course-meta">
+                <span>
+                    @if (Model.stock > 0)
+                    {
+                        <text>Existencias: @Model.stock</text>
+                    }
+                    else
+                    {
+                        <text>Agotado</text>
+                    }
+                </span>
+                <strong>@Model.precio_base.ToString("C")</strong>
+            </div>
+
+            @if (Model.stock > 0)
+            {
+                <form asp-controller="Carrito" asp-action="Agregar" method="post" class="d-flex align-items-center gap-2 mt-4">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productoId" value="@Model.id" />
+
+                    <label for="cantidad" class="mb-0">Cantidad</label>
+                    <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="@Model.stock" class="form-control" style="width: 90px;" />
+
+                    <button class="btn btn-primary" type="submit">Agregar al carrito</button>
+                </form>
+            }
+            else
+            {
+                <button class="btn btn-outline-secondary mt-4" type="button" disabled>Producto agotado</button>
+            }
+        </article>
+    </div>
+</section>

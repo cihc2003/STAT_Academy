@@ -13,12 +13,17 @@ namespace STAT_Academy.Api.Data
         public DbSet<ProveedorModel> Proveedor { get; set; }
         public DbSet<AuditoriaModel> Auditoria { get; set; }
         public DbSet<ProductoModel> Producto { get; set; }
+        public DbSet<CarritoModel> Carrito { get; set; }
+        public DbSet<CarritoDetalleModel> CarritoDetalle { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<UsuarioModel>()
                 .HasIndex(u => u.email)
                 .IsUnique();
+
+            modelBuilder.Entity<CarritoDetalleModel>()
+               .ToTable("CARRITO_DETALLE");
         }
     }
 }
