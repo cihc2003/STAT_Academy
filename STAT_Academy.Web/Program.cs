@@ -35,6 +35,12 @@ builder.Services.AddHttpClient<ApiUsuarioService>(client =>
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
+builder.Services.AddHttpClient<ApiBlogService>(client =>
+{
+    client.BaseAddress =
+        new Uri("https://localhost:7163/");
+});
+
 builder.Services.AddHttpClient<ApiProductoService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);

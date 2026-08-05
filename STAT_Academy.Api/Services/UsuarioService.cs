@@ -176,5 +176,6 @@ namespace STAT_Academy.Api.Services
                 fk_Tipo_Usuario = usuario.fk_Tipo_Usuario
             };
         }
+
     }
 }

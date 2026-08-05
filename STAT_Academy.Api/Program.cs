@@ -16,6 +16,7 @@ builder.Services.AddScoped<ProductoService>();
 builder.Services.AddScoped<CarritoService>();
 builder.Services.AddScoped<EstudianteCursoService>();
 builder.Services.AddScoped<TareaService>();
+builder.Services.AddScoped<BlogService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
