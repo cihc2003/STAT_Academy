@@ -1,0 +1,66 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.CursoModel>
+
+@{
+    ViewData["Title"] = "Mis Cursos";
+}
+
+<div class="container mt-4">
+
+    <h2>Mis Cursos</h2>
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>Curso</th>
+
+                <th>Duración</th>
+
+                <th></th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            @foreach (var curso in Model)
+            {
+
+                <tr>
+
+                    <td>
+
+                        @curso.Nombre
+
+                    </td>
+
+                    <td>
+
+                        @curso.Duracion_Semanas semanas
+
+                    </td>
+
+                    <td>
+
+                        <a asp-action="Tareas"
+                           asp-route-idCurso="@curso.Id"
+                           class="btn btn-primary">
+
+                            Ver Tareas
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

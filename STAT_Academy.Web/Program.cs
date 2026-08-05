@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using STAT_Academy.Web.Controllers;
 using STAT_Academy.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +19,10 @@ HttpMessageHandler CreateDevelopmentHandler()
 
     return handler;
 }
-
+builder.Services.AddHttpClient<CursoService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7163/api/");
+});
 builder.Services.AddHttpClient<ApiUserGateway>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -50,6 +54,8 @@ builder.Services.AddHttpClient<ApiCarritoService>(client =>
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSession();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -90,6 +96,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(
