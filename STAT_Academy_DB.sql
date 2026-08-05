@@ -26,6 +26,12 @@ CREATE TABLE USUARIO (
     Fecha_Creacion DATETIME,
     Fecha_Edicion DATETIME,
     Ultimo_Login DATETIME,
+    reset_token_hash VARCHAR(255) NULL,
+    reset_token_expiracion DATETIME2 NULL,
+    reset_token_usado BIT NOT NULL DEFAULT 0,
+    nuevo_email_pendiente VARCHAR(150) NULL,
+    email_change_token_hash VARCHAR(255) NULL,
+    email_change_token_expiracion DATETIME2 NULL,
     FK_Tipo_Usuario INT,
 
     CONSTRAINT FK_USUARIO_TIPO
