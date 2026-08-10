@@ -28,6 +28,19 @@ builder.Services.AddHttpClient<ApiUserGateway>(client =>
     client.BaseAddress = new Uri(apiBaseUrl);
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+builder.Services.AddHttpClient<ApiContrasenaService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiCorreoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+
 
 builder.Services.AddHttpClient<ApiUsuarioService>(client =>
 {
