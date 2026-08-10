@@ -23,6 +23,7 @@ CREATE TABLE USUARIO
     Email VARCHAR(150),
     Nombre VARCHAR(150),
     Password VARCHAR(255),
+    Nombre VARCHAR(200),
     Estado BIT,
     Intentos_Login INT,
     Fecha_Creacion DATETIME,
@@ -331,7 +332,6 @@ CREATE TABLE ENTRADA_BLOG
     FOREIGN KEY (FK_Autor)
     REFERENCES USUARIO(ID)
 );
-
 -- =========================
 -- TABLA: Auditoria
 -- =========================
@@ -345,6 +345,8 @@ CREATE TABLE AUDITORIA
     ENTIDAD_ID INT NULL,
     FECHA DATETIME2 NOT NULL
 );
+ALTER TABLE AUDITORIA
+ADD ENTIDAD_ID INT NULL;
 ---------------------------------------------------------------------------
 --  Creación de usuario la base de datos
 ---------------------------------------------------------------------------
@@ -370,17 +372,155 @@ VALUES
         1
 );
 
--- =========================
--- DATOS INICIALES
--- =========================
-
+INSERT INTO USUARIO(
+    Email ,
+    Password,
+    Nombre,
+    Estado,
+    Intentos_Login,
+    Fecha_Creacion,
+    Fecha_Edicion,
+    Ultimo_Login,
+    FK_Tipo_Usuario
+)
+VALUES (
+    'admin@statacademy.com',
+    'AQAAAAIAAYagAAAAEI0cGCqWtreVEes/Xj8TKUIixA/g+jOFjl5KOzuYQqbz5DbDjZEzbi1WJgvS99tfcg==',
+    'Admin Prueba',
+    1,
+    0,
+    GETDATE(),
+    GETDATE(),
+    null,
+    1
+);
 INSERT INTO TIPO_USUARIO
-    (
+(
     Nombre,
     Estado
-    )
+)
 VALUES
-    ('ADMIN', 1),
-    ('TUTOR', 1),
-    ('CLIENTE', 1);
+(
+    'TUTOR',
+    1
+),
+(
+    'ESTUDIANTE',
+    1
+);
 
+SELECT * FROM USUARIO;
+
+SELECT * FROM TIPO_USUARIO;
+
+INSERT INTO USUARIO
+(
+    Email,
+    Password,
+    Nombre,
+    Estado,
+    Intentos_Login,
+    Fecha_Creacion,
+    Fecha_Edicion,
+    Ultimo_Login,
+    FK_Tipo_Usuario
+)
+VALUES
+(
+    'tutor@statacademy.com',
+    'AQAAAAIAAYagAAAAEI0cGCqWtreVEes/Xj8TKUIixA/g+jOFjl5KOzuYQqbz5DbDjZEzbi1WJgvS99tfcg==',
+    'Tutor Prueba',
+    1,
+    0,
+    GETDATE(),
+    GETDATE(),
+    NULL,
+    2
+);
+
+INSERT INTO USUARIO
+(
+    Email,
+    Password,
+    Nombre,
+    Estado,
+    Intentos_Login,
+    Fecha_Creacion,
+    Fecha_Edicion,
+    Ultimo_Login,
+    FK_Tipo_Usuario
+)
+VALUES
+(
+    'estudiante@statacademy.com',
+    'AQAAAAIAAYagAAAAEI0cGCqWtreVEes/Xj8TKUIixA/g+jOFjl5KOzuYQqbz5DbDjZEzbi1WJgvS99tfcg==',
+    'Estudiante Prueba',
+    1,
+    0,
+    GETDATE(),
+    GETDATE(),
+    NULL,
+    3
+);
+
+SELECT ID, Email, FK_Tipo_Usuario
+FROM USUARIO;
+
+INSERT INTO CURSO
+(
+    FK_Tutor,
+    FK_Creador,
+    Nombre,
+    Descripcion,
+    Precio_Base,
+    Duracion_Semanas,
+    Fecha_Creacion,
+    Fecha_Edicion,
+    Estado,
+    Fecha_Inicio,
+    Fecha_Fin
+)
+VALUES
+(
+    2,
+    1,
+    'Programación C# .NET',
+    'Curso de introducción a C# y ASP.NET Core',
+    50000,
+    8,
+    GETDATE(),
+    GETDATE(),
+    1,
+    '2026-01-10',
+    '2026-03-10'
+),
+(
+    2,
+    1,
+    'Base de Datos SQL Server',
+    'Diseño y administración de bases de datos',
+    45000,
+    6,
+    GETDATE(),
+    GETDATE(),
+    1,
+    '2026-02-01',
+    '2026-03-15'
+);
+
+INSERT INTO ESTUDIANTE_CURSO
+(
+    FK_Curso,
+    FK_Estudiante,
+    Fecha_Matricula,
+    Estado,
+    Progreso
+)
+VALUES
+(
+    1,
+    3,
+    GETDATE(),
+    'Activo',
+    0
+);

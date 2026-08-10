@@ -1,0 +1,33 @@
+﻿@model STAT_Academy.Web.Models.BlogViewModel
+
+<h1>@Model.titulo</h1>
+
+<hr />
+
+<div>
+    <p>
+        <strong>Autor:</strong>
+        @Model.Autor
+    </p>
+
+    <p>
+        <strong>Fecha:</strong>
+        @Model.fecha_creacion.ToString("dd/MM/yyyy")
+    </p>
+</div>
+
+
+<hr />
+
+<div>
+    @Model.contenido
+</div>
+
+
+<br />
+
+<a asp-controller="Blog"
+   asp-action="Index"
+   class="btn btn-secondary">
+    Volver
+</a>

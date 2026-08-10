@@ -30,7 +30,9 @@
                            asp-action="Index">Inicio</a>
                     </li>
 
-                    <li><a asp-controller="Courses" asp-action="Index">Cursos</a></li>
+                    <li>
+                        <a asp-controller="Curso" asp-action="Index">Cursos</a>
+                    </li>
                     <li><a asp-controller="Products" asp-action="Index">Tienda</a></li>
                     <li><a asp-controller="Blog" asp-action="Index">Artículos</a></li>
 					<li><a asp-controller="Home" asp-action="Contacto">Contacto</a></li>
@@ -41,17 +43,32 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li><a asp-controller="Admin" asp-action="Dashboard">Administración</a></li>
+
+                            <li>
+                                <a asp-controller="Curso"
+                                   asp-action="Create">
+
+                                    Crear Curso
+
+                                </a>
+                            </li>
                         }
 
                         @if (User.IsInRole("Tutor"))
                         {
-                            <li><a asp-controller="Tutor" asp-action="Courses">Tutor</a></li>
+                            <li><a asp-controller="Tutor" asp-action="Curso">Tutor</a></li>
                         }
 
                         @if (User.IsInRole("Cliente"))
                         {
-                            <li><a asp-controller="Student" asp-action="MisCursos">Mis cursos</a></li>
-                           
+                            <li>
+                                <a asp-controller="Curso"
+                                   asp-action="MisCursos">
+
+                                    Mis Cursos
+
+                                </a>
+                            </li>
                         }
 
                         <li>
@@ -108,7 +125,9 @@
     <footer class="site-footer">
         <div class="container footer-grid">
             <p>&copy; 2026 STATMEDICAL | STAT Academy. Todos los derechos reservados.</p>
-            <a asp-controller="Courses" asp-action="Index">Explorar formación</a>
+            <a asp-controller="Curso" asp-action="Index">
+                Explorar formación
+            </a>
         </div>
     </footer>
 

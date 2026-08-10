@@ -1,0 +1,72 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.BlogViewModel>
+
+
+<h1>Blogs</h1>
+
+
+<a asp-action="Create" class="btn btn-primary">
+    Crear Blog
+</a>
+
+
+<table class="table">
+
+    <thead>
+        <tr>
+            <th>Titulo</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+
+
+    <tbody>
+
+        @foreach (var item in Model)
+        {
+
+            <tr>
+
+                <td>
+                    @item.titulo
+                </td>
+
+                <td>
+                    @item.fecha_creacion
+                </td>
+
+
+                <td>
+                    @(item.estado ? "Activo" : "Inactivo")
+                </td>
+
+
+                <td>
+
+                    <a asp-action="Details"
+                       asp-route-id="@item.id">
+                        Detalles
+                    </a>
+
+
+                    <a asp-action="Edit"
+                       asp-route-id="@item.id">
+                        Editar
+                    </a>
+
+
+                    <a asp-action="Delete"
+                       asp-route-id="@item.id">
+                        Eliminar
+                    </a>
+
+                </td>
+
+            </tr>
+
+        }
+
+    </tbody>
+
+</table>
