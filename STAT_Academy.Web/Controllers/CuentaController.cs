@@ -132,15 +132,14 @@ namespace STAT_Academy.Web.Controllers
                 return View(model);
             }
 
-            var resultado = await _apiUsuarioService.RegistrarUsuario(
-                new RegisterUsuarioRequest
-                {
-                    nombre = model.nombre,
-                    email = model.email,
-                    password = model.password,
-                    tipo = 3
-                }
-            );
+            var resultado = await _apiUsuarioService.RegistrarUsuarioAsync(
+     new RegisterUsuarioRequest
+     {
+         nombre = model.nombre,
+         email = model.email,
+         password = model.password,
+     }
+ );
 
             if (resultado == null)
             {
@@ -293,90 +292,90 @@ namespace STAT_Academy.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
         [Authorize]
-[HttpGet]
-public IActionResult CambiarCorreo()
-{
-    return View();
-}
+        [HttpGet]
+        public IActionResult CambiarCorreo()
+        {
+            return View();
+        }
 
-[Authorize]
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> CambiarCorreo(
-    SolicitarCambioCorreoViewModel model)
-{
-    var usuarioIdTexto = User.FindFirstValue(
-        ClaimTypes.NameIdentifier
-    );
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarCorreo(
+            SolicitarCambioCorreoViewModel model)
+        {
+            var usuarioIdTexto = User.FindFirstValue(
+                ClaimTypes.NameIdentifier
+            );
 
-    if (!int.TryParse(usuarioIdTexto, out var usuarioId))
-    {
-        return RedirectToAction(nameof(Login));
-    }
+            if (!int.TryParse(usuarioIdTexto, out var usuarioId))
+            {
+                return RedirectToAction(nameof(Login));
+            }
 
-    model.usuarioId = usuarioId;
+            model.usuarioId = usuarioId;
 
-    if (!ModelState.IsValid)
-    {
-        return View(model);
-    }
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
-    var resultado = await _apiCorreoService
-        .SolicitarCambio(model);
+            var resultado = await _apiCorreoService
+                .SolicitarCambio(model);
 
-    if (!resultado.exitoso)
-    {
-        ModelState.AddModelError(
-            "",
-            resultado.mensaje
-        );
+            if (!resultado.exitoso)
+            {
+                ModelState.AddModelError(
+                    "",
+                    resultado.mensaje
+                );
 
-        return View(model);
-    }
+                return View(model);
+            }
 
-    ViewBag.Mensaje = resultado.mensaje;
+            ViewBag.Mensaje = resultado.mensaje;
 
-    ModelState.Clear();
+            ModelState.Clear();
 
-    return View(new SolicitarCambioCorreoViewModel());
-}
+            return View(new SolicitarCambioCorreoViewModel());
+        }
 
-[HttpGet]
-public async Task<IActionResult> ConfirmarCambioCorreo(
-    string token)
-{
-    if (string.IsNullOrWhiteSpace(token))
-    {
-        TempData["Error"] =
-            "El enlace de confirmación no es válido.";
+        [HttpGet]
+        public async Task<IActionResult> ConfirmarCambioCorreo(
+            string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                TempData["Error"] =
+                    "El enlace de confirmación no es válido.";
 
-        return RedirectToAction(nameof(Login));
-    }
+                return RedirectToAction(nameof(Login));
+            }
 
-    var model = new ConfirmarCambioCorreoViewModel
-    {
-        token = token
-    };
+            var model = new ConfirmarCambioCorreoViewModel
+            {
+                token = token
+            };
 
-    var resultado = await _apiCorreoService
-        .ConfirmarCambio(model);
+            var resultado = await _apiCorreoService
+                .ConfirmarCambio(model);
 
-    if (!resultado.exitoso)
-    {
-        TempData["Error"] = resultado.mensaje;
+            if (!resultado.exitoso)
+            {
+                TempData["Error"] = resultado.mensaje;
 
-        return RedirectToAction(nameof(Login));
-    }
+                return RedirectToAction(nameof(Login));
+            }
 
-    await HttpContext.SignOutAsync(
-        CookieAuthenticationDefaults.AuthenticationScheme
-    );
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
 
-    TempData["Success"] =
-        "El correo fue cambiado correctamente. " +
-        "Inicie sesión con el correo nuevo.";
+            TempData["Success"] =
+                "El correo fue cambiado correctamente. " +
+                "Inicie sesión con el correo nuevo.";
 
-    return RedirectToAction(nameof(Login));
-}
+            return RedirectToAction(nameof(Login));
+        }
     }
 }
