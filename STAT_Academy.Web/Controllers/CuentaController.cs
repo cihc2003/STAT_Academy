@@ -132,13 +132,12 @@ namespace STAT_Academy.Web.Controllers
                 return View(model);
             }
 
-            var resultado = await _apiUsuarioService.RegistrarUsuario(
+            var resultado = await _apiUsuarioService.RegistrarUsuarioAsync(
                 new RegisterUsuarioRequest
                 {
                     nombre = model.nombre,
                     email = model.email,
                     password = model.password,
-                    tipo = 3
                 }
             );
 
