@@ -13,5 +13,7 @@
         public DateTime FechaLimite { get; set; }
 
         public bool Entregada { get; set; }
+
+        public int? Semana { get; set; }
     }
 }

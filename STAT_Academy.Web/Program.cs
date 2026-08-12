@@ -72,6 +72,12 @@ builder.Services.AddHttpClient<ApiCarritoService>(client =>
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
+builder.Services.AddHttpClient<ApiCursoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSession();

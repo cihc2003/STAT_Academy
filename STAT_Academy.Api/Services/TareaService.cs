@@ -24,7 +24,8 @@ namespace STAT_Academy.Api.Services
                     Descripcion = x.Descripcion,
                     FechaInicio = x.Fecha_Inicio,
                     FechaLimite = x.Fecha_Limite,
-                    Entregada = x.Entregada
+                    Entregada = x.Entregada,
+                    Semana = x.Semana
                 })
                 .ToList();
         }
