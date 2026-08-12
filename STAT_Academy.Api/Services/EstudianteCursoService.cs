@@ -32,5 +32,43 @@ namespace STAT_Academy.Api.Services
 
             return cursos;
         }
+        public bool Matricular(int estudianteId, int cursoId)
+        {
+            // Verificar que el curso exista
+            var curso = _context.Set<CursoModel>()
+                .FirstOrDefault(c => c.id == cursoId);
+
+            if (curso == null)
+                return false;
+
+            // Verificar que el curso esté activo
+            if (!curso.estado)
+                return false;
+
+            // Verificar si ya está matriculado
+            var yaMatriculado = _context.EstudianteCurso
+                .Any(ec =>
+                    ec.EstudianteId == estudianteId &&
+                    ec.CursoId == cursoId);
+
+            if (yaMatriculado)
+                return false;
+
+            // Crear matrícula
+            var matricula = new EstudianteCursoModel
+            {
+                CursoId = cursoId,
+                EstudianteId = estudianteId,
+                Fecha_Matricula = DateTime.Now,
+                Estado = "Activo",
+                Progreso = 0
+            };
+
+            _context.EstudianteCurso.Add(matricula);
+
+            _context.SaveChanges();
+
+            return true;
+        }
     }
 }
