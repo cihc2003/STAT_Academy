@@ -16,6 +16,7 @@ builder.Services.AddScoped<ProductoService>();
 builder.Services.AddScoped<CarritoService>();
 builder.Services.AddScoped<EstudianteCursoService>();
 builder.Services.AddScoped<TareaService>();
+builder.Services.AddScoped<MaterialCursoService>();
 builder.Services.AddScoped<BlogService>();
 builder.Services.AddScoped<ContrasenaService>();
 builder.Services.AddScoped<CorreoService>();

@@ -24,5 +24,7 @@ namespace STAT_Academy.Api.Models
         public bool Entregada { get; set; }
 
         public bool Estado { get; set; }
+
+        public int? Semana { get; set; }
     }
 }

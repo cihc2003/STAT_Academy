@@ -19,6 +19,7 @@ namespace STAT_Academy.Api.Data
         public DbSet<CarritoDetalleModel> CarritoDetalle { get; set; }
         public DbSet<TareaModel> Tarea { get; set; }
         public DbSet<EntradaBlogModel> EntradaBlog { get; set; }
+        public DbSet<MaterialCursoModel> MaterialCurso { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

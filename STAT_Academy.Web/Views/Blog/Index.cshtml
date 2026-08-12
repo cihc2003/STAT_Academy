@@ -1,72 +1,33 @@
 ﻿@model IEnumerable<STAT_Academy.Web.Models.BlogViewModel>
 
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Blog</span>
+            <h1>Noticias y publicaciones médicas</h1>
+            <p>Artículos y actualizaciones de nuestro equipo académico.</p>
+        </div>
 
-<h1>Blogs</h1>
-
-
-<a asp-action="Create" class="btn btn-primary">
-    Crear Blog
-</a>
-
-
-<table class="table">
-
-    <thead>
-        <tr>
-            <th>Titulo</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th></th>
-        </tr>
-    </thead>
-
-
-    <tbody>
-
-        @foreach (var item in Model)
+        @if (!Model.Any())
         {
-
-            <tr>
-
-                <td>
-                    @item.titulo
-                </td>
-
-                <td>
-                    @item.fecha_creacion
-                </td>
-
-
-                <td>
-                    @(item.estado ? "Activo" : "Inactivo")
-                </td>
-
-
-                <td>
-
-                    <a asp-action="Details"
-                       asp-route-id="@item.id">
-                        Detalles
-                    </a>
-
-
-                    <a asp-action="Edit"
-                       asp-route-id="@item.id">
-                        Editar
-                    </a>
-
-
-                    <a asp-action="Delete"
-                       asp-route-id="@item.id">
-                        Eliminar
-                    </a>
-
-                </td>
-
-            </tr>
-
+            <p>Todavía no hay publicaciones disponibles.</p>
         }
-
-    </tbody>
-
-</table>
+        else
+        {
+            <div class="card-grid three">
+                @foreach (var item in Model)
+                {
+                    <article class="card p-4">
+                        <span class="tag">@item.fecha_creacion.ToString("dd/MM/yyyy")</span>
+                        <h3>@item.titulo</h3>
+                        <p>@(item.contenido.Length > 160 ? item.contenido[..160] + "…" : item.contenido)</p>
+                        <div class="course-meta">
+                            <span>@(string.IsNullOrWhiteSpace(item.Autor) ? "STAT Academy" : item.Autor)</span>
+                        </div>
+                        <a class="text-link" asp-controller="Blog" asp-action="Details" asp-route-id="@item.id">Leer más</a>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
