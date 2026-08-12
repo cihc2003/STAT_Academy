@@ -24,6 +24,8 @@ namespace STAT_Academy.Web.Controllers
 
             var blogs = await _service.GetBlogs();
 
+            var publicados = blogs.Where(b => b.estado).ToList();
+
             return View(blogs);
 
         }

@@ -36,7 +36,7 @@ namespace STAT_Academy.Api.Services
                     fecha_edicion = b.fecha_edicion,
                     estado = b.estado,
                     fk_Autor = b.fk_Autor,
-                    autor = b.Autor.email
+                    autor = b.Autor.nombre ?? b.Autor.email
                 })
                 .ToList();
         }
@@ -47,6 +47,7 @@ namespace STAT_Academy.Api.Services
         {
 
             var blog = _context.EntradaBlog
+                .Include(b => b.Autor)
                 .FirstOrDefault(x => x.id == id);
 
 
@@ -56,7 +57,6 @@ namespace STAT_Academy.Api.Services
 
             return Map(blog);
         }
-
 
 
         public BlogResponse CrearBlog(CreateBlogRequest request)
@@ -156,7 +156,8 @@ namespace STAT_Academy.Api.Services
                 fecha_creacion = blog.fecha_creacion,
                 fecha_edicion = blog.fecha_edicion,
                 estado = blog.estado,
-                fk_Autor = blog.fk_Autor
+                fk_Autor = blog.fk_Autor,
+                autor = blog.Autor?.nombre ?? blog.Autor?.email
             };
 
         }
