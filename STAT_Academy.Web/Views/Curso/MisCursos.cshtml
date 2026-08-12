@@ -1,66 +1,49 @@
-﻿@model IEnumerable<STAT_Academy.Web.Models.CursoModel>
+﻿@model List<STAT_Academy.Web.Models.Cursos.CursoCompradoResponse>
 
 @{
     ViewData["Title"] = "Mis Cursos";
 }
 
-<div class="container mt-4">
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Aula virtual</span>
+            <h1>Mis cursos</h1>
+            <p>Cursos en los que estás matriculado actualmente.</p>
+        </div>
 
-    <h2>Mis Cursos</h2>
+        @if (!Model.Any())
+        {
+            <p>Todavía no estás matriculado en ningún curso.</p>
+            <a class="btn btn-primary" asp-controller="Curso" asp-action="Index">Explorar cursos</a>
+        }
+        else
+        {
+            <div class="card-grid three">
+                @foreach (var curso in Model)
+                {
+                    <article class="card p-4">
+                        <span class="tag">@curso.Estado</span>
+                        <h3>@curso.NombreCurso</h3>
+                        <p>@curso.Descripcion</p>
 
-    <table class="table table-bordered">
+                        <div class="course-meta">
+                            <span>Progreso</span>
+                            <strong>@curso.Progreso%</strong>
+                        </div>
 
-        <thead>
+                        <div class="progress mt-2 mb-3" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: @curso.Progreso%;"
+                                 aria-valuenow="@curso.Progreso" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
 
-            <tr>
-
-                <th>Curso</th>
-
-                <th>Duración</th>
-
-                <th></th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-
-            @foreach (var curso in Model)
-            {
-
-                <tr>
-
-                    <td>
-
-                        @curso.Nombre
-
-                    </td>
-
-                    <td>
-
-                        @curso.Duracion_Semanas semanas
-
-                    </td>
-
-                    <td>
-
-                        <a asp-action="Tareas"
-                           asp-route-idCurso="@curso.Id"
-                           class="btn btn-primary">
-
-                            Ver Tareas
-
+                        <a class="text-link" asp-controller="Curso" asp-action="Contenido" asp-route-id="@curso.CursoId">
+                            Entrar al curso
                         </a>
-
-                    </td>
-
-                </tr>
-
-            }
-
-        </tbody>
-
-    </table>
-
-</div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>
