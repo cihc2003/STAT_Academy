@@ -69,6 +69,50 @@ namespace STAT_Academy.Api.Services
             return url;
         }
 
+        public string ObtenerUrl(string ruta)
+        {
+            if (string.IsNullOrWhiteSpace(ruta))
+                throw new Exception("La ruta del archivo está vacía.");
+
+            var storage = _supabase.Storage.From(_bucket);
+
+            return storage.GetPublicUrl(ruta);
+        }
+
+        public string ObtenerUrlDescarga(string ruta)
+        {
+            if (string.IsNullOrWhiteSpace(ruta))
+                throw new Exception("La ruta del archivo está vacía.");
+
+            var storage = _supabase.Storage.From(_bucket);
+
+            var url = storage.GetPublicUrl(ruta);
+
+            // Supabase permite utilizar ?download para indicar
+            // que el navegador debe descargar el archivo.
+            return $"{url}?download";
+        }
+        // ============================================================
+        // DESCARGAR ARCHIVO DESDE SUPABASE EN LA API
+        // ============================================================
+        public async Task<byte[]> DescargarArchivo(string ruta)
+        {
+            if (string.IsNullOrWhiteSpace(ruta))
+                throw new Exception("La ruta del archivo está vacía.");
+
+            var storage = _supabase.Storage.From(_bucket);
+
+            EventHandler<float>? progreso = null;
+
+            var bytes = await storage.Download(
+                ruta,
+                progreso,
+                CancellationToken.None,
+                null
+            );
+
+            return bytes;
+        }
         public async Task EliminarArchivo(string ruta)
         {
             var storage = _supabase.Storage
