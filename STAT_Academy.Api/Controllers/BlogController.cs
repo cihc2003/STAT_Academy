@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Api.Services;
 using STAT_Academy.DTOs.Blogs;
 
@@ -46,7 +47,7 @@ namespace STAT_Academy.Api.Controllers
         }
 
 
-
+        [Authorize(Roles = "ADMIN,TUTOR")]
         [HttpPost]
         public IActionResult Create(
             CreateBlogRequest request)
@@ -59,7 +60,7 @@ namespace STAT_Academy.Api.Controllers
         }
 
 
-
+        [Authorize(Roles = "ADMIN,TUTOR")]
         [HttpPut("{id}")]
         public IActionResult Update(
             int id,
@@ -79,7 +80,7 @@ namespace STAT_Academy.Api.Controllers
         }
 
 
-
+        [Authorize(Roles = "ADMIN,TUTOR")]
         [HttpPatch("{id}/desactivar")]
         public IActionResult Delete(int id)
         {
