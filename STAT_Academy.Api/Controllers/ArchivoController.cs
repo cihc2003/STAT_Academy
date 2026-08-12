@@ -126,7 +126,7 @@ namespace STAT_Academy.Api.Controllers
         // ============================================================
         [HttpGet("descargar")]
         public async Task<IActionResult> Descargar(
-            [FromQuery] string ruta)
+    [FromQuery] string ruta)
         {
             try
             {
@@ -146,10 +146,12 @@ namespace STAT_Academy.Api.Controllers
 
                 var contentType = ObtenerContentType(extension);
 
+                Response.Headers.ContentDisposition =
+                    $"attachment; filename=\"{nombreArchivo}\"";
+
                 return File(
                     bytes,
-                    contentType,
-                    nombreArchivo);
+                    contentType);
             }
             catch (Exception ex)
             {
