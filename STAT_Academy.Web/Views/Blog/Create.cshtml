@@ -1,0 +1,38 @@
+﻿@model STAT_Academy.Web.Models.BlogViewModel
+
+
+<h1>Crear Blog</h1>
+
+
+<form asp-action="Create" method="post">
+
+
+    <div>
+        <label>Titulo</label>
+
+        <input asp-for="titulo" class="form-control" />
+
+    </div>
+
+
+    <div>
+
+        <label>Contenido</label>
+
+        <textarea asp-for="contenido"
+                  class="form-control"></textarea>
+
+    </div>
+
+
+    <input type="hidden"
+           asp-for="fk_Autor"
+           value="1" />
+
+
+    <button class="btn btn-success">
+        Guardar
+    </button>
+
+
+</form>

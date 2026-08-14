@@ -1,0 +1,33 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.BlogViewModel>
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Blog</span>
+            <h1>Noticias y publicaciones médicas</h1>
+            <p>Artículos y actualizaciones de nuestro equipo académico.</p>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <p>Todavía no hay publicaciones disponibles.</p>
+        }
+        else
+        {
+            <div class="card-grid three">
+                @foreach (var item in Model)
+                {
+                    <article class="card p-4">
+                        <span class="tag">@item.fecha_creacion.ToString("dd/MM/yyyy")</span>
+                        <h3>@item.titulo</h3>
+                        <p>@(item.contenido.Length > 160 ? item.contenido[..160] + "…" : item.contenido)</p>
+                        <div class="course-meta">
+                            <span>@(string.IsNullOrWhiteSpace(item.Autor) ? "STAT Academy" : item.Autor)</span>
+                        </div>
+                        <a class="text-link" asp-controller="Blog" asp-action="Details" asp-route-id="@item.id">Leer más</a>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

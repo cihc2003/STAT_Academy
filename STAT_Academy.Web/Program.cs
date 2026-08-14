@@ -1,15 +1,117 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using STAT_Academy.Web.Controllers;
+using STAT_Academy.Web.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"]
+    ?? "https://localhost:7163/";
+
+HttpMessageHandler CreateDevelopmentHandler()
+{
+    var handler = new HttpClientHandler();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        handler.ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+    }
+
+    return handler;
+}
+builder.Services.AddHttpClient<CursoService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7163/api/");
+});
+builder.Services.AddHttpClient<ApiUserGateway>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+builder.Services.AddHttpClient<ApiContrasenaService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiCorreoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+
+
+builder.Services.AddHttpClient<ApiUsuarioService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiBlogService>(client =>
+{
+    client.BaseAddress =
+        new Uri("https://localhost:7163/");
+});
+
+builder.Services.AddHttpClient<ApiProductoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiProveedorService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiCarritoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiCursoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSession();
+
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Cuenta/Login";
+        options.AccessDeniedPath = "/Cuenta/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SoloAdmin", policy =>
+        policy.RequireRole("Admin"));
+
+    options.AddPolicy("SoloTutor", policy =>
+        policy.RequireRole("Tutor"));
+
+    options.AddPolicy("SoloCliente", policy =>
+        policy.RequireRole("Cliente"));
+});
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -18,6 +120,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(

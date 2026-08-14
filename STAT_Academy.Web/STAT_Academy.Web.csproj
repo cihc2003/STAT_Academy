@@ -6,4 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Curso\Catalogo\" />
+    <Folder Include="Views\Curso\Mis Cursos\" />
+  </ItemGroup>
+
 </Project>

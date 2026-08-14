@@ -1,49 +1,139 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    var currentPage = ViewData["Page"]?.ToString();
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+<!DOCTYPE html>
+<html lang="es">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - STAT_Academy.Web</title>
+    <title>@ViewData["Title"] | STAT Academy</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/STAT_Academy.Web.styles.css" asp-append-version="true" />
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">STAT_Academy.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-lg container" aria-label="Navegación principal">
+            <a class="brand" asp-controller="Home" asp-action="Index">STAT Academy</a>
+
+            <button class="navbar-toggler nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-label="Abrir menú">
+                <span>Menú</span>
+            </button>
+
+            <div id="mainNav" class="collapse navbar-collapse">
+                <ul class="navbar-nav nav-links ms-auto align-items-lg-center">
+                    <li>
+                        <a class="@(currentPage == "Inicio" ? "active" : "")" asp-controller="Home"
+                           asp-action="Index">Inicio</a>
+                    </li>
+
+                    <li>
+                        <a asp-controller="Curso" asp-action="Index">Cursos</a>
+                    </li>
+                    <li><a asp-controller="Products" asp-action="Index">Tienda</a></li>
+                    <li><a asp-controller="Blog" asp-action="Index">Artículos</a></li>
+					<li><a asp-controller="Home" asp-action="Contacto">Contacto</a></li>
+					<li><a asp-controller="Carrito" asp-action="Index">Carrito</a></li>
+
+                    @if (isAuthenticated)
+                    {
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li><a asp-controller="Admin" asp-action="Dashboard">Administración</a></li>
+
+                            <li>
+                                <a asp-controller="Curso"
+                                   asp-action="Create">
+
+                                    Crear Curso
+
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Tutor"))
+                        {
+                            <li><a asp-controller="Tutor" asp-action="Curso">Tutor</a></li>
+                        }
+
+                        @if (User.IsInRole("Cliente"))
+                        {
+                            <li>
+                                <a asp-controller="Curso"
+                                   asp-action="MisCursos">
+
+                                    Mis Cursos
+
+                                </a>
+                            </li>
+                        }
+
+                        <li>
+                            <a asp-controller="Cuenta" asp-action="CambiarContrasena">
+                                Cambiar contraseña
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <li>
+                            <a asp-controller="Cuenta" asp-action="CambiarCorreo">
+                                Cambiar correo
+                            </a>
                         </li>
-                    </ul>
-                </div>
+                        <li class="nav-user">
+                            <span>Hola, @User.Identity?.Name</span>
+                        </li>
+
+                        <li>
+                            <form asp-controller="Cuenta" asp-action="Logout" method="post" class="d-inline">
+
+                                <button class="nav-button" type="submit">
+                                    Salir
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li><a asp-controller="Cuenta" asp-action="Login">Ingresar</a></li>
+                        <li><a class="btn-nav" asp-controller="Cuenta" asp-action="Registrar">Registro</a></li>
+                    }
+                </ul>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - STAT_Academy.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <main role="main">
+        @if (TempData["Success"] is string success)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-success">@success</div>
+            </div>
+        }
+
+        @if (TempData["Error"] is string error)
+        {
+            <div class="container mt-3">
+                <div class="alert alert-danger">@error</div>
+            </div>
+        }
+
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <p>&copy; 2026 STATMEDICAL | STAT Academy. Todos los derechos reservados.</p>
+            <a asp-controller="Curso" asp-action="Index">
+                Explorar formación
+            </a>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

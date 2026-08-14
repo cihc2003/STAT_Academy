@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Panel de control";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+    <section>
+        <div class="section-heading">
+            <span class="eyebrow">Administración</span>
+            <h1>Panel de control STAT Academy</h1>
+            <p>Resumen operativo de tienda, cursos, matrículas y pedidos.</p>
+        </div>
+        <div class="card-grid four">
+            <div class="stat-box"><strong>@ViewBag.Users</strong><span class="text-black">Usuarios</span></div>
+            <div class="stat-box"><strong>@ViewBag.Products</strong><span class="text-black">Productos</span></div>
+            <div class="stat-box"><strong>@ViewBag.Courses</strong><span class="text-black">Cursos</span></div>
+            <div class="stat-box"><strong>@ViewBag.Enrollments</strong><span class="text-black">Matrículas</span></div>
+        </div>
+        
+    </section>
+</div>
