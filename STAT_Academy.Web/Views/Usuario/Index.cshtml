@@ -78,6 +78,11 @@
                                             @Html.AntiForgeryToken()
                                             <button class="btn btn-sm btn-outline-danger" type="submit">Desactivar</button>
                                         </form>
+                                    } else {
+                                        <form asp-action="ActivateUser" asp-route-id="@item.id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn-sm btn-outline-success" type="submit">Activar</button>
+                                        </form>
                                     }
                                 </td>
                             </tr>

@@ -121,6 +121,28 @@ namespace STAT_Academy.Api.Services
             return MapToUsuarioResponse(usuario);
         }
 
+        public UsuarioResponse? ActivarUsuario(int id)
+        {
+            var usuario = _context.Usuario.FirstOrDefault(u => u.id == id);
+
+            if (usuario == null)
+                return null;
+
+            usuario.estado = true;
+            usuario.fecha_edicion = DateTime.UtcNow;
+
+            _context.SaveChanges();
+
+            _auditoria.Registrar(
+                "USUARIO",
+                "DELETE",
+                $"Usuario {usuario.email} activado",
+                "admin"
+            );
+
+            return MapToUsuarioResponse(usuario);
+        }
+
         public UsuarioResponse? UpdateUsuario(int id, UpdateUsuarioRequest request)
         {
             var usuario = _context.Usuario.FirstOrDefault(u => u.id == id);

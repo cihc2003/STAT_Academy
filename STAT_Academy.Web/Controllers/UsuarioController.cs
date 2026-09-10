@@ -159,4 +159,23 @@ public class UsuarioController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ActivateUser(int id)
+    {
+        var usuario = await _apiUsuarioService.ActivarUsuarioAsync(id);
+
+        if (usuario == null)
+        {
+            TempData["Error"] = "No se pudo activar el usuario.";
+        }
+        else
+        {
+            TempData["Success"] = "Usuario activado correctamente.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
 }

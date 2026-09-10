@@ -71,4 +71,12 @@ public class ApiUsuarioService
 
         return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
     }
+
+    public async Task<UsuarioResponse?> ActivarUsuarioAsync(int id)
+    {
+        var response = await _httpClient.PatchAsync($"api/Usuario/{id}/activar", null);
+        if (!response.IsSuccessStatusCode)
+            return null;
+        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
+    }
 }

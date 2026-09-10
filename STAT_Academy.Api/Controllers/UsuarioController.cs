@@ -113,5 +113,18 @@ namespace STAT_Academy.Api.Controllers
             return Ok(usuarioDesactivado);
         }
 
+        [HttpPatch("{id}/activar")]
+        public ActionResult<UsuarioResponse> ActivarUsuario(int id)
+        {
+            var usuarioActivado = _usuarioService.ActivarUsuario(id);
+
+            if (usuarioActivado == null)
+            {
+                return NotFound(new { message = "Usuario no encontrado." });
+            }
+
+            return Ok(usuarioActivado);
+        }
+
     }
 }

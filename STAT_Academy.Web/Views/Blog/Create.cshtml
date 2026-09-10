@@ -1,38 +1,48 @@
-﻿@model STAT_Academy.Web.Models.BlogViewModel
+﻿@model STAT_Academy.Web.Models.Blog.CreateBlogViewModel
 
+@{
+    ViewData["Title"] = "Crear Blog";
+}
 
-<h1>Crear Blog</h1>
-
-
-<form asp-action="Create" method="post">
-
-
-    <div>
-        <label>Titulo</label>
-
-        <input asp-for="titulo" class="form-control" />
-
+<section class="page-hero">
+    <div class="container">
+        <span class="eyebrow">Blog académico</span>
+        <h1>Crear nueva entrada</h1>
+        <p>La entrada se registrará automáticamente con tu usuario logueado.</p>
     </div>
+</section>
 
+<section class="section">
+    <div class="container">
+        <div class="info-block mb-4 blog-note">
+            El autor se asigna automáticamente desde tu sesión actual.
+        </div>
 
-    <div>
+        <form asp-action="Create" method="post" class="card blog-form card-body">
+            @Html.AntiForgeryToken()
 
-        <label>Contenido</label>
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-        <textarea asp-for="contenido"
-                  class="form-control"></textarea>
+            <div class="form-group mb-3">
+                <label asp-for="Titulo" class="form-label"></label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
 
+            <div class="form-group mb-3">
+                <label asp-for="Contenido" class="form-label"></label>
+                <textarea asp-for="Contenido" class="form-control" rows="10"></textarea>
+                <span asp-validation-for="Contenido" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
     </div>
+</section>
 
-
-    <input type="hidden"
-           asp-for="fk_Autor"
-           value="1" />
-
-
-    <button class="btn btn-success">
-        Guardar
-    </button>
-
-
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

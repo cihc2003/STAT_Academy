@@ -19,7 +19,6 @@ namespace STAT_Academy.Web.Controllers
             _apiCursos = apiCursos;
         }
 
-        // El id del estudiante logueado viaja en la cookie desde el Login.
         private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         public async Task<IActionResult> Index()

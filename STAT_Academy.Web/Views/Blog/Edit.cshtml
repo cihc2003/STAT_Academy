@@ -1,31 +1,51 @@
-﻿@model STAT_Academy.Web.Models.BlogViewModel
+﻿@model STAT_Academy.Web.Models.Blog.UpdateBlogViewModel
 
+@{
+    ViewData["Title"] = "Editar Blog";
+}
 
-<h1>Editar Blog</h1>
+<section class="page-hero">
+    <div class="container">
+        <span class="eyebrow">Blog académico</span>
+        <h1>Editar entrada</h1>
+        <p>Solo puede modificar esta publicación el usuario que la creó.</p>
+    </div>
+</section>
 
+<section class="section">
+    <div class="container">
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card blog-form card-body">
+            @Html.AntiForgeryToken()
 
-<form asp-action="Edit" method="post">
+            <input asp-for="Id" type="hidden" />
 
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-    <input type="hidden"
-           asp-for="id" />
+            <div class="form-group mb-3">
+                <label asp-for="Titulo" class="form-label"></label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
 
+            <div class="form-group mb-3">
+                <label asp-for="Contenido" class="form-label"></label>
+                <textarea asp-for="Contenido" class="form-control" rows="10"></textarea>
+                <span asp-validation-for="Contenido" class="text-danger"></span>
+            </div>
 
-    <input asp-for="titulo"
-           class="form-control" />
+            <div class="form-check mb-3">
+                <input asp-for="Estado" class="form-check-input" />
+                <label asp-for="Estado" class="form-check-label">Activo</label>
+            </div>
 
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</section>
 
-    <textarea asp-for="contenido"
-              class="form-control"></textarea>
-
-
-    <input type="hidden"
-           asp-for="estado" />
-
-
-    <button class="btn btn-primary">
-        Actualizar
-    </button>
-
-
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

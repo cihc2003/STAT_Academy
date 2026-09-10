@@ -1,30 +1,104 @@
-﻿@model IEnumerable<STAT_Academy.Web.Models.BlogViewModel>
+﻿@using System.Security.Claims
+@model List<STAT_Academy.Web.Models.Blog.BlogResponse>
+
+@{
+    ViewData["Title"] = "Blog";
+    var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var esAdmin = User.IsInRole("Admin");
+}
+
+<section class="page-hero blog-hero">
+    <div class="container">
+        <span class="eyebrow">Blog académico</span>
+        <h1>Entradas del blog de STAT Academy</h1>
+        <p>
+            Noticias, publicaciones y contenido académico gestionado por el equipo.
+            Solo los administradores pueden crear entradas y cada autor puede editar las suyas.
+        </p>
+
+        @if (esAdmin)
+        {
+            <a asp-action="Create" class="btn btn-primary">Nueva entrada</a>
+        }
+    </div>
+</section>
 
 <section class="section">
     <div class="container">
-        <div class="section-heading">
-            <span class="eyebrow">Blog</span>
-            <h1>Noticias y publicaciones médicas</h1>
-            <p>Artículos y actualizaciones de nuestro equipo académico.</p>
-        </div>
-
-        @if (!Model.Any())
+        @if (TempData["Mensaje"] != null)
         {
-            <p>Todavía no hay publicaciones disponibles.</p>
+            <div class="alert alert-success">@TempData["Mensaje"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="info-block blog-empty">
+                <span class="tag">Sin publicaciones</span>
+                <h2>Aún no hay entradas en el blog</h2>
+                <p>Cuando se publique contenido nuevo aparecerá aquí.</p>
+
+                @if (esAdmin)
+                {
+                    <a asp-action="Create" class="btn btn-primary">Crear primera entrada</a>
+                }
+            </div>
         }
         else
         {
-            <div class="card-grid three">
-                @foreach (var item in Model)
+            <div class="card-grid two blog-grid">
+                @foreach (var blog in Model)
                 {
-                    <article class="card p-4">
-                        <span class="tag">@item.fecha_creacion.ToString("dd/MM/yyyy")</span>
-                        <h3>@item.titulo</h3>
-                        <p>@(item.contenido.Length > 160 ? item.contenido[..160] + "…" : item.contenido)</p>
-                        <div class="course-meta">
-                            <span>@(string.IsNullOrWhiteSpace(item.Autor) ? "STAT Academy" : item.Autor)</span>
+                    var puedeEditar = usuarioId == blog.FkAutor.ToString();
+
+                    <article class="card blog-card">
+                        <div class="blog-card__visual">
+                            <span class="tag">@(blog.Estado ? "Publicado" : "Inactivo")</span>
                         </div>
-                        <a class="text-link" asp-controller="Blog" asp-action="Details" asp-route-id="@item.id">Leer más</a>
+
+                        <div class="card-body blog-card__body">
+                            <p class="blog-card__meta">
+                                @(string.IsNullOrWhiteSpace(blog.Autor) ? $"Autor #{blog.FkAutor}" : blog.Autor)
+                                · @blog.FechaCreacion.ToString("dd/MM/yyyy")
+                            </p>
+
+                            <h3>@blog.Titulo</h3>
+
+                            <p class="blog-card__excerpt">
+                                @{
+                                    var resumen = blog.Contenido.Length > 180
+                                    ? blog.Contenido.Substring(0, 180) + "..."
+                                    : blog.Contenido;
+                                }
+                                @resumen
+                            </p>
+
+                            <div class="blog-card__actions">
+                                <a asp-action="Details" asp-route-id="@blog.Id" class="text-link">Leer más</a>
+
+                                @if (puedeEditar)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@blog.Id" class="btn btn-outline-primary btn-sm">
+                                        Editar
+                                    </a>
+                                }
+
+                                @if (esAdmin)
+                                {
+                                    <form asp-action="Desactivar" asp-route-id="@blog.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('¿Deseas desactivar esta entrada?');">
+                                            Desactivar
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
                     </article>
                 }
             </div>

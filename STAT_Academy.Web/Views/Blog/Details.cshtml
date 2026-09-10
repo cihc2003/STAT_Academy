@@ -1,17 +1,63 @@
-﻿@model STAT_Academy.Web.Models.BlogViewModel
+﻿@model STAT_Academy.Web.Models.Blog.BlogResponse
+
+@{
+    ViewData["Title"] = "Detalle Blog";
+    var autor = string.IsNullOrWhiteSpace(Model.Autor) ? $"Autor #{Model.FkAutor}" : Model.Autor;
+}
+
+<section class="page-hero">
+    <div class="container">
+        <span class="eyebrow">Blog académico</span>
+        <h1>@Model.Titulo</h1>
+        <p>@autor · @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+</section>
 
 <section class="section">
     <div class="container">
-        <a class="text-link" asp-controller="Blog" asp-action="Index">&larr; Volver al blog</a>
-
-        <div class="section-heading mt-3">
-            <span class="eyebrow">@Model.fecha_creacion.ToString("dd/MM/yyyy")</span>
-            <h1>@Model.titulo</h1>
-            <p>Por @(string.IsNullOrWhiteSpace(Model.Autor) ? "STAT Academy" : Model.Autor)</p>
+        <div class="d-flex justify-content-end mb-3">
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
         </div>
 
-        <article class="card p-4">
-            <p style="white-space: pre-line;">@Model.contenido</p>
+        <article class="card blog-detail">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                    <span class="tag">@(Model.Estado ? "Publicado" : "Inactivo")</span>
+                    <div class="text-muted">
+                        <strong>Autor:</strong> @autor
+                    </div>
+                </div>
+
+                <div class="blog-prose">
+                    @Model.Contenido
+                </div>
+
+                <hr />
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <strong>Creado</strong>
+                        <div>@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Editado</strong>
+                        <div>@(Model.FechaEdicion.HasValue? Model.FechaEdicion.Value.ToString("dd/MM/yyyy HH:mm") : "-")</div>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Estado</strong>
+                        <div>
+                            @if (Model.Estado)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
         </article>
     </div>
 </section>

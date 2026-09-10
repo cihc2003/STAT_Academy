@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Panel de control";
+    ViewData["Title"] = "Panel Administrador";
 }
 
 <div class="container admin-shell">
@@ -8,14 +8,26 @@
         <div class="section-heading">
             <span class="eyebrow">Administración</span>
             <h1>Panel de control STAT Academy</h1>
-            <p>Resumen operativo de tienda, cursos, matrículas y pedidos.</p>
+            <p>Resumen operativo de usuarios, productos, cursos y matrículas.</p>
         </div>
+
         <div class="card-grid four">
-            <div class="stat-box"><strong>@ViewBag.Users</strong><span class="text-black">Usuarios</span></div>
-            <div class="stat-box"><strong>@ViewBag.Products</strong><span class="text-black">Productos</span></div>
-            <div class="stat-box"><strong>@ViewBag.Courses</strong><span class="text-black">Cursos</span></div>
-            <div class="stat-box"><strong>@ViewBag.Enrollments</strong><span class="text-black">Matrículas</span></div>
+            <div class="stat-box">
+                <strong>@ViewBag.Users</strong>
+                <span>Usuarios</span>
+            </div>
+            <div class="stat-box">
+                <strong>@ViewBag.Products</strong>
+                <span>Productos</span>
+            </div>
+            <div class="stat-box">
+                <strong>@ViewBag.Courses</strong>
+                <span>Cursos</span>
+            </div>
+            <div class="stat-box">
+                <strong>@ViewBag.Enrollments</strong>
+                <span>Matrículas</span>
+            </div>
         </div>
-        
     </section>
 </div>

@@ -1,124 +1,172 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using STAT_Academy.Web.Models;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Web.Models.Blog;
 using STAT_Academy.Web.Services;
-
+using System.Security.Claims;
 
 namespace STAT_Academy.Web.Controllers
 {
-
     public class BlogController : Controller
     {
+        private readonly ApiBlogService _blogService;
 
-        private readonly ApiBlogService _service;
-
-
-        public BlogController(ApiBlogService service)
+        public BlogController(ApiBlogService blogService)
         {
-            _service = service;
+            _blogService = blogService;
         }
 
-
+        private int? UsuarioId
+        {
+            get
+            {
+                var idTexto = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                return int.TryParse(idTexto, out var id) ? id : null;
+            }
+        }
 
         public async Task<IActionResult> Index()
         {
-
-            var blogs = await _service.GetBlogs();
-
-            var publicados = blogs.Where(b => b.estado).ToList();
-
+            var blogs = await _blogService.ObtenerBlogs();
             return View(blogs);
-
         }
-
-
 
         public async Task<IActionResult> Details(int id)
         {
-
-            var blog =
-                await _service.GetBlog(id);
-
-
+            var blog = await _blogService.ObtenerBlogPorId(id);
             if (blog == null)
-                return NotFound();
-
-
-            return View(blog);
-
-        }
-
-
-
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> Create(
-            BlogViewModel blog)
-        {
-
-            if (ModelState.IsValid)
             {
-
-                await _service.Crear(blog);
-
-                return RedirectToAction(nameof(Index));
-
+                return NotFound();
             }
 
-
             return View(blog);
-
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new CreateBlogViewModel());
+        }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateBlogViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
+            var usuarioId = UsuarioId;
+            if (usuarioId == null)
+            {
+                return RedirectToAction("Login", "Cuenta");
+            }
 
+            model.FkAutor = usuarioId.Value;
+
+            var resultado = await _blogService.CrearBlog(model);
+
+            if (!resultado.exitoso)
+            {
+                ModelState.AddModelError(string.Empty, resultado.mensaje);
+                return View(model);
+            }
+
+            TempData["Mensaje"] = resultado.mensaje;
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize]
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-
-            var blog =
-                await _service.GetBlog(id);
-
-
+            var blog = await _blogService.ObtenerBlogPorId(id);
             if (blog == null)
+            {
                 return NotFound();
+            }
 
+            var usuarioId = UsuarioId;
+            if (usuarioId == null)
+            {
+                return RedirectToAction("Login", "Cuenta");
+            }
 
-            return View(blog);
+            if (blog.FkAutor != usuarioId.Value)
+            {
+                return Forbid();
+            }
 
+            return View(new UpdateBlogViewModel
+            {
+                Id = blog.Id,
+                Titulo = blog.Titulo,
+                Contenido = blog.Contenido,
+                Estado = blog.Estado
+            });
         }
 
-
-
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Edit(
-            int id,
-            BlogViewModel blog)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, UpdateBlogViewModel model)
         {
+            if (id != model.Id)
+            {
+                return BadRequest();
+            }
 
-            await _service.Actualizar(id, blog);
+            var blog = await _blogService.ObtenerBlogPorId(id);
+            if (blog == null)
+            {
+                return NotFound();
+            }
 
+            var usuarioId = UsuarioId;
+            if (usuarioId == null)
+            {
+                return RedirectToAction("Login", "Cuenta");
+            }
 
+            if (blog.FkAutor != usuarioId.Value)
+            {
+                return Forbid();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var resultado = await _blogService.ActualizarBlog(id, model);
+
+            if (!resultado.exitoso)
+            {
+                ModelState.AddModelError(string.Empty, resultado.mensaje);
+                return View(model);
+            }
+
+            TempData["Mensaje"] = resultado.mensaje;
             return RedirectToAction(nameof(Index));
-
         }
 
-
-
-        public async Task<IActionResult> Delete(int id)
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Desactivar(int id)
         {
+            var resultado = await _blogService.DesactivarBlog(id);
 
-            await _service.Eliminar(id);
+            if (!resultado.exitoso)
+            {
+                TempData["Error"] = resultado.mensaje;
+                return RedirectToAction(nameof(Index));
+            }
 
-
+            TempData["Mensaje"] = resultado.mensaje;
             return RedirectToAction(nameof(Index));
-
         }
-
     }
 }

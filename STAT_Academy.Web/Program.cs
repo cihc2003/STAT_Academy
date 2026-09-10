@@ -40,19 +40,11 @@ builder.Services.AddHttpClient<ApiCorreoService>(client =>
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
-
-
 builder.Services.AddHttpClient<ApiUsuarioService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
 })
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
-
-builder.Services.AddHttpClient<ApiBlogService>(client =>
-{
-    client.BaseAddress =
-        new Uri("https://localhost:7163/");
-});
 
 builder.Services.AddHttpClient<ApiProductoService>(client =>
 {
@@ -73,6 +65,12 @@ builder.Services.AddHttpClient<ApiCarritoService>(client =>
 .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
 builder.Services.AddHttpClient<ApiCursoService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+
+builder.Services.AddHttpClient<ApiBlogService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
 })

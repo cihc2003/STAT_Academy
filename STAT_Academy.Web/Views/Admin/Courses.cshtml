@@ -1,0 +1,121 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.Admin.CursoAdminResponse>
+
+@{
+    ViewData["Title"] = "Cursos";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Cursos</h1>
+            </div>
+
+            <a class="btn btn-primary" asp-action="CourseForm">
+                Agregar curso
+            </a>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        <form class="row g-2 mb-3" method="get" asp-action="Courses">
+            <div class="col-md-10">
+                <input class="form-control"
+                       name="search"
+                       value="@Context.Request.Query["search"]"
+                       placeholder="Buscar por nombre o descripción" />
+            </div>
+
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Duración</th>
+                        <th>Estado</th>
+                        <th>Inicio</th>
+                        <th>Fin</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No se encontraron cursos.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var curso in Model)
+                        {
+                            <tr>
+                                <td>@curso.id</td>
+                                <td>
+                                    <strong>@curso.nombre</strong>
+                                    <div class="text-muted small">@curso.descripcion</div>
+                                </td>
+                                <td>@curso.precio.ToString("C")</td>
+                                <td>@curso.duracionSemanas semanas</td>
+                                <td>
+                                    <span class="status-pill">
+                                        @(curso.estado ? "Activo" : "Inactivo")
+                                    </span>
+                                </td>
+                                <td>@curso.fechaInicio.ToString("dd/MM/yyyy")</td>
+                                <td>@curso.fechaFin.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary"
+                                       asp-action="CourseForm"
+                                       asp-route-id="@curso.id">
+                                        Editar
+                                    </a>
+
+                                    <form asp-action="ToggleCourse"
+                                          asp-route-id="@curso.id"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('¿Deseas cambiar el estado de este curso?');">
+                                        @Html.AntiForgeryToken()
+                                        @if (curso.estado)
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                Desactivar
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-success" type="submit">
+                                                Activar
+                                            </button>
+                                        }
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

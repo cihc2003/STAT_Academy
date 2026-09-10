@@ -34,7 +34,7 @@
                         <a asp-controller="Curso" asp-action="Index">Cursos</a>
                     </li>
                     <li><a asp-controller="Products" asp-action="Index">Tienda</a></li>
-                    <li><a asp-controller="Blog" asp-action="Index">Artículos</a></li>
+                    <li><a asp-controller="Blog" asp-action="Index">Blog</a></li>
 					<li><a asp-controller="Home" asp-action="Contacto">Contacto</a></li>
 					<li><a asp-controller="Carrito" asp-action="Index">Carrito</a></li>
 
@@ -43,15 +43,6 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li><a asp-controller="Admin" asp-action="Dashboard">Administración</a></li>
-
-                            <li>
-                                <a asp-controller="Curso"
-                                   asp-action="Create">
-
-                                    Crear Curso
-
-                                </a>
-                            </li>
                         }
 
                         @if (User.IsInRole("Tutor"))
