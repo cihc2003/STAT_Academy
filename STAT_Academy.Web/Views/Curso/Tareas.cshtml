@@ -1,0 +1,75 @@
+﻿@model IEnumerable<STAT_Academy.Web.Models.TareaModel>
+
+@{
+    ViewData["Title"] = "Tareas";
+}
+
+<div class="container mt-4">
+
+    <h2>Tareas del Curso</h2>
+
+    <table class="table table-striped">
+
+        <thead>
+
+            <tr>
+
+                <th>Título</th>
+
+                <th>Descripción</th>
+
+                <th>Fecha límite</th>
+
+                <th>Estado</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            @foreach (var tarea in Model)
+            {
+
+                <tr>
+
+                    <td>
+
+                        @tarea.Titulo
+
+                    </td>
+
+                    <td>
+
+                        @tarea.Descripcion
+
+                    </td>
+
+                    <td>
+
+                        @tarea.Fecha_Limite.ToShortDateString()
+
+                    </td>
+
+                    <td>
+
+                        @if (tarea.Entregada)
+                        {
+                            <span class="badge bg-success">Entregada</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Pendiente</span>
+                        }
+
+                    </td>
+
+                </tr>
+
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

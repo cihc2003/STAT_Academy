@@ -1,0 +1,54 @@
+﻿@model STAT_Academy.Web.Models.Proveedor.ProveedorCreateRequest
+
+@{
+    ViewData["Title"] = "Proveedor";
+    var isEdit = Context.Request.Query.ContainsKey("id");
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section class="card p-4">
+        <span class="eyebrow">Administración</span>
+        <h1>@(isEdit ? "Editar proveedor" : "Nuevo proveedor")</h1>
+
+        <form asp-action="SupplierForm" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6 form-group">
+                    <label asp-for="nombre"></label>
+                    <input asp-for="nombre" class="form-control" />
+                    <span asp-validation-for="nombre" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label asp-for="contacto"></label>
+                    <input asp-for="contacto" class="form-control" />
+                    <span asp-validation-for="contacto" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label asp-for="telefono"></label>
+                    <input asp-for="telefono" class="form-control" />
+                    <span asp-validation-for="telefono" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 form-group">
+                    <label asp-for="email"></label>
+                    <input asp-for="email" class="form-control" />
+                    <span asp-validation-for="email" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Guardar</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
