@@ -23,9 +23,16 @@ builder.Services.AddScoped<CorreoService>();
 builder.Services.AddScoped<CambioCorreoService>();
 builder.Services.AddScoped<SupabaseStorageService>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new()
+    {
+        Title = "STAT Academy API",
+        Version = "v1",
+        Description = "API for STAT Academy"
+    });
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -36,7 +43,13 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "STAT Academy API v1");
+        c.ScriptBundlePath = "./swagger-ui-bundle.js?v=10.2.3";
+        c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
+        c.StylesPath = "./swagger-ui.css?v=10.2.3";
+    });
 }
 
 app.UseHttpsRedirection();
