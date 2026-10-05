@@ -22,9 +22,6 @@ namespace STAT_Academy.Api.Models
         [Required]
         public int intentos_login { get; set; }
 
-        [Required]
-        public DateTime fecha_creacion { get; set; }
-        public DateTime? fecha_edicion { get; set; }
         public DateTime? ultimo_Login { get; set; }
         public string? reset_token_hash { get; set; }
 

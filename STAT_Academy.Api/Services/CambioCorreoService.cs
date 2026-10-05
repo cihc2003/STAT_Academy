@@ -96,7 +96,6 @@ namespace STAT_Academy.Api.Services
                 CalcularHashToken(token);
             usuario.email_change_token_expiracion =
                 DateTime.UtcNow.AddMinutes(30);
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -161,7 +160,6 @@ namespace STAT_Academy.Api.Services
             usuario.nuevo_email_pendiente = null;
             usuario.email_change_token_hash = null;
             usuario.email_change_token_expiracion = null;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 

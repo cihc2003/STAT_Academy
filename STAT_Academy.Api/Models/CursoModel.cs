@@ -28,12 +28,6 @@ namespace STAT_Academy.Api.Models
         [Column("Duracion_Semanas")]
         public int duracionSemanas { get; set; }
 
-        [Column("Fecha_Creacion")]
-        public DateTime fechaCreacion { get; set; }
-
-        [Column("Fecha_Edicion")]
-        public DateTime fechaEdicion { get; set; }
-
         [Column("Estado")]
         public bool estado { get; set; }
 

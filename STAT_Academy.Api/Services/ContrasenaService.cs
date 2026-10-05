@@ -44,7 +44,6 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_hash = CalcularHashToken(token);
             usuario.reset_token_expiracion = DateTime.UtcNow.AddMinutes(30);
             usuario.reset_token_usado = false;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -90,7 +89,6 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_hash = null;
             usuario.reset_token_expiracion = null;
             usuario.intentos_login = 0;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -141,7 +139,6 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_expiracion = null;
             usuario.reset_token_usado = true;
             usuario.intentos_login = 0;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 

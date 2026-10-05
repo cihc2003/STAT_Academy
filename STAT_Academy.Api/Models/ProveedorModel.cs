@@ -12,7 +12,5 @@ namespace STAT_Academy.Api.Models
         public string email { get; set; }
 
         public bool estado { get; set; }
-        public DateTime fecha_creacion { get; set; }
-        public DateTime? fecha_edicion { get; set; }
     }
 }

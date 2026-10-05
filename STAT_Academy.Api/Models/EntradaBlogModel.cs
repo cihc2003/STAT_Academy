@@ -8,10 +8,6 @@ public class EntradaBlogModel
 
     public string contenido { get; set; } = "";
 
-    public DateTime fecha_creacion { get; set; }
-
-    public DateTime? fecha_edicion { get; set; }
-
     public bool estado { get; set; }
 
     public int fk_Autor { get; set; }

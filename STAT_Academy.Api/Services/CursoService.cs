@@ -39,8 +39,6 @@ namespace STAT_Academy.Api.Services
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
             curso.estado = true;
-            curso.fechaCreacion = DateTime.Now;
-            curso.fechaEdicion = DateTime.Now;
 
             _context.Curso.Add(curso);
             _context.SaveChanges();
@@ -63,7 +61,6 @@ namespace STAT_Academy.Api.Services
             curso.duracionSemanas = request.duracionSemanas;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
-            curso.fechaEdicion = DateTime.Now;
 
             _context.SaveChanges();
 
@@ -78,7 +75,6 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             curso.estado = true;
-            curso.fechaEdicion = DateTime.Now;
 
             _context.SaveChanges();
 
@@ -93,7 +89,6 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             curso.estado = false;
-            curso.fechaEdicion = DateTime.Now;
 
             _context.SaveChanges();
 

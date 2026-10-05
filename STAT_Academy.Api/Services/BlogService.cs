@@ -32,8 +32,6 @@ namespace STAT_Academy.Api.Services
                     id = b.id,
                     titulo = b.titulo,
                     contenido = b.contenido,
-                    fecha_creacion = b.fecha_creacion,
-                    fecha_edicion = b.fecha_edicion,
                     estado = b.estado,
                     fk_Autor = b.fk_Autor,
                     autor = b.Autor.nombre ?? b.Autor.email
@@ -68,7 +66,6 @@ namespace STAT_Academy.Api.Services
                 contenido = request.contenido,
                 fk_Autor = request.fk_Autor,
                 estado = true,
-                fecha_creacion = DateTime.Now
             };
 
 
@@ -108,8 +105,6 @@ namespace STAT_Academy.Api.Services
             blog.titulo = request.titulo;
             blog.contenido = request.contenido;
             blog.estado = request.estado;
-            blog.fecha_edicion = DateTime.Now;
-
 
             _context.SaveChanges();
 
@@ -132,8 +127,6 @@ namespace STAT_Academy.Api.Services
 
 
             blog.estado = false;
-            blog.fecha_edicion = DateTime.Now;
-
 
             _context.SaveChanges();
 
@@ -153,8 +146,6 @@ namespace STAT_Academy.Api.Services
                 id = blog.id,
                 titulo = blog.titulo,
                 contenido = blog.contenido,
-                fecha_creacion = blog.fecha_creacion,
-                fecha_edicion = blog.fecha_edicion,
                 estado = blog.estado,
                 fk_Autor = blog.fk_Autor,
                 autor = blog.Autor?.nombre ?? blog.Autor?.email

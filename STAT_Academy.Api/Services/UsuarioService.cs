@@ -49,7 +49,6 @@ namespace STAT_Academy.Api.Services
                 fk_Tipo_Usuario = request.fk_Tipo_Usuario,
                 estado = true,
                 intentos_login = 0,
-                fecha_creacion = DateTime.UtcNow
             };
 
             usuario.password = _passwordHasher.HashPassword(usuario, request.password);
@@ -81,7 +80,6 @@ namespace STAT_Academy.Api.Services
                 fk_Tipo_Usuario = 3,
                 estado = true,
                 intentos_login = 0,
-                fecha_creacion = DateTime.UtcNow
             };
 
             usuario.password = _passwordHasher.HashPassword(usuario, request.password);
@@ -107,7 +105,6 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             usuario.estado = false;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -129,7 +126,6 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             usuario.estado = true;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -159,7 +155,6 @@ namespace STAT_Academy.Api.Services
             usuario.nombre = request.nombre;
             usuario.fk_Tipo_Usuario = request.fk_Tipo_Usuario;
             usuario.estado = request.estado;
-            usuario.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -192,8 +187,6 @@ namespace STAT_Academy.Api.Services
                 nombre = usuario.nombre,
                 estado = usuario.estado,
                 intentos_login = usuario.intentos_login,
-                fecha_creacion = usuario.fecha_creacion,
-                fecha_edicion = usuario.fecha_edicion,
                 ultimo_Login = usuario.ultimo_Login,
                 fk_Tipo_Usuario = usuario.fk_Tipo_Usuario
             };
