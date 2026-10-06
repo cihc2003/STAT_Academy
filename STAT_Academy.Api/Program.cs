@@ -41,18 +41,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline.
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "STAT Academy API v1");
-        c.ScriptBundlePath = "./swagger-ui-bundle.js?v=10.2.3";
-        c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
-        c.StylesPath = "./swagger-ui.css?v=10.2.3";
-    });
-}
-
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "STAT Academy API v1");
+    c.ScriptBundlePath = "./swagger-ui-bundle.js?v=10.2.3";
+    c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
+    c.StylesPath = "./swagger-ui.css?v=10.2.3";
+});
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
