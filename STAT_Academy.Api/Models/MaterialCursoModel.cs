@@ -20,7 +20,6 @@ namespace STAT_Academy.Api.Models
         [Column("Ubicacion_Material")]
         public string ubicacionMaterial { get; set; }
 
-       
         [Column("Tipo")]
         public string tipo { get; set; }
 
@@ -29,14 +28,5 @@ namespace STAT_Academy.Api.Models
 
         [Column("FK_Autor")]
         public int fk_Autor { get; set; }
-
-        [Column("Fecha_Creacion")]
-        public DateTime fechaCreacion { get; set; }
-
-        [Column("Fecha_Edicion")]
-        public DateTime? fechaEdicion { get; set; }
-
-        [Column("Semana")]
-        public int? semana { get; set; }
     }
 }

@@ -5,7 +5,9 @@ using STAT_Academy.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"]
-    ?? "https://localhost:7163/";
+    ?? throw new InvalidOperationException("Falta ApiSettings:BaseUrl en la configuración.");
+if (!apiBaseUrl.EndsWith('/')) apiBaseUrl += "/";
+var apiUri = new Uri(apiBaseUrl);
 
 HttpMessageHandler CreateDevelopmentHandler()
 {
@@ -21,7 +23,7 @@ HttpMessageHandler CreateDevelopmentHandler()
 }
 builder.Services.AddHttpClient<CursoService>(client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7163/api/");
+    client.BaseAddress = new Uri(apiBaseUrl);
 });
 builder.Services.AddHttpClient<ApiUserGateway>(client =>
 {

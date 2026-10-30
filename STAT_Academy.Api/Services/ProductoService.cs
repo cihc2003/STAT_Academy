@@ -38,8 +38,6 @@ namespace STAT_Academy.Api.Services
                 min_stock = request.min_stock,
                 fk_proveedor = request.fk_proveedor,
                 estado = true,
-                fecha_creacion = DateTime.UtcNow,
-                fecha_edicion = DateTime.UtcNow
             };
 
             _context.Producto.Add(producto);
@@ -76,7 +74,6 @@ namespace STAT_Academy.Api.Services
             producto.stock = request.stock;
             producto.min_stock = request.min_stock;
             producto.fk_proveedor = request.fk_proveedor;
-            producto.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -99,7 +96,6 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             producto.estado = false;
-            producto.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -122,7 +118,6 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             producto.estado = true;
-            producto.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 

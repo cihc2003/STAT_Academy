@@ -16,9 +16,6 @@ namespace STAT_Academy.Api.Models
         public int stock { get; set; }
         public int min_stock { get; set; }
 
-        public DateTime fecha_creacion { get; set; }
-        public DateTime fecha_edicion { get; set; }
-
         public bool estado { get; set; }
 
         public int fk_proveedor { get; set; }

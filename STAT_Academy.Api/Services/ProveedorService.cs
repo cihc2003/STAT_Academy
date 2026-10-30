@@ -30,8 +30,6 @@ namespace STAT_Academy.Api.Services
                 email = request.email,
 
                 estado = true,
-                fecha_creacion = DateTime.UtcNow,
-                fecha_edicion = DateTime.UtcNow
             };
 
             _context.Proveedor.Add(proveedor);
@@ -58,7 +56,6 @@ namespace STAT_Academy.Api.Services
             proveedor.contacto = request.contacto;
             proveedor.telefono = request.telefono;
             proveedor.email = request.email;
-            proveedor.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
@@ -85,7 +82,6 @@ namespace STAT_Academy.Api.Services
                 throw new Exception("No se puede desactivar el proveedor porque tiene productos activos");
 
             proveedor.estado = false;
-            proveedor.fecha_edicion = DateTime.UtcNow;
 
             _context.SaveChanges();
 
