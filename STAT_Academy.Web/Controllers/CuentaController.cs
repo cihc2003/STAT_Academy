@@ -125,7 +125,7 @@ namespace STAT_Academy.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Registrar(
-            RegisterUsuarioRequest model)
+            RegistroViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -145,11 +145,15 @@ namespace STAT_Academy.Web.Controllers
             {
                 ModelState.AddModelError(
                     "",
-                    "No se pudo registrar el usuario."
+                    "No se pudo registrar el usuario." +
+                    "Verifique los datos o intente con otro correo."
                 );
 
                 return View(model);
             }
+
+            TempData["Success"] =
+                "Cuenta creada correctamente. Ya puede iniciar sesión.";
 
             return RedirectToAction(nameof(Login));
         }
