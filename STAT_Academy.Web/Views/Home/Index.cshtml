@@ -1,216 +1,424 @@
-﻿@{
+﻿
+@{
     ViewData["Title"] = "Inicio";
     ViewData["Page"] = "Inicio";
+
+    // ==========================================
+    // CURSOS DESTACADOS
+    // ==========================================
 
     var featuredCourses = new[]
     {
         new
         {
             Id = 1,
-            Category = "Estadística aplicada",
-            Title = "Introducción a la estadística médica",
-            Description = "Aprende los fundamentos de análisis estadístico aplicado a datos de salud."
+            Category = "Medicina en áreas remotas",
+            Title = "Primeros auxilios en áreas remotas",
+            Description = "Desarrollá habilidades para brindar primeros auxilios en entornos naturales y lugares de difícil acceso.",
+            Image = "/images/courses/areas-remotas.jpg"
         },
         new
         {
             Id = 2,
-            Category = "Investigación",
-            Title = "Diseño de estudios clínicos",
-            Description = "Comprende cómo estructurar estudios, variables, muestras y resultados."
+            Category = "Reanimación cardiopulmonar",
+            Title = "RCP para profesionales de la salud",
+            Description = "Fortalecé tus conocimientos y habilidades de reanimación cardiopulmonar en el ámbito de la salud.",
+            Image = "/images/courses/rcp-profesionales.jpg"
         },
         new
         {
             Id = 3,
-            Category = "Análisis de datos",
-            Title = "Interpretación de resultados",
-            Description = "Convierte tablas, gráficos e indicadores en conclusiones claras y útiles."
+            Category = "Trauma prehospitalario",
+            Title = "Manejo avanzado del trauma prehospitalario",
+            Description = "Profundizá en la valoración y atención inicial de pacientes con lesiones traumáticas en el entorno prehospitalario.",
+            Image = "/images/courses/trauma-prehospitalario.jpg"
         }
     };
+
+    // ==========================================
+    // PRODUCTOS DESTACADOS
+    // ==========================================
 
     var featuredProducts = new[]
     {
         new
         {
             Id = 1,
+            Category = "Primeros auxilios",
+            Name = "Botiquines de primeros auxilios",
+            Description = "Equipos y suministros para la atención inicial de emergencias.",
+            Image = "/images/products/botiquin.jpg"
+        },
+        new
+        {
+            Id = 2,
+            Category = "Control de hemorragias",
+            Name = "Torniquete SAM XT",
+            Description = "Torniquete diseñado para el control de hemorragias graves en extremidades.",
+            Image = "/images/products/sam-xt.jpg"
+        },
+        new
+        {
+            Id = 3,
             Category = "Material educativo",
-            Name = "Guía de estadística básica",
-            Description = "Material de apoyo para estudiantes y profesionales de ciencias de la salud.",
-            Stock = 25,
-            Price = 15000m
-        },
-        new
-        {
-            Id = 2,
-            Category = "Recurso digital",
-            Name = "Plantillas para análisis de datos",
-            Description = "Formatos descargables para organizar resultados y reportes académicos.",
-            Stock = 40,
-            Price = 9500m
-        },
-        new
-        {
-            Id = 3,
-            Category = "Simulación",
-            Name = "Caso práctico de investigación",
-            Description = "Ejercicio guiado para practicar análisis e interpretación de información clínica.",
-            Stock = 18,
-            Price = 12000m
+            Name = "Manuales y guías de emergencias",
+            Description = "Material educativo para formación y consulta en atención de emergencias.",
+            Image = "/images/products/manuales.jpg"
         }
     };
 
-    var featuredPosts = new[]
+    // ==========================================
+    // ARTÍCULOS EDUCATIVOS
+    // ==========================================
+
+    
+var featuredPosts = new[]
+{
+    new
     {
-        new
-        {
-            Id = 1,
-            Category = "Salud",
-            Title = "La importancia de interpretar bien los datos",
-            Summary = "Una lectura correcta de los datos permite tomar mejores decisiones clínicas y académicas."
-        },
-        new
-        {
-            Id = 2,
-            Category = "Prevención",
-            Title = "Indicadores básicos en estudios de salud",
-            Summary = "Conoce algunos indicadores frecuentes y cómo pueden usarse en investigación."
-        },
-        new
-        {
-            Id = 3,
-            Category = "Educación",
-            Title = "Cómo estudiar estadística sin frustrarse",
-            Summary = "Consejos prácticos para avanzar paso a paso en temas cuantitativos."
-        }
-    };
+        Category = "Primeros auxilios",
+        Title = "¿Qué hacer ante una emergencia?",
+        Summary = "Conocé la importancia de reconocer una emergencia, evaluar la seguridad de la escena y activar los servicios de respuesta.",
+        Image = "/images/blog/PAB.jpg"
+    },
+    new
+    {
+        Category = "Reanimación",
+        Title = "La importancia de la RCP temprana",
+        Summary = "Descubrí por qué reconocer rápidamente un paro cardíaco e iniciar maniobras de reanimación puede marcar la diferencia.",
+        Image = "/images/blog/rcp.jpg"
+    },
+    new
+    {
+        Category = "Atención prehospitalaria",
+        Title = "Evaluación inicial del paciente traumatizado",
+        Summary = "Explorá los principios de la valoración inicial y la identificación de amenazas inmediatas para la vida.",
+        Image = "/images/blog/trauma.jpg"
+    }
+};
 
-    <section class="hero">
-        <div class="container hero-grid">
-            <div class="hero-copy">
-                <span class="eyebrow">STATMEDICAL presenta</span>
-                <h1>STAT Academy</h1>
-                <p>Plataforma educativa y tienda profesional para cursos de salud, recursos médicos, blog educativo y aprendizaje guiado por tutores.</p>
-                <div class="d-flex gap-2 flex-wrap">
-                    <a class="btn btn-primary" asp-controller="Courses" asp-action="Index">Explorar cursos</a>
-                    <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ver tienda</a>
-                </div>
-            </div>
-            <div class="hero-panel" aria-label="Resumen visual de aprendizaje">
-                <div class="metric-card large">
-                    <span>92%</span>
-                    <p>de estudiantes aplican lo aprendido en proyectos reales</p>
-                </div>
-                <div class="chart-card">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Rutas destacadas</span>
-                <h2>Cursos destacados</h2>
-                <p>Programas diseñados por STATMEDICAL para aprendizaje práctico y profesional.</p>
-            </div>
-            <div class="card-grid three">
-                @foreach (var course in featuredCourses)
-                {
-                    <article class="card course-card">
-                        <div class="visual visual-stats" role="img" aria-label="Curso destacado"></div>
-                        <div class="card-body">
-                            <span class="tag">@course.Category</span>
-                            <h3>@course.Title</h3>
-                            <p>@course.Description</p>
-                            <a class="text-link" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Ver curso</a>
-                        </div>
-                    </article>
-                }
-            </div>
-        </div>
-    </section>
-
-    <section class="section mission-section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Tienda</span>
-                <h2>Productos destacados</h2>
-                <p>Recursos e insumos seleccionados para prácticas, cursos y simulación.</p>
-            </div>
-            <div class="card-grid three">
-                @foreach (var product in featuredProducts)
-                {
-                    <article class="card p-4">
-                        <span class="tag">@product.Category</span>
-                        <h3>@product.Name</h3>
-                        <p>@product.Description</p>
-                        <div class="course-meta"><span>Existencias @product.Stock</span><strong>@product.Price.ToString("C")</strong></div>
-                        <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">Comprar</a>
-                    </article>
-                }
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Artículos educativos</span>
-                <h2>Aprendizaje continuo</h2>
-                <p>Artículos de prevención, salud, analítica y mejores prácticas.</p>
-            </div>
-            <div class="card-grid three">
-                @foreach (var post in featuredPosts)
-                {
-                    <article class="card p-4">
-                        <span class="tag">@post.Category</span>
-                        <h3>@post.Title</h3>
-                        <p>@post.Summary</p>
-                        <a class="text-link" asp-controller="Blog" asp-action="Details" asp-route-id="@post.Id">Leer más</a>
-                    </article>
-                }
-            </div>
-        </div>
-    </section>
-
-    <section class="section stats-section">
-        <div class="container stats-grid">
-            <div class="stat-box">
-                <strong>1,250+</strong>
-                <span>Estudiantes</span>
-            </div>
-            <div class="stat-box">
-                <strong>18</strong>
-                <span>Profesores</span>
-            </div>
-            <div class="stat-box">
-                <strong>24</strong>
-                <span>Cursos disponibles</span>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Experiencias</span>
-                <h2>Lo que dicen nuestros estudiantes</h2>
-            </div>
-            <div class="card-grid two">
-                <article class="card testimonial-card">
-                    <p>"Las clases son claras, ordenadas y muy aplicables. Logré construir mi primer panel con datos reales."</p>
-                    <h3>Mariana López</h3>
-                    <span>Analista junior</span>
-                </article>
-                <article class="card testimonial-card">
-                    <p>"Me gustó que cada módulo termina con ejercicios prácticos. La estadística dejó de sentirse abstracta."</p>
-                    <h3>Carlos Méndez</h3>
-                    <span>Estudiante de ingeniería</span>
-                </article>
-            </div>
-        </div>
-    </section>
 }
+
+<!-- ==========================================
+     PORTADA PRINCIPAL
+     ========================================== -->
+
+<section class="hero">
+    <div class="container hero-grid">
+
+        <div class="hero-copy">
+
+            <span class="eyebrow">
+                STATMEDICAL presenta
+            </span>
+
+            <img src="/images/home/logo-statmedical.png"
+                 alt="Logotipo de STAT Medical"
+                 class="hero-logo" />
+
+            <h1>STAT Academy</h1>
+
+            <p>
+                Plataforma educativa y tienda profesional para cursos
+                de salud, recursos médicos, blog educativo y aprendizaje
+                guiado por tutores.
+            </p>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                <a class="btn btn-primary"
+                   asp-controller="Courses"
+                   asp-action="Index">
+                    Explorar cursos
+                </a>
+
+                <a class="btn btn-primary"
+                   asp-controller="Products"
+                   asp-action="Index">
+                    Ver tienda
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- PANEL DE SERVICIOS -->
+
+        <div class="hero-panel academy-services"
+             aria-label="Servicios de STAT Academy">
+
+            <div class="academy-services-header">
+
+                <span class="academy-services-label">
+                    CONOCÉ NUESTRA PLATAFORMA
+                </span>
+
+                <h2>Aprendé, preparate y crecé</h2>
+
+                <p>
+                    Formación y recursos para fortalecer
+                    tus conocimientos profesionales.
+                </p>
+
+            </div>
+
+            <div class="academy-service">
+
+                <div class="academy-service-icon">
+                    <span aria-hidden="true">✚</span>
+                </div>
+
+                <div class="academy-service-content">
+                    <h3>Capacitación médica</h3>
+                    <p>
+                        Aprendizaje orientado a la práctica
+                        y a la atención de emergencias.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="academy-service">
+
+                <div class="academy-service-icon">
+                    <span aria-hidden="true">▤</span>
+                </div>
+
+                <div class="academy-service-content">
+                    <h3>Cursos especializados</h3>
+                    <p>
+                        Formación y actualización de
+                        conocimientos profesionales.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="academy-service">
+
+                <div class="academy-service-icon">
+                    <span aria-hidden="true">▣</span>
+                </div>
+
+                <div class="academy-service-content">
+                    <h3>Tienda profesional</h3>
+                    <p>
+                        Productos y recursos para apoyar
+                        el aprendizaje y la práctica.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- ==========================================
+     CURSOS DESTACADOS
+     ========================================== -->
+
+<section class="section">
+    <div class="container">
+
+        <div class="section-heading">
+
+            <span class="eyebrow">
+                Rutas destacadas
+            </span>
+
+            <h2>Cursos destacados</h2>
+
+            <p>
+                Programas diseñados por STATMEDICAL para
+                aprendizaje práctico y profesional.
+            </p>
+
+        </div>
+
+        <div class="card-grid three">
+
+            @foreach (var course in featuredCourses)
+            {
+                <article class="card course-card">
+
+                    <div class="visual">
+
+                        <img src="@course.Image"
+                             alt="@course.Title"
+                             loading="lazy" />
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <span class="tag">
+                            @course.Category
+                        </span>
+
+                        <h3>@course.Title</h3>
+
+                        <p>@course.Description</p>
+
+                        <a class="text-link"
+                           asp-controller="Courses"
+                           asp-action="Details"
+                           asp-route-id="@course.Id">
+                            Ver curso
+                        </a>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+
+    </div>
+</section>
+
+<!-- ==========================================
+     PRODUCTOS DESTACADOS
+     ========================================== -->
+
+<section class="section mission-section">
+    <div class="container">
+
+        <div class="section-heading">
+
+            <span class="eyebrow">
+                Tienda
+            </span>
+
+            <h2>Productos destacados</h2>
+
+            <p>
+                Recursos e insumos seleccionados para
+                prácticas, cursos y simulación.
+            </p>
+
+        </div>
+
+        <div class="card-grid three">
+
+            @foreach (var product in featuredProducts)
+            {
+                <article class="card product-card">
+
+                    <div class="product-image">
+
+                        <img src="@product.Image"
+                             alt="@product.Name"
+                             loading="lazy" />
+
+                    </div>
+
+                    <div class="product-content">
+
+                        <span class="tag">
+                            @product.Category
+                        </span>
+
+                        <h3>@product.Name</h3>
+
+                        <p>@product.Description</p>
+
+                        <span class="text-link">
+                            Consultar disponibilidad
+                        </span>
+
+                    </div>
+
+                </article>
+            }
+
+        </div>
+
+    </div>
+</section>
+
+<!-- ==========================================
+     ARTÍCULOS EDUCATIVOS
+     ========================================== -->
+
+<section class="section">
+    <div class="container">
+
+        <div class="section-heading">
+
+            <span class="eyebrow">
+                Artículos educativos
+            </span>
+
+            <h2>Aprendizaje continuo</h2>
+
+            <p>
+                Artículos de prevención, salud
+                y mejores prácticas.
+            </p>
+
+        </div>
+
+        <div class="card-grid three">
+
+         
+@foreach (var post in featuredPosts)
+{
+    <article class="card blog-card">
+
+        <div class="blog-image">
+            <img src="@post.Image"
+                 alt="@post.Title"
+                 loading="lazy" />
+        </div>
+
+        <div class="blog-content">
+            <span class="tag">@post.Category</span>
+
+            <h3>@post.Title</h3>
+
+            <p>@post.Summary</p>
+        </div>
+
+    </article>
+}
+
+
+        </div>
+
+    </div>
+</section>
+
+
+<!-- ==========================================
+     MENSAJE FINAL
+     ========================================== -->
+
+<section class="section">
+    <div class="container">
+
+        <div class="section-heading">
+
+            <span class="eyebrow">
+                Seguí aprendiendo
+            </span>
+
+            <h2>Tu preparación marca la diferencia</h2>
+
+            <p>
+                Explorá nuestros programas de formación
+                y recursos para continuar desarrollando
+                tus conocimientos en atención de emergencias.
+            </p>
+
+        </div>
+
+        <a class="btn btn-primary"
+           asp-controller="Courses"
+           asp-action="Index">
+            Explorar cursos
+        </a>
+
+    </div>
+</section>

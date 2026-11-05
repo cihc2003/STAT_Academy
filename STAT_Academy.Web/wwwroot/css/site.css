@@ -1,14 +1,14 @@
 :root {
-    --navy: #071b3a;
-    --navy-2: #0c2b56;
-    --electric: #176bff;
-    --sky: #64d7ff;
-    --violet: #b39cff;
-    --white: #ffffff;
-    --light: #f4f7fb;
-    --muted: #65758b;
-    --line: #dce5f2;
-    --shadow: 0 18px 45px rgba(7, 27, 58, 0.12);
+    --navy: #112945;
+    --navy-2: #112945;
+    --electric: #112945;
+    --sky: #112945;
+    --violet: #BEBEBE;
+    --white: #FFFFFF;
+    --light: #FFFFFF;
+    --muted: #112945;
+    --line: #EFEFEF;
+    --shadow: 0 18px 45px #112945;
     --radius: 18px;
 }
 
@@ -60,8 +60,8 @@ iframe {
     position: sticky;
     top: 0;
     z-index: 20;
-    background: rgba(255, 255, 255, 0.92);
-    border-bottom: 1px solid rgba(220, 229, 242, 0.8);
+    background: #BEBEBE;
+    border-bottom: 1px solid #BEBEBE;
     backdrop-filter: blur(14px);
 }
 
@@ -99,7 +99,7 @@ iframe {
         .nav-links a:hover,
         .nav-links a.active {
             color: var(--electric);
-            background: #eef5ff;
+            background: #FFFFFF;
         }
 
 .btn-nav,
@@ -134,7 +134,7 @@ iframe {
 .hero {
     overflow: hidden;
     color: var(--white);
-    background: radial-gradient(circle at 80% 20%, rgba(100, 215, 255, 0.28), transparent 28%), linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 54%, #163a7a 100%);
+    background: #112945, #112945;
 }
 
 .hero-grid {
@@ -157,7 +157,7 @@ iframe {
 .page-hero p {
     max-width: 660px;
     margin: 0 0 28px;
-    color: rgba(255, 255, 255, 0.82);
+    color: #BEBEBE;
     font-size: 1.12rem;
 }
 
@@ -193,24 +193,24 @@ iframe {
 
 .btn-primary {
     color: var(--white);
-    background: linear-gradient(135deg, var(--electric), #6d5dfc);
-    box-shadow: 0 14px 30px rgba(23, 107, 255, 0.32);
+    background: #112945;
+    box-shadow: 0 14px 30px #BEBEBE;
 }
 
 .hero-panel {
     display: grid;
     gap: 22px;
     padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid #BEBEBE;
     border-radius: 28px;
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25);
+    background: #BEBEBE;
+    box-shadow: 0 30px 70px #BEBEBE;
 }
 
 .metric-card,
 .chart-card {
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.12);
+    background: #BEBEBE;
 }
 
 .metric-card {
@@ -226,7 +226,7 @@ iframe {
 
     .metric-card p {
         margin: 12px 0 0;
-        color: rgba(255, 255, 255, 0.78);
+        color: #BEBEBE;
     }
 
 .chart-card {
@@ -241,7 +241,7 @@ iframe {
         flex: 1;
         min-width: 44px;
         border-radius: 14px 14px 6px 6px;
-        background: linear-gradient(180deg, var(--sky), var(--electric));
+        background: #112945;
     }
 
         .chart-card span:nth-child(1) {
@@ -261,7 +261,13 @@ iframe {
         }
 
 .section {
-    padding: 84px 0;
+    padding: 48px 0;
+
+    @media (max-width: 768px) {
+        .section {
+            padding: 32px 0;
+        }
+    }
 }
 
 .section-heading {
@@ -313,8 +319,8 @@ iframe {
 
     .card:hover {
         transform: translateY(-6px);
-        border-color: rgba(23, 107, 255, 0.36);
-        box-shadow: 0 24px 58px rgba(7, 27, 58, 0.16);
+        border-color: #BEBEBE;
+        box-shadow: 0 24px 58px #112945;
     }
 
 .card-body {
@@ -335,8 +341,8 @@ iframe {
 .tag {
     display: inline-flex;
     padding: 6px 10px;
-    color: #2146a8;
-    background: #edf3ff;
+    color: #112945;
+    background: #EFEFEF;
     border-radius: 999px;
     font-size: 0.78rem;
     font-weight: 800;
@@ -352,7 +358,7 @@ iframe {
 .visual {
     position: relative;
     min-height: 178px;
-    background: linear-gradient(135deg, #eaf4ff, #f6f1ff);
+    background: #112945;
 }
 
     .visual::before,
@@ -364,7 +370,7 @@ iframe {
 
 .visual-stats::before {
     inset: 42px 34px 36px;
-    background: repeating-linear-gradient(90deg, transparent 0 18px, rgba(23, 107, 255, 0.18) 18px 20px), linear-gradient(180deg, transparent 52%, rgba(23, 107, 255, 0.16) 52%);
+    background: #112945, #112945;
 }
 
 .visual-stats::after {
@@ -372,13 +378,13 @@ iframe {
     right: 46px;
     bottom: 46px;
     height: 72px;
-    background: linear-gradient(135deg, transparent 48%, var(--electric) 49% 53%, transparent 54%);
+    background: #112945;
 }
 
 .visual-data::before,
 .visual-bi::before {
     inset: 36px;
-    background: linear-gradient(90deg, var(--electric) 22%, transparent 22% 28%, var(--sky) 28% 50%, transparent 50% 56%, var(--violet) 56%);
+    background: #112945;
 }
 
 .visual-data::after,
@@ -387,14 +393,14 @@ iframe {
     height: 72px;
     right: 42px;
     bottom: 34px;
-    background: conic-gradient(var(--electric) 0 42%, var(--sky) 42% 72%, var(--violet) 72%);
+    background: #112945;
     border-radius: 50%;
 }
 
 .visual-python::before {
     inset: 36px 34px;
     background: var(--navy);
-    box-shadow: inset 0 0 0 12px rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 0 12px #BEBEBE;
 }
 
 .visual-python::after {
@@ -402,25 +408,25 @@ iframe {
     left: 60px;
     width: 56%;
     height: 72px;
-    background: linear-gradient(#64d7ff 0 8px, transparent 8px 20px, #b39cff 20px 28px, transparent 28px 42px, #ffffff 42px 50px, transparent 50px);
+    background: #112945;
 }
 
 .visual-research::before,
 .visual-excel::before {
     inset: 34px;
-    background: linear-gradient(var(--white) 0 0) padding-box, linear-gradient(135deg, var(--electric), var(--violet)) border-box;
+    background: #112945 padding-box, #112945 border-box;
     border: 3px solid transparent;
 }
 
 .visual-research::after,
 .visual-excel::after {
     inset: 56px;
-    background: repeating-linear-gradient(0deg, rgba(23, 107, 255, 0.16) 0 10px, transparent 10px 26px);
+    background: #112945;
 }
 
 .stats-section {
     color: var(--white);
-    background: linear-gradient(135deg, var(--navy), #102f63);
+    background: #112945;
 }
 
 .stats-grid {
@@ -431,9 +437,9 @@ iframe {
 
 .stat-box {
     padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid #BEBEBE;
     border-radius: var(--radius);
-    background: rgba(255, 255, 255, 0.08);
+    background: #BEBEBE;
     text-align: center;
 }
 
@@ -446,7 +452,7 @@ iframe {
     .stat-box span {
         display: block;
         margin-top: 10px;
-        color: rgba(255, 255, 255, 0.76);
+        color: #BEBEBE;
         font-weight: 700;
     }
 
@@ -467,7 +473,7 @@ iframe {
 
 .page-hero {
     color: var(--white);
-    background: radial-gradient(circle at 82% 18%, rgba(179, 156, 255, 0.24), transparent 30%), linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+    background: #112945, #112945;
     padding: 92px 0;
 }
 
@@ -510,7 +516,7 @@ iframe {
         .form-group input:focus,
         .form-group textarea:focus {
             border-color: var(--electric);
-            box-shadow: 0 0 0 4px rgba(23, 107, 255, 0.12);
+            box-shadow: 0 0 0 4px #BEBEBE;
         }
 
 .category-heading {
@@ -547,20 +553,20 @@ iframe {
     height: 104px;
     margin: 0 auto 18px;
     border-radius: 50%;
-    border: 6px solid #eef5ff;
-    background: radial-gradient(circle at 50% 34%, #ffffff 0 18%, transparent 19%), radial-gradient(circle at 50% 88%, rgba(255, 255, 255, 0.92) 0 33%, transparent 34%), linear-gradient(135deg, var(--electric), var(--violet));
+    border: 6px solid #FFFFFF;
+    background: #112945, #112945, #112945;
 }
 
 .avatar-two {
-    background-image: radial-gradient(circle at 50% 34%, #ffffff 0 18%, transparent 19%), radial-gradient(circle at 50% 88%, rgba(255, 255, 255, 0.92) 0 33%, transparent 34%), linear-gradient(135deg, #0c2b56, var(--sky));
+    background-image: #112945, #112945, #112945;
 }
 
 .avatar-three {
-    background-image: radial-gradient(circle at 50% 34%, #ffffff 0 18%, transparent 19%), radial-gradient(circle at 50% 88%, rgba(255, 255, 255, 0.92) 0 33%, transparent 34%), linear-gradient(135deg, #6d5dfc, var(--sky));
+    background-image: #112945, #112945, #112945;
 }
 
 .avatar-four {
-    background-image: radial-gradient(circle at 50% 34%, #ffffff 0 18%, transparent 19%), radial-gradient(circle at 50% 88%, rgba(255, 255, 255, 0.92) 0 33%, transparent 34%), linear-gradient(135deg, var(--navy), #8ea2ff);
+    background-image: #112945, #112945, #112945;
 }
 
 .mission-section {
@@ -639,7 +645,7 @@ iframe {
     }
 
 .site-footer {
-    color: rgba(255, 255, 255, 0.78);
+    color: #BEBEBE;
     background: var(--navy);
 }
 
@@ -663,14 +669,14 @@ iframe {
     .admin-sidebar a {
         display: block;
         padding: 11px 12px;
-        color: rgba(255, 255, 255, 0.8);
+        color: #BEBEBE;
         border-radius: 12px;
         font-weight: 800;
     }
 
         .admin-sidebar a:hover {
             color: var(--white);
-            background: rgba(255, 255, 255, 0.1);
+            background: #BEBEBE;
         }
 
 .table-card {
@@ -685,7 +691,7 @@ iframe {
     display: inline-flex;
     padding: 6px 10px;
     border-radius: 999px;
-    background: #edf3ff;
+    background: #EFEFEF;
     color: var(--electric);
     font-weight: 800;
     font-size: .8rem;
@@ -832,7 +838,7 @@ iframe {
 .blog-card__visual {
     min-height: 160px;
     padding: 24px;
-    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.24), transparent 30%), linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 68%, #163a7a 100%);
+    background: #112945, #112945;
 }
 
 .blog-card__body {
@@ -869,8 +875,8 @@ iframe {
 }
 
 .blog-note {
-    color: #2146a8;
-    background: #eef5ff;
+    color: #112945;
+    background: #FFFFFF;
 }
 
 .blog-empty {
@@ -890,15 +896,15 @@ iframe {
 }
 
 :root {
-    --navy: #071b3a;
-    --navy-2: #0c2b56;
-    --electric: #176bff;
-    --sky: #64d7ff;
-    --white: #ffffff;
-    --light: #f4f7fb;
-    --muted: #65758b;
-    --line: #dce5f2;
-    --shadow: 0 18px 45px rgba(7, 27, 58, 0.12);
+    --navy: #112945;
+    --navy-2: #112945;
+    --electric: #112945;
+    --sky: #112945;
+    --white: #FFFFFF;
+    --light: #FFFFFF;
+    --muted: #112945;
+    --line: #EFEFEF;
+    --shadow: 0 18px 45px #112945;
     --radius: 18px;
 }
 
@@ -922,7 +928,7 @@ iframe {
     .admin-sidebar a {
         display: block;
         padding: 11px 12px;
-        color: rgba(255, 255, 255, 0.8);
+        color: #BEBEBE;
         border-radius: 12px;
         font-weight: 800;
         text-decoration: none;
@@ -930,7 +936,7 @@ iframe {
 
         .admin-sidebar a:hover {
             color: var(--white);
-            background: rgba(255, 255, 255, 0.1);
+            background: #BEBEBE;
         }
 
 .section-heading {
@@ -969,7 +975,7 @@ iframe {
 
 .stat-box {
     padding: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid #BEBEBE;
     border-radius: var(--radius);
     background: var(--navy);
     color: var(--white);
@@ -986,7 +992,7 @@ iframe {
     .stat-box span {
         display: block;
         margin-top: 10px;
-        color: rgba(255, 255, 255, 0.76);
+        color: #BEBEBE;
         font-weight: 700;
     }
 
@@ -1002,7 +1008,7 @@ iframe {
     display: inline-flex;
     padding: 6px 10px;
     border-radius: 999px;
-    background: #edf3ff;
+    background: #EFEFEF;
     color: var(--electric);
     font-weight: 800;
     font-size: .8rem;
@@ -1035,3 +1041,812 @@ iframe {
         grid-template-columns: 1fr;
     }
 }
+
+
+
+/* STAT ACADEMY — Enterprise UI refresh | approved solid-color palette */
+:root {
+  --red: #AE040F; --ink: #1C1C1C; --navy: #112945; --navy-2: #112945;
+  --electric: #AE040F; --sky: #EFEFEF; --violet: #AE040F;
+  --white: #FFFFFF; --light: #EFEFEF; --muted: #112945; --line: #BEBEBE;
+  --shadow: 0 10px 26px #BEBEBE; --radius: 14px;
+  --bs-primary: #112945; --bs-primary-rgb: 17,41,69;
+  --bs-danger: #AE040F; --bs-danger-rgb: 174,4,15;
+  --bs-success: #112945; --bs-success-rgb: 17,41,69;
+  --bs-body-color: #1C1C1C; --bs-body-bg: #FFFFFF;
+  --bs-border-color: #BEBEBE; --bs-secondary-color: #112945;
+}
+html { scroll-behavior: smooth; }
+body { background: #EFEFEF; color: #1C1C1C; font-family: Inter, 'Segoe UI', Arial, sans-serif; line-height: 1.55; }
+.site-header { background: #FFFFFF; border-bottom: 1px solid #BEBEBE; backdrop-filter: none; box-shadow: 0 3px 12px #EFEFEF; }
+.site-header .navbar { min-height: 76px; }
+.brand { color: #112945; font-size: 1.35rem; font-weight: 850; letter-spacing: -.035em; }
+.brand::before { content: ''; display: inline-block; width: 9px; height: 25px; border-radius: 3px; background: #AE040F; margin-right: 11px; vertical-align: -5px; }
+.nav-links { gap: 3px; }
+.nav-links a { color: #112945; font-weight: 650; border-radius: 9px; padding: 10px 12px; }
+.nav-links a:hover, .nav-links a.active { background: #EFEFEF; color: #AE040F; }
+.nav-links a.active { box-shadow: inset 0 -3px 0 #AE040F; }
+.nav-user { color: #112945; font-size: .88rem; padding: 8px; }
+.btn, .btn-nav, .nav-button { border-radius: 9px; font-weight: 700; min-height: 42px; box-shadow: none; transition: background .16s ease, border-color .16s ease, transform .16s ease; }
+.btn:hover { transform: translateY(-1px); box-shadow: none; }
+.btn-primary, .btn-nav, .nav-button, .bg-primary { background: #AE040F !important; border-color: #AE040F !important; color: #FFFFFF !important; }
+.btn-primary:hover, .btn-nav:hover, .nav-button:hover { background: #112945 !important; border-color: #112945 !important; }
+.btn-secondary, .btn-dark, .bg-dark { background: #112945 !important; border-color: #112945 !important; color: #FFFFFF !important; }
+.btn-outline-primary, .btn-outline-secondary { color: #112945 !important; border: 1px solid #112945 !important; background: #FFFFFF !important; }
+.btn-outline-primary:hover, .btn-outline-secondary:hover { background: #112945 !important; color: #FFFFFF !important; }
+.btn-danger, .btn-outline-danger:hover { background: #AE040F !important; color: #FFFFFF !important; border-color: #AE040F !important; }
+.btn-outline-danger { background: #FFFFFF !important; color: #AE040F !important; border-color: #AE040F !important; }
+.text-primary, .text-info, .text-success { color: #112945 !important; }
+.text-danger { color: #AE040F !important; }
+.text-muted, .text-secondary { color: #112945 !important; }
+.bg-light, .bg-body-tertiary { background: #EFEFEF !important; }
+.bg-success, .bg-info, .bg-warning { background: #112945 !important; color: #FFFFFF !important; }
+.hero, .page-hero { background: #112945; color: #FFFFFF; }
+.hero { border-bottom: 5px solid #AE040F; }
+.hero-grid { min-height: 480px; gap: 40px; padding: 64px 0; }
+.hero-copy h1, .page-hero h1 { font-size: clamp(2.3rem, 4.8vw, 4.5rem); line-height: 1.08; letter-spacing: -.045em; }
+.hero-panel { background: #FFFFFF; color: #112945; border: 1px solid #BEBEBE; box-shadow: 0 15px 35px #1C1C1C; }
+.hero-panel .metric-card, .hero-panel .chart-card { background: #EFEFEF; color: #112945; }
+.hero-panel .metric-card p { color: #112945; }
+.eyebrow, .hero .eyebrow, .page-hero .eyebrow { color: #AE040F; letter-spacing: .12em; }
+.hero .eyebrow, .page-hero .eyebrow { color: #FFFFFF; }
+h1,h2,h3,h4,h5,h6 { color: #112945; letter-spacing: -.025em; font-weight: 750; }
+.hero h1, .page-hero h1, .site-footer h2, .site-footer h3 { color: #FFFFFF; }
+main { flex: 1 0 auto; min-width: 0; }
+main > .container, main > section.container, .page-content { padding-top: 25px; padding-bottom: 35px; }
+.card, .table-card, .form-card, .chart-card, .metric-card, .panel, .modal-content { background: #FFFFFF; border: 1px solid #BEBEBE; border-radius: 14px; box-shadow: 0 5px 18px #EFEFEF; }
+.card, .form-card, .panel { overflow: hidden; }
+.card-header, .modal-header { background: #EFEFEF; border-bottom: 1px solid #BEBEBE; }
+.card-footer, .modal-footer { background: #FFFFFF; border-top: 1px solid #BEBEBE; }
+.admin-shell { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 28px; align-items: start; }
+.admin-shell > section { min-width: 0; }
+.admin-sidebar { display: flex; flex-direction: column; gap: 5px; position: sticky; top: 100px; padding: 16px; background: #112945; border: 1px solid #112945; border-radius: 14px; box-shadow: none; }
+.admin-sidebar::before { content: 'ADMINISTRACIÓN'; font-size: .73rem; font-weight: 800; letter-spacing: .12em; color: #FFFFFF; padding: 10px 12px 14px; border-bottom: 1px solid #BEBEBE; margin-bottom: 8px; }
+.admin-sidebar a { display: block; padding: 12px 13px; border-radius: 8px; color: #FFFFFF; font-weight: 650; }
+.admin-sidebar a:hover, .admin-sidebar a.active { background: #FFFFFF; color: #112945; }
+.admin-sidebar a.active { border-left: 4px solid #AE040F; }
+.table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table { --bs-table-bg: #FFFFFF; --bs-table-color: #1C1C1C; --bs-table-border-color: #BEBEBE; margin-bottom: 0; min-width: 640px; }
+.table thead th { background: #112945; color: #FFFFFF; border-bottom: 0; padding: 15px 17px; font-size: .79rem; text-transform: uppercase; letter-spacing: .045em; white-space: nowrap; }
+.table tbody td { padding: 15px 17px; vertical-align: middle; border-bottom: 1px solid #EFEFEF; }
+.table tbody tr:hover td { background: #EFEFEF; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.form-control, .form-select, input:not([type=checkbox]):not([type=radio]), select, textarea { border: 1px solid #BEBEBE; border-radius: 9px; color: #1C1C1C; background: #FFFFFF; min-height: 42px; }
+.form-control:focus, .form-select:focus, input:focus, textarea:focus { border-color: #112945; box-shadow: 0 0 0 3px #EFEFEF; outline-color: #112945; }
+.form-label, label { color: #112945; font-weight: 650; }
+.form-check-input:checked { background-color: #AE040F; border-color: #AE040F; }
+.alert { border-radius: 10px; border: 1px solid #BEBEBE; background: #EFEFEF; color: #112945; }
+.alert-danger, .validation-summary-errors, .field-validation-error { color: #AE040F; }
+.status-pill, .badge { border-radius: 999px; background: #EFEFEF; color: #112945; border: 1px solid #BEBEBE; padding: .3em .7em; }
+.pagination .page-link { color: #112945; background: #FFFFFF; border-color: #BEBEBE; }
+.pagination .active .page-link { color: #FFFFFF; background: #AE040F; border-color: #AE040F; }
+.site-footer { background: #112945; color: #FFFFFF; border-top: 4px solid #AE040F; }
+.site-footer a { color: #FFFFFF; }
+:focus-visible { outline: 3px solid #AE040F; outline-offset: 3px; }
+@media (max-width: 991.98px) {
+ .admin-shell { grid-template-columns: minmax(0,1fr); gap: 18px; }
+ .admin-sidebar { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+ .admin-sidebar::before { flex-basis: 100%; }
+ .admin-sidebar a { padding: 9px 12px; }
+ .nav-links { align-items: stretch !important; padding: 12px 0; }
+ .nav-links a { width: 100%; }
+ .hero-grid { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 575.98px) {
+ .container { width: calc(100% - 28px); }
+ .hero-grid { padding: 38px 0; }
+ .hero-copy h1, .page-hero h1 { font-size: 2.35rem; }
+ .table-card { margin-left: 0; margin-right: 0; }
+ .admin-shell > section > .d-flex { flex-wrap: wrap; gap: 12px; }
+ .btn { white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+
+/* Contenedor general */
+@media (min-width: 1200px) {
+    .container {
+        width: calc(100% - 80px);
+        max-width: 1600px;
+    }
+}
+
+/* Barra superior */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: #FFFFFF;
+    border-bottom: 1px solid #BEBEBE;
+}
+
+    /* Navegación */
+    .site-header .navbar {
+        min-height: 84px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        gap: 24px;
+    }
+
+    /* Logo */
+    .site-header .brand {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #112945;
+        white-space: nowrap;
+    }
+
+    /* Enlaces */
+    .site-header .nav-links {
+        gap: 6px;
+    }
+
+        .site-header .nav-links a {
+            font-size: 0.95rem;
+            padding: 12px 15px;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+    /* Botones de navegación */
+    .site-header .btn-nav,
+    .site-header .nav-button {
+        min-height: 44px;
+        padding: 10px 18px;
+        background: #AE040F;
+        color: #FFFFFF;
+        border-radius: 9px;
+    }
+
+/* Pantallas medianas */
+@media (max-width: 1199.98px) {
+    .site-header .navbar {
+        gap: 12px;
+    }
+
+    .site-header .nav-links {
+        gap: 2px;
+    }
+
+        .site-header .nav-links a {
+            padding: 10px 9px;
+            font-size: 0.88rem;
+        }
+}
+
+/* Menú responsive */
+@media (max-width: 991.98px) {
+    .site-header .navbar {
+        min-height: 72px;
+    }
+
+    .site-header .navbar-collapse {
+        flex-basis: 100%;
+    }
+
+    .site-header .nav-links {
+        align-items: stretch;
+        padding: 16px 0;
+    }
+
+        .site-header .nav-links a {
+            width: 100%;
+            padding: 12px 15px;
+            white-space: normal;
+        }
+
+    .site-header .nav-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* STAT Academy - Ajuste de navegación */
+
+/* Escritorio */
+@media (min-width: 992px) {
+    .site-header .navbar {
+        min-height: 92px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        gap: 20px;
+    }
+
+    .site-header .brand {
+        font-size: 1.65rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .site-header .nav-links {
+        gap: 4px;
+    }
+
+        .site-header .nav-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 10px 12px;
+            font-size: 1rem;
+            line-height: 1.3;
+            text-decoration: none;
+        }
+
+        .site-header .nav-links .btn-nav,
+        .site-header .nav-links .nav-button {
+            min-height: 44px;
+            padding: 10px 16px;
+            color: #FFFFFF;
+            background-color: #AE040F;
+            border: 0;
+            border-radius: 9px;
+        }
+}
+
+/* Pantallas ultrawide */
+@media (min-width: 1920px) {
+    .site-header .navbar {
+        min-height: 100px;
+    }
+
+    .site-header .brand {
+        font-size: 1.8rem;
+    }
+
+    .site-header .nav-links a {
+        font-size: 1.05rem;
+    }
+}
+
+/* STAT Academy - Distribución responsive */
+
+/* Pantallas de escritorio */
+@media (min-width: 1200px) {
+    body .container {
+        width: calc(100% - 80px);
+        max-width: 1600px;
+    }
+}
+
+/* Monitores ultrawide */
+@media (min-width: 2560px) {
+    body .container {
+        width: calc(100% - 120px);
+        max-width: 2200px;
+    }
+}
+
+/* Tablets y pantallas pequeñas */
+@media (max-width: 1199.98px) {
+    body .container {
+        width: calc(100% - 32px);
+        max-width: 100%;
+    }
+}
+
+/* STAT Academy - Corrección de portada */
+
+.hero .hero-grid {
+    min-height: 480px;
+    padding-top: 65px;
+    padding-bottom: 65px;
+    align-items: center;
+}
+
+.hero .hero-copy,
+.hero .hero-panel {
+    min-width: 0;
+}
+
+.hero .hero-panel {
+    align-self: center;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+@media (max-width: 991.98px) {
+    .hero .hero-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 48px;
+        padding-bottom: 48px;
+    }
+}
+
+
+/* STAT Academy - Imágenes de cursos */
+
+.card .visual {
+    position: relative;
+    height: 220px;
+    min-height: 220px;
+    overflow: hidden;
+    background-color: #112945;
+}
+
+    /* Desactivar las figuras decorativas anteriores */
+    .card .visual::before,
+    .card .visual::after {
+        content: none;
+    }
+
+    .card .visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 0.3s ease;
+    }
+
+.card:hover .visual img {
+    transform: scale(1.04);
+}
+
+@media (max-width: 720px) {
+    .card .visual {
+        height: 190px;
+        min-height: 190px;
+    }
+}
+
+
+/* STAT Academy - Tarjetas con imágenes */
+
+.course-card .visual {
+    position: relative;
+    width: 100%;
+    height: 230px;
+    min-height: 230px;
+    overflow: hidden;
+    background: #112945;
+}
+
+    .course-card .visual::before,
+    .course-card .visual::after {
+        content: none;
+    }
+
+    .course-card .visual img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 0.3s ease;
+    }
+
+.course-card:hover .visual img {
+    transform: scale(1.05);
+}
+
+.course-card .card-body {
+    padding: 24px;
+}
+
+@media (max-width: 720px) {
+    .course-card .visual {
+        height: 190px;
+        min-height: 190px;
+    }
+}
+
+
+/* STAT Academy - Fotografía de portada */
+
+.hero {
+    position: relative;
+    background-color: #112945;
+    background-image: url('/images/home/portada.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 4px solid #AE040F;
+}
+
+    /* Capa oscura uniforme para mejorar la lectura */
+    .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(17, 41, 69, 0.55);
+        pointer-events: none;
+    }
+
+    /* Mantener el contenido encima de la fotografía */
+    .hero .hero-grid {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Textos de portada */
+    .hero .hero-copy h1 {
+        color: #FFFFFF;
+    }
+
+    .hero .hero-copy p {
+        color: #FFFFFF;
+    }
+
+/* Adaptación para teléfonos */
+@media (max-width: 720px) {
+    .hero {
+        background-position: center;
+    }
+}
+
+
+/* ==========================================
+   STAT Academy - Panel de servicios
+   ========================================== */
+
+.hero .academy-services {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 28px;
+    background: #FFFFFF;
+    border: 1px solid #BEBEBE;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(28, 28, 28, 0.25);
+}
+
+/* Encabezado del panel */
+
+.academy-services-header {
+    padding: 4px 4px 12px;
+}
+
+.academy-services-label {
+    display: block;
+    margin-bottom: 10px;
+    color: #AE040F;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.academy-services-header h2 {
+    margin: 0 0 10px;
+    color: #112945;
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.academy-services-header p {
+    margin: 0;
+    color: #1C1C1C;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Tarjetas de servicios */
+
+.academy-service {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px;
+    background: #EFEFEF;
+    border: 1px solid #BEBEBE;
+    border-radius: 12px;
+}
+
+/* Íconos */
+
+.academy-service-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    background: #AE040F;
+    color: #FFFFFF;
+    border-radius: 10px;
+}
+
+    .academy-service-icon span {
+        color: #FFFFFF;
+        font-size: 1.7rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+/* Textos */
+
+.academy-service-content {
+    min-width: 0;
+}
+
+    .academy-service-content h3 {
+        margin: 0 0 5px;
+        color: #112945;
+        font-size: 1.05rem;
+        font-weight: 800;
+    }
+
+    .academy-service-content p {
+        margin: 0;
+        color: #1C1C1C;
+        font-size: 0.9rem;
+        line-height: 1.45;
+    }
+
+/* Responsive */
+
+@media (max-width: 720px) {
+    .hero .academy-services {
+        padding: 18px;
+    }
+
+    .academy-service {
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .academy-service-icon {
+        flex-basis: 44px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .academy-service-content h3 {
+        font-size: 0.95rem;
+    }
+
+    .academy-service-content p {
+        font-size: 0.85rem;
+    }
+}
+
+/* STAT Academy - Reducir tamaño del logo de fondo */
+
+.hero {
+    background-size: 65% auto;
+    background-position: 15% center;
+    background-repeat: no-repeat;
+    background-color: #112945;
+}
+
+    /* Mantener la capa de contraste */
+    .hero::before {
+        background: rgba(17, 41, 69, 0.45);
+    }
+
+/* Adaptación para celulares */
+@media (max-width: 991.98px) {
+    .hero {
+        background-size: 100% auto;
+        background-position: center;
+    }
+}
+
+/* Logotipo independiente */
+
+.hero-logo {
+    display: block;
+    width: 200px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    margin: 14px 0 20px;
+}
+
+/* Eliminar el logo gigante del fondo */
+.hero {
+    background-image: none;
+    background-color: #112945;
+}
+
+/* Alinear frase, logo y título principal */
+
+.hero-copy {
+    --ancho-marca: 460px;
+}
+
+
+    /* Frase STATMEDICAL PRESENTA */
+
+    .hero-copy .eyebrow {
+        display: block;
+        width: min(100%, var(--ancho-marca, 460px));
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: 3px;
+        line-height: 1.4;
+        color: #FFFFFF;
+        margin-bottom: 18px;
+    }
+
+
+    /* Logotipo de STAT Medical */
+    .hero-copy .hero-logo {
+        display: block;
+        width: min(100%, var(--ancho-marca));
+        height: auto;
+        object-fit: contain;
+        margin: 0 0 20px;
+    }
+
+    /* Título principal */
+    .hero-copy h1 {
+        margin-top: 0;
+    }
+
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 600px) {
+    .hero-copy {
+        --ancho-marca: 100%;
+    }
+}
+
+/* =========================================
+   STAT ACADEMY - CURSOS DESTACADOS
+   ========================================= */
+
+.course-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #FFFFFF;
+    border: 1px solid #BEBEBE;
+}
+
+    .course-card .visual {
+        width: 100%;
+        height: 250px;
+        overflow: hidden;
+        background: #112945;
+    }
+
+        .course-card .visual img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.25s ease;
+        }
+
+    .course-card:hover .visual img {
+        transform: scale(1.03);
+    }
+
+    /* Mantener el contenido ordenado */
+    .course-card .card-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+        /* Alinear el enlace inferior */
+        .course-card .card-body a:last-child {
+            margin-top: auto;
+        }
+
+/* Espaciado uniforme entre secciones */
+section.section {
+    padding-top: 55px;
+    padding-bottom: 55px;
+}
+
+@media (max-width: 768px) {
+    section.section {
+        padding-top: 35px;
+        padding-bottom: 35px;
+    }
+}
+
+/* =========================================
+   STAT ACADEMY - PRODUCTOS DESTACADOS
+   ========================================= */
+
+.product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+    background: #FFFFFF;
+    border: 1px solid #BEBEBE;
+    border-radius: 14px;
+}
+
+    .product-card .product-image {
+        width: 100%;
+        height: 250px;
+        overflow: hidden;
+        background: #EFEFEF;
+    }
+
+        .product-card .product-image img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 15px;
+            transition: transform 0.25s ease;
+        }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.04);
+    }
+
+    .product-card .product-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        gap: 12px;
+        padding: 24px;
+    }
+
+        .product-card .product-content h3,
+        .product-card .product-content p {
+            margin: 0;
+        }
+
+        .product-card .product-content .tag {
+            align-self: flex-start;
+        }
+
+        .product-card .product-content .text-link {
+            margin-top: auto;
+            padding-top: 12px;
+            color: #AE040F;
+            font-weight: 700;
+        }
+
+/* STAT ACADEMY - BLOG */
+
+.blog-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #BEBEBE;
+    border-radius: 14px;
+    background: #FFFFFF;
+}
+
+.blog-image {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    background: #112945;
+}
+
+    .blog-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.25s ease;
+    }
+
+.blog-card:hover .blog-image img {
+    transform: scale(1.03);
+}
+
+.blog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    padding: 24px;
+}
+
+    .blog-content .tag {
+        align-self: flex-start;
+    }
+
+    .blog-content h3,
+    .blog-content p {
+        margin: 0;
+    }
