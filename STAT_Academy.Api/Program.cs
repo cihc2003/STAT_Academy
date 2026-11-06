@@ -1,11 +1,16 @@
+using Azure.Core;
+using Azure.Identity;
+using Azure.Storage.Blobs;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using STAT_Academy.Api.Configuration;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Services;
-using Microsoft.EntityFrameworkCore;
+using STAT_Academy.Api.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 builder.Services.AddScoped<CursoService>();
 builder.Services.AddScoped<UsuarioService>();
@@ -22,6 +27,8 @@ builder.Services.AddScoped<ContrasenaService>();
 builder.Services.AddScoped<CorreoService>();
 builder.Services.AddScoped<CambioCorreoService>();
 builder.Services.AddScoped<SupabaseStorageService>();
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IProductoImagenService, ProductoImagenService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -33,10 +40,64 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API for STAT Academy"
     });
 });
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.EnableRetryOnFailure()));
+        sql => sql.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
+
+// ===================== Azure Blob Storage =====================
+builder.Services.Configure<BlobStorageOptions>(
+    builder.Configuration.GetSection(BlobStorageOptions.Seccion));
+
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<BlobStorageOptions>>().Value;
+    var env = sp.GetRequiredService<IHostEnvironment>();
+
+    if (!Uri.TryCreate(config.AccountUrl?.Trim(), UriKind.Absolute, out var accountUri))
+        throw new InvalidOperationException($"BlobStorage:AccountUrl no es válida: '{config.AccountUrl}'");
+
+    TokenCredential credencial;
+
+    if (env.IsDevelopment())
+    {
+        // LOCAL: tu usuario (cuenta de Visual Studio o "az login"). Nunca Managed Identity.
+        Console.WriteLine(">>> Blob Storage: credencial de DESARROLLO (Visual Studio / Azure CLI)");
+
+        credencial = new ChainedTokenCredential(
+            new VisualStudioCredential(new VisualStudioCredentialOptions
+            {
+                ProcessTimeout = TimeSpan.FromSeconds(15)
+            }),
+            new AzureCliCredential(new AzureCliCredentialOptions
+            {
+                ProcessTimeout = TimeSpan.FromSeconds(15)
+            }));
+    }
+    else
+    {
+        // AZURE: Managed Identity del App Service
+        Console.WriteLine(">>> Blob Storage: MANAGED IDENTITY");
+
+        credencial = string.IsNullOrWhiteSpace(config.ManagedIdentityClientId)
+            ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
+            : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(config.ManagedIdentityClientId));
+    }
+
+    // Límites para que un problema de red falle rápido en lugar de quedarse "cargando"
+    var opcionesCliente = new BlobClientOptions();
+    opcionesCliente.Retry.MaxRetries = 2;
+    opcionesCliente.Retry.NetworkTimeout = TimeSpan.FromSeconds(30);
+
+    return new BlobServiceClient(accountUri, credencial, opcionesCliente);
+});
+
+
+// ==============================================================
 
 var app = builder.Build();
 
@@ -49,6 +110,7 @@ app.UseSwaggerUI(c =>
     c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
     c.StylesPath = "./swagger-ui.css?v=10.2.3";
 });
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
