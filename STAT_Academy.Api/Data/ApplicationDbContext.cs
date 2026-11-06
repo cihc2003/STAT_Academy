@@ -20,6 +20,7 @@ namespace STAT_Academy.Api.Data
         public DbSet<TareaModel> Tarea { get; set; }
         public DbSet<EntradaBlogModel> EntradaBlog { get; set; }
         public DbSet<MaterialCursoModel> MaterialCurso { get; set; }
+        public DbSet<ProductoImagenModel> ProductoImagen { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,6 +37,8 @@ namespace STAT_Academy.Api.Data
             modelBuilder.Entity<EntradaBlogModel>()
              .ToTable("ENTRADA_BLOG");
 
+            modelBuilder.Entity<ProductoImagenModel>()
+            .ToTable("PRODUCTO_IMAGEN");
 
             modelBuilder.Entity<EntradaBlogModel>()
                 .HasOne(b => b.Autor)
