@@ -12,6 +12,8 @@
 
         public decimal precio { get; set; }
 
+        public int duracionSemanas { get; set; }
+
         public DateTime fechaInicio { get; set; }
 
         public DateTime fechaFin { get; set; }

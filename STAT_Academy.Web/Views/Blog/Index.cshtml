@@ -11,7 +11,10 @@
     <div class="container">
         <span class="eyebrow">Blog académico</span>
         <h1>Entradas del blog de STAT Academy</h1>
-        <p>Noticias, publicaciones y contenido académico del equipo de STAT Academy.</p>
+        <p>
+            Noticias, publicaciones y contenido académico gestionado por el equipo.
+            Solo los administradores pueden crear entradas y cada autor puede editar las suyas.
+        </p>
 
         @if (esAdmin)
         {
@@ -22,6 +25,16 @@
 
 <section class="section">
     <div class="container">
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert alert-success">@TempData["Mensaje"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
         @if (Model == null || !Model.Any())
         {
             <div class="info-block blog-empty">
@@ -40,66 +53,49 @@
             <div class="card-grid two blog-grid">
                 @foreach (var blog in Model)
                 {
-                    var esAutor = usuarioId == blog.FkAutor.ToString();
-                    var documentos = blog.Documentos.Count();
-                    var resumen = blog.Contenido.Length > 180
-                        ? blog.Contenido[..180].TrimEnd() + "…"
-                        : blog.Contenido;
+                    var puedeEditar = usuarioId == blog.FkAutor.ToString();
 
-                    <article class="card blog-card @(blog.Estado ? "" : "blog-card--inactiva")">
-                        <a asp-action="Details" asp-route-id="@blog.Id" class="blog-card__visual"
-                           aria-label="Leer @blog.Titulo">
-                            @if (!string.IsNullOrEmpty(blog.ImagenPrincipal))
-                            {
-                                <img src="@blog.ImagenPrincipal" alt="" loading="lazy" />
-                            }
-
-                            @* Solo los administradores reciben entradas inactivas desde la API *@
-                            @if (!blog.Estado)
-                            {
-                                <span class="tag blog-card__estado">Inactiva · solo administradores</span>
-                            }
-                        </a>
+                    <article class="card blog-card">
+                        <div class="blog-card__visual">
+                            <span class="tag">@(blog.Estado ? "Publicado" : "Inactivo")</span>
+                        </div>
 
                         <div class="card-body blog-card__body">
                             <p class="blog-card__meta">
                                 @(string.IsNullOrWhiteSpace(blog.Autor) ? $"Autor #{blog.FkAutor}" : blog.Autor)
-                                · <time datetime="@blog.FechaCreacion.ToString("o")">@blog.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy")</time>
-                                @if (documentos > 0)
-                                {
-                                    <span> · @documentos @(documentos == 1 ? "documento" : "documentos")</span>
-                                }
+                                · @blog.FechaCreacion.ToString("dd/MM/yyyy")
                             </p>
 
                             <h3>@blog.Titulo</h3>
 
-                            <p class="blog-card__excerpt">@resumen</p>
+                            <p class="blog-card__excerpt">
+                                @{
+                                    var resumen = blog.Contenido.Length > 180
+                                    ? blog.Contenido.Substring(0, 180) + "..."
+                                    : blog.Contenido;
+                                }
+                                @resumen
+                            </p>
 
                             <div class="blog-card__actions">
                                 <a asp-action="Details" asp-route-id="@blog.Id" class="text-link">Leer más</a>
 
-                                @if (esAutor)
+                                @if (puedeEditar)
                                 {
-                                    <a asp-action="Edit" asp-route-id="@blog.Id" class="btn btn-outline-primary btn-sm">Editar</a>
+                                    <a asp-action="Edit" asp-route-id="@blog.Id" class="btn btn-outline-primary btn-sm">
+                                        Editar
+                                    </a>
                                 }
 
-                                @if (esAutor || esAdmin)
+                                @if (esAdmin)
                                 {
-                                    if (blog.Estado)
-                                    {
-                                        <form asp-action="Desactivar" asp-route-id="@blog.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                    onclick="return confirm('¿Desactivar esta entrada? Dejará de verse para los clientes.');">
-                                                Desactivar
-                                            </button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <form asp-action="Activar" asp-route-id="@blog.Id" method="post" class="d-inline">
-                                            <button type="submit" class="btn btn-outline-success btn-sm">Publicar</button>
-                                        </form>
-                                    }
+                                    <form asp-action="Desactivar" asp-route-id="@blog.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('¿Deseas desactivar esta entrada?');">
+                                            Desactivar
+                                        </button>
+                                    </form>
                                 }
                             </div>
                         </div>

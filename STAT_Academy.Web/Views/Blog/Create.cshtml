@@ -1,26 +1,31 @@
-﻿@using STAT_Academy.Web.Models.Blog
-@model CreateBlogViewModel
+﻿@model STAT_Academy.Web.Models.Blog.CreateBlogViewModel
 
 @{
-    ViewData["Title"] = "Crear entrada";
+    ViewData["Title"] = "Crear Blog";
 }
 
 <section class="page-hero">
     <div class="container">
         <span class="eyebrow">Blog académico</span>
         <h1>Crear nueva entrada</h1>
-        <p>Usted quedará como autor y será la única persona que pueda editarla.</p>
+        <p>La entrada se registrará automáticamente con tu usuario logueado.</p>
     </div>
 </section>
 
 <section class="section">
     <div class="container">
-        <form asp-action="Create" method="post" enctype="multipart/form-data" class="card blog-form card-body">
+        <div class="info-block mb-4 blog-note">
+            El autor se asigna automáticamente desde tu sesión actual.
+        </div>
+
+        <form asp-action="Create" method="post" class="card blog-form card-body">
+            @Html.AntiForgeryToken()
+
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <div class="form-group mb-3">
                 <label asp-for="Titulo" class="form-label"></label>
-                <input asp-for="Titulo" class="form-control" maxlength="150" />
+                <input asp-for="Titulo" class="form-control" />
                 <span asp-validation-for="Titulo" class="text-danger"></span>
             </div>
 
@@ -30,16 +35,8 @@
                 <span asp-validation-for="Contenido" class="text-danger"></span>
             </div>
 
-            <div class="form-group mb-4">
-                <label asp-for="Archivos" class="form-label"></label>
-                <input asp-for="Archivos" type="file" class="form-control" multiple
-                       accept="@BlogArchivoLimites.Accept" data-blog-archivos />
-                <div class="form-text">@BlogArchivoLimites.Ayuda</div>
-                <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
-            </div>
-
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Publicar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
                 <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
@@ -48,5 +45,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <partial name="_BlogArchivosScript" />
 }

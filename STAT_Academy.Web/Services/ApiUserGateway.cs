@@ -13,7 +13,7 @@ namespace STAT_Academy.Web.Services
             _httpClient = httpClient;
         }
 
-        public async Task<LoginResult?> LoginAsync(LoginViewModel model)
+        public async Task<UsuarioResponse?> LoginAsync(LoginViewModel model)
         {
             var response = await _httpClient.PostAsJsonAsync("api/Login", new
             {
@@ -26,7 +26,7 @@ namespace STAT_Academy.Web.Services
                 return null;
             }
 
-            return await response.Content.ReadFromJsonAsync<LoginResult>();
+            return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
         }
 
         public async Task LogoutAsync()

@@ -4,7 +4,8 @@ namespace STAT_Academy.DTOs.Contrasena
 {
     public class CambiarContrasenaRequest
     {
-        // El usuario se toma del token JWT; no viaja en el cuerpo.
+        [Required]
+        public int usuarioId { get; set; }
 
         [Required(ErrorMessage = "La contraseña actual es obligatoria.")]
         public string contrasenaActual { get; set; } = string.Empty;

@@ -44,5 +44,6 @@
         public string UbicacionMaterial { get; set; } = string.Empty;
         public string Tipo { get; set; } = string.Empty;
         public int? Semana { get; set; }
+        public DateTime FechaCreacion { get; set; }
     }
 }

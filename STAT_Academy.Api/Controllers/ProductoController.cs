@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using STAT_Academy.Api.Auth;
+﻿using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.DTOs.Producto;
 using STAT_Academy.Api.Services;
 
 namespace STAT_Academy.Api.Controllers
 {
     [ApiController]
-    [Authorize(Roles = Roles.Admin)]
     [Route("api/[controller]")]
     public class ProductoController : ControllerBase
     {
@@ -18,7 +15,6 @@ namespace STAT_Academy.Api.Controllers
             _service = service;
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public IActionResult GetAll()
         {
