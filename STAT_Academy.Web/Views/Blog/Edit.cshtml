@@ -1,29 +1,31 @@
-﻿@model STAT_Academy.Web.Models.Blog.UpdateBlogViewModel
+﻿@using STAT_Academy.Web.Models.Blog
+@model UpdateBlogViewModel
 
 @{
-    ViewData["Title"] = "Editar Blog";
+    ViewData["Title"] = "Editar entrada";
+    var imagenes = Model.ArchivosActuales.Where(a => a.EsImagen).ToList();
+    var documentos = Model.ArchivosActuales.Where(a => !a.EsImagen).ToList();
 }
 
 <section class="page-hero">
     <div class="container">
         <span class="eyebrow">Blog académico</span>
         <h1>Editar entrada</h1>
-        <p>Solo puede modificar esta publicación el usuario que la creó.</p>
+        <p>Solo el autor original puede modificar esta publicación y sus archivos.</p>
     </div>
 </section>
 
 <section class="section">
-    <div class="container">
+    <div class="container blog-editor">
+        @* Texto y estado *@
         <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card blog-form card-body">
-            @Html.AntiForgeryToken()
-
             <input asp-for="Id" type="hidden" />
 
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
             <div class="form-group mb-3">
                 <label asp-for="Titulo" class="form-label"></label>
-                <input asp-for="Titulo" class="form-control" />
+                <input asp-for="Titulo" class="form-control" maxlength="150" />
                 <span asp-validation-for="Titulo" class="text-danger"></span>
             </div>
 
@@ -35,17 +37,95 @@
 
             <div class="form-check mb-3">
                 <input asp-for="Estado" class="form-check-input" />
-                <label asp-for="Estado" class="form-check-label">Activo</label>
+                <label asp-for="Estado" class="form-check-label"></label>
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Actualizar</button>
-                <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
+
+        @* Archivos: cada acción es un formulario propio (no se pueden anidar formularios) *@
+        <div class="card blog-form card-body">
+            <h2 class="blog-seccion mt-0">Imágenes</h2>
+
+            @if (imagenes.Count == 0)
+            {
+                <p class="text-muted">Esta entrada no tiene imágenes.</p>
+            }
+            else
+            {
+                <div class="blog-adjuntos">
+                    @foreach (var imagen in imagenes)
+                    {
+                        <figure class="blog-adjunto @(imagen.EsPrincipal ? "blog-adjunto--principal" : "")">
+                            <img src="@imagen.Url" alt="@imagen.Nombre" loading="lazy" />
+                            <figcaption>
+                                <span class="blog-adjunto__nombre" title="@imagen.Nombre">@imagen.Nombre</span>
+
+                                @if (imagen.EsPrincipal)
+                                {
+                                    <span class="tag">Portada</span>
+                                }
+                                else
+                                {
+                                    <form asp-action="MarcarPrincipal" asp-route-id="@Model.Id" method="post">
+                                        <input type="hidden" name="archivoId" value="@imagen.Id" />
+                                        <button type="submit" class="btn btn-link btn-sm p-0">Usar como portada</button>
+                                    </form>
+                                }
+
+                                <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post">
+                                    <input type="hidden" name="archivoId" value="@imagen.Id" />
+                                    <button type="submit" class="btn btn-link btn-sm p-0 text-danger"
+                                            onclick="return confirm('¿Quitar esta imagen?');">Quitar</button>
+                                </form>
+                            </figcaption>
+                        </figure>
+                    }
+                </div>
+            }
+
+            <h2 class="blog-seccion">Documentos</h2>
+
+            @if (documentos.Count == 0)
+            {
+                <p class="text-muted">Esta entrada no tiene documentos adjuntos.</p>
+            }
+            else
+            {
+                <ul class="blog-documentos">
+                    @foreach (var documento in documentos)
+                    {
+                        <li>
+                            <span class="blog-documentos__ext">@documento.Extension</span>
+                            <a asp-action="Documento" asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
+                            <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post" class="ms-auto">
+                                <input type="hidden" name="archivoId" value="@documento.Id" />
+                                <button type="submit" class="btn btn-link btn-sm p-0 text-danger"
+                                        onclick="return confirm('¿Quitar este documento?');">Quitar</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+
+            <h2 class="blog-seccion">Agregar archivos</h2>
+
+            <form asp-action="SubirArchivos" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                <input type="file" name="archivos" class="form-control" multiple required
+                       accept="@BlogArchivoLimites.Accept" data-blog-archivos />
+                <div class="form-text">@BlogArchivoLimites.Ayuda</div>
+                <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
+
+                <button type="submit" class="btn btn-outline-primary mt-3">Subir archivos</button>
+            </form>
+        </div>
     </div>
 </section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <partial name="_BlogArchivosScript" />
 }

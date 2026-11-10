@@ -4,7 +4,6 @@ namespace STAT_Academy.Web.Models.Contrasena
 {
     public class CambiarContrasenaViewModel
     {
-        public int usuarioId { get; set; }
 
         [Required(ErrorMessage = "La contraseña actual es obligatoria.")]
         [DataType(DataType.Password)]

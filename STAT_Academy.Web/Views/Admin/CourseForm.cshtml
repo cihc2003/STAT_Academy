@@ -46,9 +46,8 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="duracionSemanas" class="form-label">Duración (semanas)</label>
-                    <input asp-for="duracionSemanas" class="form-control" type="number" min="1" />
-                    <span asp-validation-for="duracionSemanas" class="text-danger"></span>
+                    <label class="form-label">Duración</label>
+                    <input class="form-control" value="@(Model.id.HasValue ? Model.duracionSemanas + " semanas" : "Se calcula con las fechas")" readonly />
                 </div>
 
                 <div class="col-md-4">

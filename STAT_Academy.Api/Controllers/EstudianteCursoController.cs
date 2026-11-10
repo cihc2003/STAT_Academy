@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Services;
-using System.Security.Claims;
 
 namespace STAT_Academy.Api.Controllers
 {
-    [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
-    public class EstudianteCursoController : ControllerBase
+    public class EstudianteCursoController : ApiControllerBase
     {
         private readonly EstudianteCursoService _service;
 
@@ -19,31 +19,17 @@ namespace STAT_Academy.Api.Controllers
         [HttpGet("{estudianteId}")]
         public IActionResult ObtenerCursos(int estudianteId)
         {
+            if (!PuedeActuarSobre(estudianteId))
+                return Forbid();
+
             return Ok(_service.ObtenerCursos(estudianteId));
         }
-        [Authorize(Roles = "ESTUDIANTE")]
+
+        [Authorize(Roles = Roles.Cliente)]
         [HttpPost("matricular/{cursoId}")]
         public IActionResult Matricular(int cursoId)
         {
-            var idUsuarioClaim =
-                User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (idUsuarioClaim == null)
-            {
-                return Unauthorized(new
-                {
-                    mensaje = "No se pudo identificar al usuario."
-                });
-            }
-
-            int estudianteId =
-                int.Parse(idUsuarioClaim.Value);
-
-            var resultado =
-                _service.Matricular(
-                    estudianteId,
-                    cursoId
-                );
+            var resultado = _service.Matricular(UsuarioActualId, cursoId);
 
             if (!resultado)
             {

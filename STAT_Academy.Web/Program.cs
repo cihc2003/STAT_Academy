@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using STAT_Academy.Web.Controllers;
 using STAT_Academy.Web.Services;
@@ -21,62 +22,30 @@ HttpMessageHandler CreateDevelopmentHandler()
 
     return handler;
 }
-builder.Services.AddHttpClient<CursoService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-});
-builder.Services.AddHttpClient<ApiUserGateway>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
-builder.Services.AddHttpClient<ApiContrasenaService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
 
-builder.Services.AddHttpClient<ApiCorreoService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+// Todos los clientes de la API comparten base URL y reenvían el JWT del usuario.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<BearerTokenHandler>();
 
-builder.Services.AddHttpClient<ApiUsuarioService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+void AddApiClient<TClient>() where TClient : class =>
+    builder.Services.AddHttpClient<TClient>(client => client.BaseAddress = apiUri)
+        .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler)
+        .AddHttpMessageHandler<BearerTokenHandler>();
 
-builder.Services.AddHttpClient<ApiProductoService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+AddApiClient<CursoService>();
+AddApiClient<ApiUserGateway>();
+AddApiClient<ApiContrasenaService>();
+AddApiClient<ApiUsuarioService>();
+AddApiClient<ApiProductoService>();
+AddApiClient<ApiProveedorService>();
+AddApiClient<ApiCarritoService>();
+AddApiClient<ApiCursoService>();
+AddApiClient<ApiBlogService>();
 
-builder.Services.AddHttpClient<ApiProveedorService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
-
-builder.Services.AddHttpClient<ApiCarritoService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
-
-builder.Services.AddHttpClient<ApiCursoService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
-
-builder.Services.AddHttpClient<ApiBlogService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-})
-.ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler);
+// Cliente con nombre para los controladores que usan HttpClient directamente.
+builder.Services.AddHttpClient(ApiClient.Nombre, client => client.BaseAddress = apiUri)
+    .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler)
+    .AddHttpMessageHandler<BearerTokenHandler>();
 
 builder.Services.AddControllersWithViews();
 
@@ -92,6 +61,21 @@ builder.Services
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
+
+        // Si el JWT de la API ya expiró, la sesión de la Web tampoco sirve:
+        // se cierra y el usuario vuelve a iniciar sesión.
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var expiraTexto = context.Properties.GetTokenValue("expires_at");
+
+            if (!DateTimeOffset.TryParse(expiraTexto, out var expira)
+                || expira <= DateTimeOffset.UtcNow)
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>

@@ -1,133 +1,146 @@
+using MailKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using System.Net;
-using System.Net.Mail;
 
 namespace STAT_Academy.Api.Services
 {
+    /// <summary>
+    /// Envío de correos por SMTP con MailKit (System.Net.Mail.SmtpClient está obsoleto
+    /// y oculta la causa real de los errores, p. ej. credenciales rechazadas por Gmail).
+    /// </summary>
     public class CorreoService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<CorreoService> _logger;
 
-        public CorreoService(IConfiguration configuration)
+        public CorreoService(IConfiguration configuration, ILogger<CorreoService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
-        public async Task EnviarRecuperacionContrasena(
-            string correoDestino,
-            string token)
+        public Task EnviarRecuperacionContrasena(string correoDestino, string token)
         {
             var configuracion = ObtenerConfiguracion();
 
-            var tokenCodificado = Uri.EscapeDataString(token);
-
             var enlace =
-                $"{configuracion.webBaseUrl}" +
-                "/Cuenta/RestablecerContrasena" +
-                $"?token={tokenCodificado}";
+                $"{configuracion.WebBaseUrl}/Cuenta/RestablecerContrasena" +
+                $"?token={Uri.EscapeDataString(token)}";
 
-            using var mensaje = new MailMessage
-            {
-                From = new MailAddress(
-                    configuracion.remitente,
-                    "STAT Academy"
-                ),
-                Subject = "Recuperación de contraseña",
-                IsBodyHtml = true,
-                Body = $"""
-                    <h2>Recuperación de contraseña</h2>
+            return Enviar(configuracion, correoDestino, "Recuperación de contraseña", $"""
+                <h2>Recuperación de contraseña</h2>
 
-                    <p>
-                        Recibimos una solicitud para restablecer
-                        tu contraseña de STAT Academy.
-                    </p>
+                <p>
+                    Recibimos una solicitud para restablecer
+                    tu contraseña de STAT Academy.
+                </p>
 
-                    <p>
-                        <a href="{enlace}">
-                            Restablecer mi contraseña
-                        </a>
-                    </p>
+                <p><a href="{enlace}">Restablecer mi contraseña</a></p>
 
-                    <p>
-                        Este enlace vence en 30 minutos y solamente
-                        puede utilizarse una vez.
-                    </p>
+                <p>
+                    Este enlace vence en 30 minutos y solamente
+                    puede utilizarse una vez.
+                </p>
 
-                    <p>
-                        Si no realizaste esta solicitud,
-                        puedes ignorar este mensaje.
-                    </p>
-                    """
-            };
-
-            mensaje.To.Add(correoDestino);
-
-            using var clienteSmtp = CrearClienteSmtp(configuracion);
-
-            await clienteSmtp.SendMailAsync(mensaje);
+                <p>
+                    Si no realizaste esta solicitud,
+                    puedes ignorar este mensaje.
+                </p>
+                """);
         }
 
-        public async Task EnviarConfirmacionCambioCorreo(
-            string correoNuevo,
-            string token)
+        public Task EnviarConfirmacionRegistro(string correoDestino, string nombre)
         {
             var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Cuenta/Login";
 
-            var tokenCodificado = Uri.EscapeDataString(token);
+            return Enviar(configuracion, correoDestino, "Bienvenido a STAT Academy: registro confirmado", $"""
+                <h2>¡Bienvenido a STAT Academy, {WebUtility.HtmlEncode(nombre)}!</h2>
 
-            var enlace =
-                $"{configuracion.webBaseUrl}" +
-                "/Cuenta/ConfirmarCambioCorreo" +
-                $"?token={tokenCodificado}";
+                <p>
+                    Su cuenta fue creada correctamente con esta
+                    dirección de correo.
+                </p>
 
-            using var mensaje = new MailMessage
-            {
-                From = new MailAddress(
-                    configuracion.remitente,
-                    "STAT Academy"
-                ),
-                Subject = "Confirme su nuevo correo electrónico",
-                IsBodyHtml = true,
-                Body = $"""
-                    <h2>Confirmación de correo electrónico</h2>
+                <p><a href="{enlace}">Iniciar sesión</a></p>
 
-                    <p>
-                        Recibimos una solicitud para asociar esta
-                        dirección de correo con una cuenta de
-                        STAT Academy.
-                    </p>
-
-                    <p>
-                        <a href="{enlace}">
-                            Confirmar mi nuevo correo
-                        </a>
-                    </p>
-
-                    <p>
-                        Este enlace vence en 30 minutos.
-                    </p>
-
-                    <p>
-                        Si usted no solicitó este cambio,
-                        puede ignorar este mensaje.
-                    </p>
-                    """
-            };
-
-            mensaje.To.Add(correoNuevo);
-
-            using var clienteSmtp = CrearClienteSmtp(configuracion);
-
-            await clienteSmtp.SendMailAsync(mensaje);
+                <p>
+                    Si usted no creó esta cuenta, responda a este
+                    mensaje para que podamos revisarlo.
+                </p>
+                """);
         }
 
-        private (
-            string servidor,
-            int puerto,
-            string usuario,
-            string clave,
-            string remitente,
-            string webBaseUrl
-        ) ObtenerConfiguracion()
+        public Task EnviarAvisoCambioContrasena(string correoDestino, string nombre)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Cuenta/Forgotpassword";
+
+            return Enviar(configuracion, correoDestino, "Su contraseña de STAT Academy fue cambiada", $"""
+                <h2>Hola, {WebUtility.HtmlEncode(nombre)}</h2>
+
+                <p>
+                    La contraseña de su cuenta de STAT Academy
+                    se cambió el {DateTime.UtcNow:dd/MM/yyyy HH:mm} (UTC).
+                </p>
+
+                <p>
+                    Si no fue usted, recupere el acceso de inmediato:
+                    <a href="{enlace}">restablecer mi contraseña</a>.
+                </p>
+                """);
+        }
+
+        private async Task Enviar(
+            ConfiguracionCorreo configuracion,
+            string destino,
+            string asunto,
+            string html)
+        {
+            var mensaje = new MimeMessage();
+            mensaje.From.Add(new MailboxAddress("STAT Academy", configuracion.Remitente));
+            mensaje.To.Add(MailboxAddress.Parse(destino));
+            mensaje.Subject = asunto;
+            mensaje.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
+
+            using var cliente = new SmtpClient { Timeout = 20_000 };
+
+            try
+            {
+                // 465 = TLS implícito; 587 (y otros) = STARTTLS obligatorio.
+                var seguridad = configuracion.Puerto == 465
+                    ? SecureSocketOptions.SslOnConnect
+                    : SecureSocketOptions.StartTls;
+
+                await cliente.ConnectAsync(configuracion.Servidor, configuracion.Puerto, seguridad);
+                await cliente.AuthenticateAsync(configuracion.Usuario, configuracion.Clave);
+                await cliente.SendAsync(mensaje);
+                await cliente.DisconnectAsync(quit: true);
+            }
+            catch (Exception ex) when (ex is AuthenticationException
+                                       // Gmail corta la conexión con "5.7.8 ... BadCredentials"
+                                       || ex.Message.Contains("5.7.8"))
+            {
+                // Gmail: la contraseña normal de la cuenta NO sirve; hace falta una
+                // "contraseña de aplicación" (16 caracteres) con verificación en 2 pasos.
+                throw new InvalidOperationException(
+                    $"El servidor SMTP {configuracion.Servidor} rechazó el usuario o la clave. " +
+                    "Si es Gmail, use una contraseña de aplicación en Correo:Clave.", ex);
+            }
+            catch (Exception ex) when (ex is SmtpCommandException or SmtpProtocolException
+                                           or SslHandshakeException or IOException
+                                           or System.Net.Sockets.SocketException)
+            {
+                throw new InvalidOperationException(
+                    $"No se pudo enviar el correo por {configuracion.Servidor}:{configuracion.Puerto}: {ex.Message}", ex);
+            }
+
+            _logger.LogInformation("Correo '{Asunto}' enviado.", asunto);
+        }
+
+        private ConfiguracionCorreo ObtenerConfiguracion()
         {
             var servidor = _configuration["Correo:Servidor"];
             var puertoTexto = _configuration["Correo:Puerto"];
@@ -155,37 +168,23 @@ namespace STAT_Academy.Api.Services
                 );
             }
 
-            return (
+            return new ConfiguracionCorreo(
                 servidor,
                 puerto,
                 usuario,
-                clave,
+                // Gmail muestra la contraseña de aplicación con espacios ("abcd efgh ..."):
+                // se quitan para que funcione igual si se pegó así.
+                clave.Replace(" ", string.Empty),
                 remitente,
-                webBaseUrl
-            );
+                webBaseUrl.TrimEnd('/'));
         }
 
-        private static SmtpClient CrearClienteSmtp(
-            (
-                string servidor,
-                int puerto,
-                string usuario,
-                string clave,
-                string remitente,
-                string webBaseUrl
-            ) configuracion)
-        {
-            return new SmtpClient(
-                configuracion.servidor,
-                configuracion.puerto
-            )
-            {
-                Credentials = new NetworkCredential(
-                    configuracion.usuario,
-                    configuracion.clave
-                ),
-                EnableSsl = true
-            };
-        }
+        private sealed record ConfiguracionCorreo(
+            string Servidor,
+            int Puerto,
+            string Usuario,
+            string Clave,
+            string Remitente,
+            string WebBaseUrl);
     }
 }

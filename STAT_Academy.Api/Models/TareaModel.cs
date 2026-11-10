@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace STAT_Academy.Api.Models
 {
+    // Columnas según dbo.TAREA. Todo es NULL-able en la base salvo ID.
+    // La semana NO existe como columna: se deriva de Fecha_Inicio (ver TareaService).
     [Table("TAREA")]
     public class TareaModel
     {
@@ -11,20 +12,21 @@ namespace STAT_Academy.Api.Models
         public int ID { get; set; }
 
         [Column("FK_Curso")]
-        public int CursoId { get; set; }
+        public int? CursoId { get; set; }
 
-        public string Titulo { get; set; }
+        public string? Titulo { get; set; }
 
-        public string Descripcion { get; set; }
+        public string? Descripcion { get; set; }
 
-        public DateTime Fecha_Inicio { get; set; }
+        public DateTime? Fecha_Inicio { get; set; }
 
-        public DateTime Fecha_Limite { get; set; }
+        public DateTime? Fecha_Limite { get; set; }
 
-        public bool Entregada { get; set; }
+        public bool? Entregada { get; set; }
 
-        public bool Estado { get; set; }
+        public bool? Estado { get; set; }
 
-        public int? Semana { get; set; }
+        [Column("FK_Autor")]
+        public int? AutorId { get; set; }
     }
 }

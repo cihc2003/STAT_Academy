@@ -11,7 +11,5 @@
         public string Tipo { get; set; }
 
         public int? Semana { get; set; }
-
-        public DateTime FechaCreacion { get; set; }
     }
 }
