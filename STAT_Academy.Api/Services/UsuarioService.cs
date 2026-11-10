@@ -168,21 +168,14 @@ namespace STAT_Academy.Api.Services
             return MapToUsuarioResponse(usuario);
         }
 
-        public List<UsuarioResponse> FiltrarPorTipo(int tipo)
+        public List<UsuarioModel> FiltrarPorTipo(int tipo)
         {
-            // Nunca devolver la entidad: incluye el hash de la contraseña y tokens.
-            return _context.Usuario
-                .Where(u => u.fk_Tipo_Usuario == tipo)
-                .Select(usuario => MapToUsuarioResponse(usuario))
-                .ToList();
+            return _context.Usuario.Where(u => u.fk_Tipo_Usuario == tipo).ToList();
         }
 
-        public List<UsuarioResponse> UsuariosActivos()
+        public List<UsuarioModel> UsuariosActivos()
         {
-            return _context.Usuario
-                .Where(u => u.estado)
-                .Select(usuario => MapToUsuarioResponse(usuario))
-                .ToList();
+            return _context.Usuario.Where(u => u.estado == true).ToList();
         }
 
         private static UsuarioResponse MapToUsuarioResponse(UsuarioModel usuario)

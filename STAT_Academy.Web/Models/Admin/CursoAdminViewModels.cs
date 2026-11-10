@@ -35,7 +35,8 @@ namespace STAT_Academy.Web.Models.Admin
         [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a 0.")]
         public decimal precio { get; set; }
 
-        // Solo lectura: la API la calcula a partir de las fechas.
+        [Required(ErrorMessage = "La duración es obligatoria.")]
+        [Range(1, 999, ErrorMessage = "La duración debe ser mayor a 0.")]
         public int duracionSemanas { get; set; }
 
         [Required(ErrorMessage = "La fecha de inicio es obligatoria.")]

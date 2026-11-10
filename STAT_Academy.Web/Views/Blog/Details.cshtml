@@ -1,94 +1,60 @@
-﻿@using System.Security.Claims
-@model STAT_Academy.Web.Models.Blog.BlogResponse
+﻿@model STAT_Academy.Web.Models.Blog.BlogResponse
 
 @{
-    ViewData["Title"] = Model.Titulo;
+    ViewData["Title"] = "Detalle Blog";
     var autor = string.IsNullOrWhiteSpace(Model.Autor) ? $"Autor #{Model.FkAutor}" : Model.Autor;
-    var esAutor = User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.FkAutor.ToString();
-    var portada = Model.ImagenPrincipal;
-    var galeria = Model.Imagenes.Where(i => i.Url != portada).ToList();
-    var documentos = Model.Documentos.ToList();
 }
 
 <section class="page-hero">
     <div class="container">
         <span class="eyebrow">Blog académico</span>
         <h1>@Model.Titulo</h1>
-        <p>
-            @autor ·
-            <time datetime="@Model.FechaCreacion.ToString("o")">@Model.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</time>
-        </p>
+        <p>@autor · @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
     </div>
 </section>
 
 <section class="section">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center gap-2 mb-3 flex-wrap">
-            <a asp-action="Index" class="btn btn-secondary">Volver al blog</a>
-
-            @if (esAutor)
-            {
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">Editar entrada</a>
-            }
+        <div class="d-flex justify-content-end mb-3">
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
         </div>
 
-        @if (!Model.Estado)
-        {
-            <div class="alert alert-warning">
-                Esta entrada está <strong>inactiva</strong>: solo los administradores pueden verla.
-            </div>
-        }
-
         <article class="card blog-detail">
-            @if (!string.IsNullOrEmpty(portada))
-            {
-                <img class="blog-detail__portada" src="@portada" alt="Imagen principal de @Model.Titulo" />
-            }
-
             <div class="card-body">
-                <div class="blog-prose">@Model.Contenido</div>
-
-                @if (galeria.Count > 0)
-                {
-                    <h2 class="blog-seccion">Imágenes</h2>
-                    <div class="blog-galeria">
-                        @foreach (var imagen in galeria)
-                        {
-                            <a href="@imagen.Url" target="_blank" rel="noopener" title="Ver @imagen.Nombre en tamaño completo">
-                                <img src="@imagen.Url" alt="@imagen.Nombre" loading="lazy" />
-                            </a>
-                        }
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                    <span class="tag">@(Model.Estado ? "Publicado" : "Inactivo")</span>
+                    <div class="text-muted">
+                        <strong>Autor:</strong> @autor
                     </div>
-                }
+                </div>
 
-                @if (documentos.Count > 0)
-                {
-                    <h2 class="blog-seccion">Documentos adjuntos</h2>
-                    <ul class="blog-documentos">
-                        @foreach (var documento in documentos)
-                        {
-                            <li>
-                                <span class="blog-documentos__ext">@documento.Extension</span>
-                                <a asp-action="Documento" asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
-                            </li>
-                        }
-                    </ul>
-                }
+                <div class="blog-prose">
+                    @Model.Contenido
+                </div>
 
                 <hr />
 
-                <div class="row g-3 blog-detail__datos">
+                <div class="row g-3">
                     <div class="col-md-4">
-                        <strong>Publicado</strong>
-                        <div>@Model.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        <strong>Creado</strong>
+                        <div>@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</div>
                     </div>
                     <div class="col-md-4">
-                        <strong>Última edición</strong>
-                        <div>@(Model.FechaEdicion.HasValue ? Model.FechaEdicion.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "Sin ediciones")</div>
+                        <strong>Editado</strong>
+                        <div>@(Model.FechaEdicion.HasValue? Model.FechaEdicion.Value.ToString("dd/MM/yyyy HH:mm") : "-")</div>
                     </div>
                     <div class="col-md-4">
-                        <strong>Autor</strong>
-                        <div>@autor</div>
+                        <strong>Estado</strong>
+                        <div>
+                            @if (Model.Estado)
+                            {
+                                <span class="badge bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactivo</span>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>

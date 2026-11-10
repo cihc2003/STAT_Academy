@@ -102,46 +102,32 @@ namespace STAT_Academy.Api.Services
             return true;
         }
 
-        /// <summary>
-        /// Cambia la contraseña del usuario autenticado.
-        /// Devuelve el motivo exacto cuando no se puede cambiar.
-        /// </summary>
-        public ResultadoCambioContrasena CambiarContrasena(
-            int usuarioId,
+        public bool CambiarContrasena(
             CambiarContrasenaRequest request)
         {
             if (request.nuevaContrasena != request.confirmarContrasena)
             {
-                return ResultadoCambioContrasena.Error(
-                    "La contraseña nueva y su confirmación no coinciden.");
-            }
-
-            if (request.nuevaContrasena == request.contrasenaActual)
-            {
-                return ResultadoCambioContrasena.Error(
-                    "La contraseña nueva debe ser diferente de la actual.");
+                return false;
             }
 
             var usuario = _context.Usuario.FirstOrDefault(
-                u => u.id == usuarioId && u.estado
+                u => u.id == request.usuarioId && u.estado
             );
 
             if (usuario == null || string.IsNullOrEmpty(usuario.password))
             {
-                return ResultadoCambioContrasena.Error(
-                    "No se encontró una cuenta activa para este usuario.");
+                return false;
             }
 
-            var verificacion = _passwordHasher.VerifyHashedPassword(
+            var resultado = _passwordHasher.VerifyHashedPassword(
                 usuario,
                 usuario.password,
                 request.contrasenaActual
             );
 
-            if (verificacion == PasswordVerificationResult.Failed)
+            if (resultado == PasswordVerificationResult.Failed)
             {
-                return ResultadoCambioContrasena.Error(
-                    "La contraseña actual es incorrecta.");
+                return false;
             }
 
             usuario.password = _passwordHasher.HashPassword(
@@ -149,7 +135,6 @@ namespace STAT_Academy.Api.Services
                 request.nuevaContrasena
             );
 
-            // Un cambio de contraseña invalida cualquier enlace de recuperación pendiente.
             usuario.reset_token_hash = null;
             usuario.reset_token_expiracion = null;
             usuario.reset_token_usado = true;
@@ -161,11 +146,10 @@ namespace STAT_Academy.Api.Services
                 "USUARIO",
                 "PASSWORD_CHANGE",
                 $"El usuario {usuario.email} cambió su contraseña",
-                usuario.email ?? "sistema",
-                usuario.id
+                usuario.email ?? "sistema"
             );
 
-            return ResultadoCambioContrasena.Ok(usuario.email, usuario.nombre);
+            return true;
         }
 
         private static string CalcularHashToken(string token)
@@ -175,21 +159,5 @@ namespace STAT_Academy.Api.Services
 
             return Convert.ToHexString(hash);
         }
-    }
-}
-
-namespace STAT_Academy.Api.Services
-{
-    public record ResultadoCambioContrasena(
-        bool exitoso,
-        string mensaje,
-        string? email = null,
-        string? nombre = null)
-    {
-        public static ResultadoCambioContrasena Ok(string? email, string? nombre) =>
-            new(true, "La contraseña fue cambiada correctamente.", email, nombre);
-
-        public static ResultadoCambioContrasena Error(string mensaje) =>
-            new(false, mensaje);
     }
 }
