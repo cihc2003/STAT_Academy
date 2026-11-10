@@ -13,9 +13,9 @@ namespace STAT_Academy.Web.Controllers
         private readonly HttpClient _http;
         private readonly ApiCursoService _apiCursos;
 
-        public CursoController(HttpClient http, ApiCursoService apiCursos)
+        public CursoController(IHttpClientFactory httpClientFactory, ApiCursoService apiCursos)
         {
-            _http = http;
+            _http = httpClientFactory.CreateClient(ApiClient.Nombre);
             _apiCursos = apiCursos;
         }
 
@@ -23,7 +23,7 @@ namespace STAT_Academy.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var response = await _http.GetAsync("https://localhost:7163/api/Curso");
+            var response = await _http.GetAsync("api/Curso");
 
             if (!response.IsSuccessStatusCode)
                 return View(new List<CursoModel>());
@@ -41,7 +41,7 @@ namespace STAT_Academy.Web.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _http.GetAsync($"https://localhost:7163/api/Curso/{id}");
+            var response = await _http.GetAsync($"api/Curso/{id}");
 
             if (!response.IsSuccessStatusCode)
                 return RedirectToAction(nameof(Index));
@@ -100,11 +100,11 @@ namespace STAT_Academy.Web.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = "Cliente")]
         public async Task<IActionResult> Inscribirse(int idCurso)
         {
-            int usuario = Convert.ToInt32(HttpContext.Session.GetString("UsuarioId"));
-
-            var response = await _http.PostAsync($"https://localhost:7163/api/EstudianteCurso/{usuario}/{idCurso}", null);
+            // La API toma al estudiante del token; no hace falta enviar su id.
+            var response = await _http.PostAsync($"api/EstudianteCurso/matricular/{idCurso}", null);
 
             if (response.IsSuccessStatusCode)
                 TempData["Success"] = "Curso inscrito correctamente";
@@ -115,9 +115,10 @@ namespace STAT_Academy.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize]
         public async Task<IActionResult> Tareas(int idCurso)
         {
-            var response = await _http.GetAsync($"https://localhost:7163/api/Tarea/curso/{idCurso}");
+            var response = await _http.GetAsync($"api/Tarea/curso/{idCurso}");
 
             if (!response.IsSuccessStatusCode)
                 return View(new List<TareaModel>());

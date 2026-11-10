@@ -7,7 +7,6 @@ using STAT_Academy.Web.Models.Cuenta;
 using STAT_Academy.Web.Models.Usuarios;
 using STAT_Academy.Web.Services;
 using System.Security.Claims;
-using STAT_Academy.Web.Models.Correo;
 
 namespace STAT_Academy.Web.Controllers
 {
@@ -16,18 +15,15 @@ namespace STAT_Academy.Web.Controllers
         private readonly ApiUserGateway _apiUserGateway;
         private readonly ApiUsuarioService _apiUsuarioService;
         private readonly ApiContrasenaService _apiContrasenaService;
-        private readonly ApiCorreoService _apiCorreoService;
 
         public CuentaController(
     ApiUserGateway apiUserGateway,
     ApiUsuarioService apiUsuarioService,
-    ApiContrasenaService apiContrasenaService,
-    ApiCorreoService apiCorreoService)
+    ApiContrasenaService apiContrasenaService)
         {
             _apiUserGateway = apiUserGateway;
             _apiUsuarioService = apiUsuarioService;
             _apiContrasenaService = apiContrasenaService;
-            _apiCorreoService = apiCorreoService;
         }
 
         [HttpGet]
@@ -83,11 +79,32 @@ namespace STAT_Academy.Web.Controllers
 
             var principal = new ClaimsPrincipal(identity);
 
+            var expiraToken = new DateTimeOffset(
+                DateTime.SpecifyKind(usuario.expiraEn, DateTimeKind.Utc));
+
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = false,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+                // La sesión nunca dura más que el token de la API.
+                ExpiresUtc = expiraToken < DateTimeOffset.UtcNow.AddMinutes(30)
+                    ? expiraToken
+                    : DateTimeOffset.UtcNow.AddMinutes(30)
             };
+
+            // El JWT viaja cifrado dentro de la cookie y BearerTokenHandler lo reenvía a la API.
+            authProperties.StoreTokens(new[]
+            {
+                new AuthenticationToken
+                {
+                    Name = BearerTokenHandler.NombreToken,
+                    Value = usuario.token
+                },
+                new AuthenticationToken
+                {
+                    Name = "expires_at",
+                    Value = expiraToken.ToString("o")
+                }
+            });
 
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
@@ -150,6 +167,10 @@ namespace STAT_Academy.Web.Controllers
 
                 return View(model);
             }
+
+            TempData["Success"] =
+                "Cuenta creada correctamente. Le enviamos un correo " +
+                "de confirmación a " + model.email + ".";
 
             return RedirectToAction(nameof(Login));
         }
@@ -251,131 +272,26 @@ namespace STAT_Academy.Web.Controllers
         public async Task<IActionResult> CambiarContrasena(
             CambiarContrasenaViewModel model)
         {
-            var usuarioIdTexto = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
-
-            if (!int.TryParse(usuarioIdTexto, out var usuarioId))
-            {
-                return RedirectToAction(nameof(Login));
-            }
-
-            model.usuarioId = usuarioId;
-
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
+            // La API identifica al usuario por su token; no se envía el id.
             var resultado = await _apiContrasenaService
                 .CambiarContrasena(model);
 
-            if (!resultado)
+            if (!resultado.exitoso)
             {
-                ModelState.AddModelError(
-                    "",
-                    "No se pudo cambiar la contraseña. " +
-                    "Verifique la contraseña actual."
-                );
+                ModelState.AddModelError("", resultado.mensaje);
 
                 return View(model);
             }
 
-            await HttpContext.SignOutAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme
-            );
+            // La sesión sigue activa: se muestra la confirmación en la misma página.
+            TempData["Success"] = resultado.mensaje;
 
-            TempData["Success"] =
-                "Contraseña cambiada correctamente. " +
-                "Inicie sesión nuevamente.";
-
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction(nameof(CambiarContrasena));
         }
-        [Authorize]
-[HttpGet]
-public IActionResult CambiarCorreo()
-{
-    return View();
-}
-
-[Authorize]
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> CambiarCorreo(
-    SolicitarCambioCorreoViewModel model)
-{
-    var usuarioIdTexto = User.FindFirstValue(
-        ClaimTypes.NameIdentifier
-    );
-
-    if (!int.TryParse(usuarioIdTexto, out var usuarioId))
-    {
-        return RedirectToAction(nameof(Login));
-    }
-
-    model.usuarioId = usuarioId;
-
-    if (!ModelState.IsValid)
-    {
-        return View(model);
-    }
-
-    var resultado = await _apiCorreoService
-        .SolicitarCambio(model);
-
-    if (!resultado.exitoso)
-    {
-        ModelState.AddModelError(
-            "",
-            resultado.mensaje
-        );
-
-        return View(model);
-    }
-
-    ViewBag.Mensaje = resultado.mensaje;
-
-    ModelState.Clear();
-
-    return View(new SolicitarCambioCorreoViewModel());
-}
-
-[HttpGet]
-public async Task<IActionResult> ConfirmarCambioCorreo(
-    string token)
-{
-    if (string.IsNullOrWhiteSpace(token))
-    {
-        TempData["Error"] =
-            "El enlace de confirmación no es válido.";
-
-        return RedirectToAction(nameof(Login));
-    }
-
-    var model = new ConfirmarCambioCorreoViewModel
-    {
-        token = token
-    };
-
-    var resultado = await _apiCorreoService
-        .ConfirmarCambio(model);
-
-    if (!resultado.exitoso)
-    {
-        TempData["Error"] = resultado.mensaje;
-
-        return RedirectToAction(nameof(Login));
-    }
-
-    await HttpContext.SignOutAsync(
-        CookieAuthenticationDefaults.AuthenticationScheme
-    );
-
-    TempData["Success"] =
-        "El correo fue cambiado correctamente. " +
-        "Inicie sesión con el correo nuevo.";
-
-    return RedirectToAction(nameof(Login));
-}
     }
 }

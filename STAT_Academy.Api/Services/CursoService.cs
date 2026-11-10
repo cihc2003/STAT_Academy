@@ -35,7 +35,6 @@ namespace STAT_Academy.Api.Services
             curso.nombre = request.nombre;
             curso.descripcion = request.descripcion;
             curso.precio = request.precio;
-            curso.duracionSemanas = request.duracionSemanas;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
             curso.estado = true;
@@ -58,7 +57,6 @@ namespace STAT_Academy.Api.Services
             curso.nombre = request.nombre;
             curso.descripcion = request.descripcion;
             curso.precio = request.precio;
-            curso.duracionSemanas = request.duracionSemanas;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
 

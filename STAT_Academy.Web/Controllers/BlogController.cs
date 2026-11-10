@@ -6,6 +6,8 @@ using System.Security.Claims;
 
 namespace STAT_Academy.Web.Controllers
 {
+    // Los permisos reales los aplica la API (solo el autor edita; inactivas solo para Admin).
+    // Aquí se repiten para no mostrar pantallas que después fallarían.
     public class BlogController : Controller
     {
         private readonly ApiBlogService _blogService;
@@ -15,31 +17,43 @@ namespace STAT_Academy.Web.Controllers
             _blogService = blogService;
         }
 
-        private int? UsuarioId
-        {
-            get
-            {
-                var idTexto = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                return int.TryParse(idTexto, out var id) ? id : null;
-            }
-        }
+        private int? UsuarioId =>
+            int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
         public async Task<IActionResult> Index()
         {
-            var blogs = await _blogService.ObtenerBlogs();
-            return View(blogs);
+            return View(await _blogService.ObtenerBlogs());
         }
 
         public async Task<IActionResult> Details(int id)
         {
             var blog = await _blogService.ObtenerBlogPorId(id);
-            if (blog == null)
-            {
-                return NotFound();
-            }
-
-            return View(blog);
+            return blog == null ? NotFound() : View(blog);
         }
+
+        /// <summary>
+        /// Descarga un documento adjunto. Los documentos están en un contenedor privado de
+        /// Blob Storage: la Web lo pide a la API con el token del usuario y lo reenvía.
+        /// </summary>
+        public async Task<IActionResult> Documento(int id, int archivoId, CancellationToken ct)
+        {
+            var respuesta = await _blogService.DescargarDocumento(id, archivoId, ct);
+            if (respuesta == null)
+                return NotFound();
+
+            HttpContext.Response.RegisterForDispose(respuesta);
+
+            var tipo = respuesta.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+            var nombre = respuesta.Content.Headers.ContentDisposition?.FileNameStar
+                         ?? respuesta.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                         ?? "documento";
+
+            return File(await respuesta.Content.ReadAsStreamAsync(ct), tipo, nombre);
+        }
+
+        // ------------------------------------------------------------------
+        // Crear
+        // ------------------------------------------------------------------
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
@@ -51,32 +65,40 @@ namespace STAT_Academy.Web.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(BlogArchivoLimites.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = BlogArchivoLimites.MaxBytesPeticion)]
         public async Task<IActionResult> Create(CreateBlogViewModel model)
         {
             if (!ModelState.IsValid)
+                return View(model);
+
+            var (exitoso, mensaje, id) = await _blogService.CrearBlog(model);
+
+            if (!exitoso || id == null)
             {
+                ModelState.AddModelError(string.Empty, mensaje);
                 return View(model);
             }
 
-            var usuarioId = UsuarioId;
-            if (usuarioId == null)
+            if (model.Archivos.Count > 0)
             {
-                return RedirectToAction("Login", "Cuenta");
+                var subida = await _blogService.SubirArchivos(id.Value, model.Archivos);
+
+                if (!subida.exitoso)
+                {
+                    // La entrada ya existe: se lleva al autor a editarla para reintentar.
+                    TempData["Error"] = "La entrada se publicó, pero los archivos no se guardaron: " + subida.mensaje;
+                    return RedirectToAction(nameof(Edit), new { id });
+                }
             }
 
-            model.FkAutor = usuarioId.Value;
-
-            var resultado = await _blogService.CrearBlog(model);
-
-            if (!resultado.exitoso)
-            {
-                ModelState.AddModelError(string.Empty, resultado.mensaje);
-                return View(model);
-            }
-
-            TempData["Mensaje"] = resultado.mensaje;
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = mensaje;
+            return RedirectToAction(nameof(Details), new { id });
         }
+
+        // ------------------------------------------------------------------
+        // Editar (solo el autor original)
+        // ------------------------------------------------------------------
 
         [Authorize]
         [HttpGet]
@@ -84,27 +106,18 @@ namespace STAT_Academy.Web.Controllers
         {
             var blog = await _blogService.ObtenerBlogPorId(id);
             if (blog == null)
-            {
                 return NotFound();
-            }
 
-            var usuarioId = UsuarioId;
-            if (usuarioId == null)
-            {
-                return RedirectToAction("Login", "Cuenta");
-            }
-
-            if (blog.FkAutor != usuarioId.Value)
-            {
+            if (blog.FkAutor != UsuarioId)
                 return Forbid();
-            }
 
             return View(new UpdateBlogViewModel
             {
                 Id = blog.Id,
                 Titulo = blog.Titulo,
                 Contenido = blog.Contenido,
-                Estado = blog.Estado
+                Estado = blog.Estado,
+                ArchivosActuales = blog.Archivos
             });
         }
 
@@ -114,58 +127,96 @@ namespace STAT_Academy.Web.Controllers
         public async Task<IActionResult> Edit(int id, UpdateBlogViewModel model)
         {
             if (id != model.Id)
-            {
                 return BadRequest();
-            }
 
             var blog = await _blogService.ObtenerBlogPorId(id);
             if (blog == null)
-            {
                 return NotFound();
-            }
 
-            var usuarioId = UsuarioId;
-            if (usuarioId == null)
-            {
-                return RedirectToAction("Login", "Cuenta");
-            }
-
-            if (blog.FkAutor != usuarioId.Value)
-            {
+            if (blog.FkAutor != UsuarioId)
                 return Forbid();
-            }
+
+            model.ArchivosActuales = blog.Archivos;
 
             if (!ModelState.IsValid)
+                return View(model);
+
+            var (exitoso, mensaje) = await _blogService.ActualizarBlog(id, model);
+
+            if (!exitoso)
             {
+                ModelState.AddModelError(string.Empty, mensaje);
                 return View(model);
             }
 
-            var resultado = await _blogService.ActualizarBlog(id, model);
-
-            if (!resultado.exitoso)
-            {
-                ModelState.AddModelError(string.Empty, resultado.mensaje);
-                return View(model);
-            }
-
-            TempData["Mensaje"] = resultado.mensaje;
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = "Entrada actualizada.";
+            return RedirectToAction(nameof(Details), new { id });
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(BlogArchivoLimites.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = BlogArchivoLimites.MaxBytesPeticion)]
+        public async Task<IActionResult> SubirArchivos(int id, List<IFormFile> archivos)
+        {
+            if (archivos.Count == 0)
+            {
+                TempData["Error"] = "Seleccione al menos un archivo.";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            var (exitoso, mensaje) = await _blogService.SubirArchivos(id, archivos);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuitarArchivo(int id, int archivoId)
+        {
+            var (exitoso, mensaje) = await _blogService.QuitarArchivo(id, archivoId);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarcarPrincipal(int id, int archivoId)
+        {
+            var (exitoso, mensaje) = await _blogService.MarcarPrincipal(id, archivoId);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        // ------------------------------------------------------------------
+        // Publicar / despublicar (autor o Admin)
+        // ------------------------------------------------------------------
+
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Desactivar(int id)
         {
-            var resultado = await _blogService.DesactivarBlog(id);
+            var (exitoso, mensaje) = await _blogService.DesactivarBlog(id);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
 
-            if (!resultado.exitoso)
-            {
-                TempData["Error"] = resultado.mensaje;
-                return RedirectToAction(nameof(Index));
-            }
+            return RedirectToAction(nameof(Index));
+        }
 
-            TempData["Mensaje"] = resultado.mensaje;
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Activar(int id)
+        {
+            var (exitoso, mensaje) = await _blogService.ActivarBlog(id);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
             return RedirectToAction(nameof(Index));
         }
     }
