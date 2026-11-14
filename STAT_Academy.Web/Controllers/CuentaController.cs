@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Web.Models;
 using STAT_Academy.Web.Models.Contrasena;
 using STAT_Academy.Web.Models.Cuenta;
 using STAT_Academy.Web.Models.Usuarios;
@@ -27,15 +28,20 @@ namespace STAT_Academy.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
+            // Solo direcciones de este sitio (evita redirecciones abiertas).
+            returnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
+            ViewData["ReturnUrl"] = returnUrl;
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -112,6 +118,10 @@ namespace STAT_Academy.Web.Controllers
                 authProperties
             );
 
+            // Volver a la página que pedía iniciar sesión (p. ej. tras vencer la sesión).
+            if (returnUrl != null)
+                return LocalRedirect(returnUrl);
+
             // El tutor entra directo a su panel de cursos asignados.
             if (rol == "Tutor")
                 return RedirectToAction("Index", "Tutor");
@@ -132,9 +142,20 @@ namespace STAT_Academy.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        public IActionResult AccessDenied()
+        /// <summary>Destino de la cookie cuando el usuario no tiene el rol necesario (AccessDeniedPath).</summary>
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult AccessDenied(string? returnUrl = null)
         {
-            return View();
+            var modelo = ErrorViewModel.ParaCodigo(StatusCodes.Status403Forbidden, HttpContext.TraceIdentifier);
+
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                modelo.MostrarIngresar = true;
+                modelo.ReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
+            }
+
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return View("Error", modelo);
         }
 
         [HttpGet]

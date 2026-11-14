@@ -10,6 +10,7 @@ using Microsoft.OpenApi;
 using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Configuration;
 using STAT_Academy.Api.Data;
+using STAT_Academy.Api.Errores;
 using STAT_Academy.Api.Services;
 using STAT_Academy.Api.Storage;
 
@@ -22,6 +23,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException(
         "Falta ConnectionStrings:DefaultConnection. Configúrela con user-secrets o en Azure App Settings.");
+
+// Azure SQL serverless (GP_S) se pausa cuando no hay uso y tarda hasta ~1 minuto en reanudarse.
+// Con el tiempo de conexión por defecto (30 s) la primera petición tras la pausa fallaba.
+var conexionSql = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+if (conexionSql.ConnectTimeout < 90)
+    conexionSql.ConnectTimeout = 90;
+connectionString = conexionSql.ConnectionString;
 
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.Seccion).Get<JwtOptions>() ?? new JwtOptions();
 if (string.IsNullOrWhiteSpace(jwtOptions.Key))
@@ -53,6 +61,14 @@ builder.Services.AddScoped<CompraService>();
 builder.Services.AddScoped<FacturaService>();
 builder.Services.AddScoped<ContrasenaService>();
 builder.Services.AddScoped<CorreoService>();
+
+// Errores no controlados: respuesta genérica { "message": "..." } y aviso a los administradores.
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = ctx =>
+        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier);
+builder.Services.AddExceptionHandler<ManejadorErroresGlobal>();
+builder.Services.AddSingleton<ErrorAlertaService>();
+builder.Services.AddHostedService<ErrorAlertaEnvioService>();
 
 // ---------------------------------------------------------------------------
 // Azure Blob Storage (misma configuración que la rama Pruebas_Blob_Storage)
@@ -158,6 +174,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// Primero, para atrapar cualquier excepción del resto del pipeline (también en Development:
+// el cliente nunca recibe trazas; el detalle queda en el log).
+app.UseExceptionHandler();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

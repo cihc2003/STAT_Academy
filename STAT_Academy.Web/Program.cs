@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using STAT_Academy.Web.Controllers;
+using STAT_Academy.Web.Filtros;
 using STAT_Academy.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,7 +59,8 @@ builder.Services.AddHttpClient(ApiClient.Nombre, client => client.BaseAddress = 
     .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler)
     .AddHttpMessageHandler<BearerTokenHandler>();
 
-builder.Services.AddControllersWithViews();
+// 401/403/404 de la API → login o página de error (ver ErroresApiFilter).
+builder.Services.AddControllersWithViews(options => options.Filters.Add<ErroresApiFilter>());
 
 builder.Services.AddSession();
 
@@ -104,11 +106,23 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+// Páginas de error propias en todos los entornos: el usuario nunca ve trazas.
+// El detalle queda en el log con el mismo código (TraceIdentifier) que muestra la página.
+app.UseExceptionHandler(new ExceptionHandlerOptions
+{
+    ExceptionHandlingPath = "/Error",
+    // ErrorController ya registra la excepción con su código; se evita el log duplicado.
+    SuppressDiagnosticsCallback = _ => true,
+    // ErrorController responde 404 cuando la API dice que el recurso no existe.
+    AllowStatusCode404Response = true
+});
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// 404, 403, 405... sin contenido → /Error/{código}, conservando la URL original.
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

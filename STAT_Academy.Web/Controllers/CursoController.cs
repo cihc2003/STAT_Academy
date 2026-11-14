@@ -52,10 +52,18 @@ namespace STAT_Academy.Web.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _http.GetAsync($"api/Curso/{id}");
+            using var response = await _http.GetAsync($"api/Curso/{id}");
+
+            // Curso inexistente → página 404; otros errores → aviso en el catálogo.
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return NotFound();
 
             if (!response.IsSuccessStatusCode)
+            {
+                var (_, mensaje) = await ApiRespuesta.Leer(response);
+                TempData["Error"] = mensaje;
                 return RedirectToAction(nameof(Index));
+            }
 
             var json = await response.Content.ReadAsStringAsync();
 
