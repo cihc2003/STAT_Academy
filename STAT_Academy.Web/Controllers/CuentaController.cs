@@ -167,18 +167,19 @@ namespace STAT_Academy.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Registrar(
-            RegisterUsuarioRequest model)
+            RegistroViewModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
+            // La API solo recibe nombre, email y password; la confirmación no se envía.
             var resultado = await _apiUsuarioService.RegistrarUsuarioAsync(
                 new RegisterUsuarioRequest
                 {
-                    nombre = model.nombre,
-                    email = model.email,
+                    nombre = model.nombre.Trim(),
+                    email = model.email.Trim(),
                     password = model.password,
                 }
             );
@@ -187,7 +188,7 @@ namespace STAT_Academy.Web.Controllers
             {
                 ModelState.AddModelError(
                     "",
-                    "No se pudo registrar el usuario."
+                    "No se pudo registrar el usuario. Es posible que el correo ya esté registrado."
                 );
 
                 return View(model);

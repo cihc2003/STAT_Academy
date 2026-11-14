@@ -2203,3 +2203,252 @@ a.tag:hover {
     object-fit: contain;
     background: var(--light);
 }
+
+/* =====================================================================
+   Inicio de sesión y registro: pantalla completa en dos columnas
+   (panel de marca + formulario). En móvil se apilan.
+   ===================================================================== */
+.auth-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: calc(100vh - 77px);
+    min-height: calc(100svh - 77px);
+}
+
+.auth-brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(40px, 6vw, 88px) clamp(24px, 6vw, 80px);
+    overflow: hidden;
+    color: var(--white);
+    background: radial-gradient(circle at 85% 15%, rgba(100, 215, 255, 0.32), transparent 32%), radial-gradient(circle at 10% 90%, rgba(179, 156, 255, 0.26), transparent 36%), linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 55%, var(--electric) 130%);
+}
+
+    /* Anillos decorativos */
+    .auth-brand::before,
+    .auth-brand::after {
+        content: "";
+        position: absolute;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .auth-brand::before {
+        width: 420px;
+        height: 420px;
+        right: -160px;
+        bottom: -160px;
+    }
+
+    .auth-brand::after {
+        width: 260px;
+        height: 260px;
+        right: -80px;
+        bottom: -80px;
+        border-color: rgba(100, 215, 255, 0.22);
+    }
+
+.auth-brand__contenido {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+}
+
+.auth-brand .eyebrow {
+    color: var(--sky);
+}
+
+main .auth-brand__titulo {
+    margin: 12px 0 16px;
+    color: var(--white);
+    font-size: clamp(1.8rem, 1.2rem + 2.2vw, 3rem);
+    font-weight: 900;
+    line-height: 1.12;
+}
+
+.auth-brand__texto {
+    margin: 0 0 28px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.08rem;
+}
+
+.auth-brand__lista {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .auth-brand__lista li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+    }
+
+        .auth-brand__lista li::before {
+            content: "";
+            flex: 0 0 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(100, 215, 255, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364d7ff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / 14px no-repeat;
+            border: 1px solid rgba(100, 215, 255, 0.4);
+        }
+
+.auth-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(32px, 5vw, 72px) 16px;
+    background: var(--light);
+}
+
+.auth-form {
+    width: min(460px, 100%);
+    padding: clamp(24px, 4vw, 40px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+    .auth-form h1 {
+        margin: 6px 0 8px;
+        font-weight: 900;
+    }
+
+.auth-form__intro {
+    margin: 0 0 24px;
+    color: var(--muted);
+}
+
+.auth-form .btn-primary {
+    margin-top: 8px;
+}
+
+.auth-form__enlaces {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+}
+
+/* Errores de validación del cliente en los campos */
+.auth-form .form-group input.input-validation-error {
+    border-color: #dc3545;
+}
+
+    .auth-form .form-group input.input-validation-error:focus {
+        box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.12);
+    }
+
+@media (max-width: 900px) {
+    .auth-split {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .auth-brand {
+        justify-content: flex-start;
+        padding: 36px 16px;
+    }
+
+    .auth-brand__contenido {
+        max-width: 640px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .auth-brand__texto {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* En teléfonos el formulario queda casi a la vista: la marca se resume */
+    .auth-brand {
+        padding: 28px 16px;
+    }
+
+    .auth-brand__lista {
+        display: none;
+    }
+
+    .auth-brand__texto {
+        margin-bottom: 0;
+    }
+
+    .auth-panel {
+        padding: 24px 16px 40px;
+    }
+}
+
+/* ---------- Campo de contraseña con botón de ojo ---------- */
+.campo-contrasena {
+    position: relative;
+}
+
+    .form-group .campo-contrasena input {
+        padding-right: 56px;
+    }
+
+    /* Edge trae su propio botón para revelar: se usa solo el nuestro */
+    .campo-contrasena input::-ms-reveal,
+    .campo-contrasena input::-ms-clear {
+        display: none;
+    }
+
+.ver-contrasena {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 40px;
+    padding: 0;
+    color: var(--muted);
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+    transform: translateY(-50%);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+    .ver-contrasena:hover {
+        color: var(--navy);
+        background: var(--light);
+    }
+
+    .ver-contrasena:focus-visible {
+        outline: 3px solid var(--electric);
+        outline-offset: 1px;
+    }
+
+    .ver-contrasena[aria-pressed="true"] {
+        color: var(--electric);
+        background: rgba(23, 107, 255, 0.1);
+    }
+
+    .ver-contrasena .ver-contrasena__tachado,
+    .ver-contrasena[aria-pressed="true"] .ver-contrasena__ojo {
+        display: none;
+    }
+
+    .ver-contrasena[aria-pressed="true"] .ver-contrasena__tachado {
+        display: block;
+    }

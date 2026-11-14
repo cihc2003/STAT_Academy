@@ -3,31 +3,54 @@
     ViewData["Title"] = "Iniciar sesión";
 }
 
-<section class="section">
-    <div class="card auth-card">
-        <span class="eyebrow">Acceso seguro</span>
-        <h1>Iniciar sesión</h1>
-        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group mb-3">
-                <label asp-for="email"></label>
-                <input asp-for="email" />
-                <span asp-validation-for="email" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="password"></label>
-                <input asp-for="password" />
-                <span asp-validation-for="password" class="text-danger"></span>
-            </div>
-           
-            <button class="btn btn-primary w-100" type="submit">Ingresar</button>
-        </form>
-        <div class="d-flex justify-content-between mt-3">
-            <a class="text-link" asp-action="Registrar">Crear cuenta</a>
-            <a class="text-link" asp-action="Forgotpassword">Recuperar contraseña</a>
+<div class="auth-split">
+    <aside class="auth-brand" aria-labelledby="auth-brand-titulo">
+        <div class="auth-brand__contenido">
+            <span class="eyebrow">STAT Academy</span>
+            <h2 id="auth-brand-titulo" class="auth-brand__titulo">Bienvenido de nuevo a su formación</h2>
+            <p class="auth-brand__texto">Retome sus cursos donde los dejó y siga avanzando a su ritmo.</p>
+            <ul class="auth-brand__lista">
+                <li>Acceso a sus cursos y lecciones</li>
+                <li>Seguimiento de su progreso</li>
+                <li>Facturas y pagos en un solo lugar</li>
+            </ul>
         </div>
-    </div>
-</section>
+    </aside>
+
+    <section class="auth-panel" aria-labelledby="auth-titulo">
+        <div class="auth-form">
+            <span class="eyebrow">Acceso seguro</span>
+            <h1 id="auth-titulo">Iniciar sesión</h1>
+            <p class="auth-form__intro">Ingrese con el correo y la contraseña de su cuenta.</p>
+
+            <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="email"></label>
+                    <input asp-for="email" type="email" autocomplete="email" inputmode="email" />
+                    <span asp-validation-for="email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="password"></label>
+                    <div class="campo-contrasena">
+                        <input asp-for="password" autocomplete="current-password" />
+                        <partial name="_BotonVerContrasena" />
+                    </div>
+                    <span asp-validation-for="password" class="text-danger"></span>
+                </div>
+
+                <button class="btn btn-primary w-100" type="submit">Ingresar</button>
+            </form>
+
+            <div class="auth-form__enlaces">
+                <a class="text-link" asp-action="Registrar">Crear cuenta</a>
+                <a class="text-link" asp-action="Forgotpassword">Recuperar contraseña</a>
+            </div>
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
