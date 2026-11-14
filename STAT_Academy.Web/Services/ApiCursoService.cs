@@ -35,6 +35,17 @@ namespace STAT_Academy.Web.Services
         }
 
 
+        /// <summary>Material de tipo archivo (contenedor privado): la API valida la matrícula.</summary>
+        public async Task<HttpResponseMessage?> DescargarMaterial(int materialId, CancellationToken ct)
+        {
+            var response = await _httpClient.GetAsync($"api/MaterialCurso/{materialId}/descargar", HttpCompletionOption.ResponseHeadersRead, ct);
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            response.Dispose();
+            return null;
+        }
+
         public async Task<List<CursoAdminResponse>> GetCursosAsync()
         {
             var response = await _httpClient.GetAsync("api/Curso");
@@ -78,7 +89,6 @@ namespace STAT_Academy.Web.Services
                 nombre = model.nombre,
                 descripcion = model.descripcion,
                 precio = model.precio,
-                duracionSemanas = model.duracionSemanas,
                 fechaInicio = model.fechaInicio,
                 fechaFin = model.fechaFin
             };
@@ -96,7 +106,6 @@ namespace STAT_Academy.Web.Services
                 nombre = model.nombre,
                 descripcion = model.descripcion,
                 precio = model.precio,
-                duracionSemanas = model.duracionSemanas,
                 fechaInicio = model.fechaInicio,
                 fechaFin = model.fechaFin
             };
@@ -163,7 +172,6 @@ namespace STAT_Academy.Web.Services
         public string nombre { get; set; } = string.Empty;
         public string descripcion { get; set; } = string.Empty;
         public decimal precio { get; set; }
-        public int duracionSemanas { get; set; }
         public DateTime fechaInicio { get; set; }
         public DateTime fechaFin { get; set; }
     }

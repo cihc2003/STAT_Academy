@@ -1,4 +1,4 @@
-﻿@model List<STAT_Academy.Web.Models.Productos.ProductoResponse>
+﻿@model STAT_Academy.Web.Models.Productos.TiendaViewModel
 
 <section class="section">
     <div class="container">
@@ -8,24 +8,94 @@
             <p>Explora nuestro catálogo de productos y recursos educativos.</p>
         </div>
 
-        @if (!Model.Any())
+        <form method="get" asp-action="Index" class="filtros" role="search" aria-label="Filtrar productos">
+            <div class="filtros__campo filtros__campo--ancho">
+                <label for="buscar" class="form-label">Nombre</label>
+                <input id="buscar" name="buscar" type="search" class="form-control" value="@Model.Buscar"
+                       placeholder="Ej.: ECG, estetoscopio…" autocomplete="off" />
+            </div>
+
+            <div class="filtros__campo">
+                <label for="categoria" class="form-label">Categoría</label>
+                @* Al cambiar la categoría se filtra al instante; el botón queda para teclado y sin JavaScript. *@
+                <select id="categoria" name="categoria" class="form-select" onchange="this.form.requestSubmit()">
+                    <option value="">Todas las categorías</option>
+                    @foreach (var c in Model.Categorias)
+                    {
+                        var elegida = STAT_Academy.Web.Helpers.Busqueda.Igual(c.nombre, Model.Categoria);
+                        <option value="@c.nombre" selected="@elegida">@c.nombre (@c.cantidad)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filtros__acciones">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                @if (Model.Filtrando)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+                }
+            </div>
+        </form>
+
+        <p class="filtros__resumen" aria-live="polite">
+            @if (Model.Filtrando)
+            {
+                // Nombre real de la categoría (con sus tildes), no el texto tal como llegó en la URL.
+                var categoriaReal = Model.Categorias
+                    .Select(c => c.nombre)
+                    .FirstOrDefault(n => STAT_Academy.Web.Helpers.Busqueda.Igual(n, Model.Categoria)) ?? Model.Categoria;
+
+                var partes = new List<string> { $"{Model.Productos.Count} de {Model.Total} productos" };
+                if (!string.IsNullOrWhiteSpace(Model.Buscar)) { partes.Add($"con «{Model.Buscar}»"); }
+                if (!string.IsNullOrWhiteSpace(categoriaReal)) { partes.Add($"en {categoriaReal}"); }
+
+                @string.Join(" ", partes)
+            }
+            else
+            {
+                <text>@Model.Total @(Model.Total == 1 ? "producto" : "productos") en la tienda.</text>
+            }
+        </p>
+
+        @if (!Model.Productos.Any())
         {
-            <p>No hay productos disponibles por el momento.</p>
+            <div class="info-block">
+                <h2 class="h5">@(Model.Filtrando ? "No encontramos productos con esos filtros" : "No hay productos disponibles por el momento")</h2>
+                @if (Model.Filtrando)
+                {
+                    <p class="mb-2">Prueba con otro nombre o elige otra categoría.</p>
+                    <a asp-action="Index" class="btn btn-outline-primary btn-sm">Ver todos los productos</a>
+                }
+            </div>
         }
         else
         {
             <div class="card-grid three">
-                @foreach (var producto in Model)
+                @foreach (var producto in Model.Productos)
                 {
-                    <article class="card p-4">
-                        <span class="tag">@producto.categoria</span>
-                        <h3>@producto.nombre</h3>
-                        <p>@producto.descripcion</p>
-                        <div class="course-meta">
-                            <span>Existencias @producto.stock</span>
-                            <strong>@producto.precio_base.ToString("C")</strong>
+                    <article class="card producto-card @(producto.agotado ? "producto-card--agotado" : "")">
+                        <a asp-action="Details" asp-route-id="@producto.id" class="producto-card__imagen" aria-label="Ver @producto.nombre">
+                            @if (!string.IsNullOrEmpty(producto.imagen_principal))
+                            {
+                                <img src="@producto.imagen_principal" alt="@producto.nombre" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="producto-card__sin-imagen" aria-hidden="true">Sin imagen</span>
+                            }
+
+                            @if (producto.agotado)
+                            {
+                                <span class="producto-card__estado">Agotado</span>
+                            }
+                        </a>
+
+                        <div class="producto-card__cuerpo">
+                            <a class="tag" asp-action="Index" asp-route-categoria="@producto.categoria"
+                               title="Ver más de @producto.categoria">@producto.categoria</a>
+                            <h3><a asp-action="Details" asp-route-id="@producto.id">@producto.nombre</a></h3>
+                            <strong class="producto-card__precio">@Formato.Colones(producto.precio_base)</strong>
                         </div>
-                        <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@producto.id">Ver detalle</a>
                     </article>
                 }
             </div>

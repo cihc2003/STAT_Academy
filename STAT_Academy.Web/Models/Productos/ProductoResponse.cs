@@ -13,5 +13,24 @@
 
         public bool estado { get; set; }
         public int fk_proveedor { get; set; }
+
+        /// <summary>Existencias en o por debajo del mínimo.</summary>
+        public bool stock_bajo { get; set; }
+        public bool agotado { get; set; }
+
+        public string? imagen_principal { get; set; }
+        public List<ProductoImagenResponse> imagenes { get; set; } = [];
+
+        /// <summary>Imágenes que no son la principal: van al carrusel del detalle.</summary>
+        public IEnumerable<ProductoImagenResponse> ImagenesSecundarias =>
+            imagenes.Where(i => i.url != imagen_principal);
+    }
+
+    public class ProductoImagenResponse
+    {
+        public int id { get; set; }
+        public string url { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
+        public bool es_principal { get; set; }
     }
 }

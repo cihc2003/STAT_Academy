@@ -1,0 +1,56 @@
+@model List<STAT_Academy.Web.Models.Tutor.TutorCurso>
+
+@{
+    ViewData["Title"] = "Mis cursos asignados";
+    var esAdmin = User.IsInRole("Admin");
+}
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Panel del tutor</span>
+            <h1>@(esAdmin ? "Todos los cursos" : "Mis cursos asignados")</h1>
+            <p>
+                @(esAdmin
+                    ? "Como administrador puede gestionar cualquier curso."
+                    : "Cursos en los que usted es el tutor asignado.")
+            </p>
+        </div>
+
+        @if (Model.Count == 0)
+        {
+            <div class="info-block">
+                <h2>No tiene cursos asignados</h2>
+                <p class="mb-0">Cuando un administrador lo asigne como tutor de un curso, aparecerá aquí.</p>
+            </div>
+        }
+        else
+        {
+            <div class="card-grid three">
+                @foreach (var curso in Model)
+                {
+                    <article class="card p-4 tutor-curso @(curso.Estado ? "" : "tutor-curso--inactivo")">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <span class="tag">@(curso.Estado ? "Activo" : "Inactivo")</span>
+                            @if (curso.EntregasPorCalificar > 0)
+                            {
+                                <span class="status-pill tutor-pill--alerta">@curso.EntregasPorCalificar por calificar</span>
+                            }
+                        </div>
+
+                        <h3 class="mt-3">@curso.Nombre</h3>
+                        <p class="text-muted">@curso.FechaInicio.ToString("dd/MM/yyyy") – @curso.FechaFin.ToString("dd/MM/yyyy")</p>
+
+                        <dl class="tutor-cifras">
+                            <div><dt>Estudiantes</dt><dd>@curso.Estudiantes</dd></div>
+                            <div><dt>Tareas</dt><dd>@curso.Tareas</dd></div>
+                            <div><dt>Material</dt><dd>@curso.Material</dd></div>
+                        </dl>
+
+                        <a class="btn btn-primary w-100" asp-action="Curso" asp-route-id="@curso.Id">Entrar al curso</a>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

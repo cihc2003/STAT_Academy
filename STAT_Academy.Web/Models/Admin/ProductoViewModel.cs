@@ -11,6 +11,8 @@
             public int min_stock { get; set; }
             public bool estado { get; set; }
             public int fk_proveedor { get; set; }
+            public bool stock_bajo { get; set; }
+            public string? imagen_principal { get; set; }
         
     }
 }

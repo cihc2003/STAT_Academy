@@ -1,63 +1,119 @@
 ﻿@model STAT_Academy.Web.Models.Blog.BlogResponse
 
 @{
-    ViewData["Title"] = "Detalle Blog";
+    ViewData["Title"] = Model.Titulo;
     var autor = string.IsNullOrWhiteSpace(Model.Autor) ? $"Autor #{Model.FkAutor}" : Model.Autor;
+    var portada = Model.ImagenPrincipal;
+    var galeria = Model.Imagenes.Where(i => i.Url != portada).ToList();
+    var documentos = Model.Documentos.ToList();
+    var relacionadas = ViewBag.Relacionadas as List<STAT_Academy.Web.Models.Blog.BlogResponse> ?? new();
 }
 
-<section class="page-hero">
-    <div class="container">
-        <span class="eyebrow">Blog académico</span>
-        <h1>@Model.Titulo</h1>
-        <p>@autor · @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
-    </div>
-</section>
+<article class="blog-articulo">
+    <header class="blog-articulo__cabecera">
+        <div class="container blog-articulo__ancho">
+            <a asp-action="Index" class="text-link">&larr; Volver al blog</a>
 
-<section class="section">
-    <div class="container">
-        <div class="d-flex justify-content-end mb-3">
-            <a asp-action="Index" class="btn btn-secondary">Volver</a>
-        </div>
-
-        <article class="card blog-detail">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
-                    <span class="tag">@(Model.Estado ? "Publicado" : "Inactivo")</span>
-                    <div class="text-muted">
-                        <strong>Autor:</strong> @autor
-                    </div>
+            @if (!Model.Estado)
+            {
+                <div class="alert alert-warning mt-3 mb-0">
+                    Esta entrada está <strong>inactiva</strong>: solo los administradores pueden verla.
                 </div>
+            }
 
-                <div class="blog-prose">
-                    @Model.Contenido
-                </div>
+            <span class="eyebrow d-block mt-4">Blog académico</span>
+            <h1 class="blog-articulo__titulo">@Model.Titulo</h1>
 
-                <hr />
-
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <strong>Creado</strong>
-                        <div>@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</div>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>Editado</strong>
-                        <div>@(Model.FechaEdicion.HasValue? Model.FechaEdicion.Value.ToString("dd/MM/yyyy HH:mm") : "-")</div>
-                    </div>
-                    <div class="col-md-4">
-                        <strong>Estado</strong>
-                        <div>
-                            @if (Model.Estado)
+            <div class="blog-articulo__meta">
+                <span class="blog-autor">
+                    <span class="blog-autor__avatar blog-autor__avatar--grande" aria-hidden="true">@autor.Trim()[..1].ToUpperInvariant()</span>
+                    <span>
+                        <strong>@autor</strong>
+                        <span class="d-block text-muted small">
+                            <time datetime="@Model.FechaCreacion.ToString("o")">@Model.FechaCreacion.ToLocalTime().ToString("d 'de' MMMM 'de' yyyy")</time>
+                            · @Model.MinutosLectura min de lectura
+                            @if (Model.FechaEdicion.HasValue)
                             {
-                                <span class="badge bg-success">Activo</span>
+                                <text>· editado el @Model.FechaEdicion.Value.ToLocalTime().ToString("dd/MM/yyyy")</text>
                             }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactivo</span>
-                            }
-                        </div>
-                    </div>
+                        </span>
+                    </span>
+                </span>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-copiar-enlace>Copiar enlace</button>
+                    <partial name="_BlogAcciones" model="Model" />
                 </div>
             </div>
-        </article>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(portada))
+    {
+        <div class="container blog-articulo__portada">
+            <img src="@portada" alt="Portada: @Model.Titulo" />
+        </div>
+    }
+
+    <div class="container blog-articulo__ancho">
+        @* El HTML lo limpió la API con una lista blanca (sin scripts, solo formato e imágenes
+           de nuestro almacenamiento), por eso se puede mostrar tal cual. *@
+        <div class="blog-contenido">@Html.Raw(Model.Contenido)</div>
+
+        @if (galeria.Count > 0)
+        {
+            <h2 class="blog-seccion">Galería</h2>
+            <div class="blog-galeria">
+                @foreach (var imagen in galeria)
+                {
+                    <a href="@imagen.Url" target="_blank" rel="noopener" title="Ver @imagen.Nombre en tamaño completo">
+                        <img src="@imagen.Url" alt="@imagen.Nombre" loading="lazy" />
+                    </a>
+                }
+            </div>
+        }
+
+        @if (documentos.Count > 0)
+        {
+            <h2 class="blog-seccion">Documentos para descargar</h2>
+            <ul class="blog-documentos">
+                @foreach (var documento in documentos)
+                {
+                    <li>
+                        <span class="blog-documentos__ext">@documento.Extension</span>
+                        <a asp-action="Documento" asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
+                    </li>
+                }
+            </ul>
+        }
     </div>
-</section>
+</article>
+
+@if (relacionadas.Count > 0)
+{
+    <section class="section blog-relacionadas">
+        <div class="container">
+            <h2 class="blog-listado__titulo">Sigue leyendo</h2>
+            <div class="blog-rejilla">
+                @foreach (var r in relacionadas)
+                {
+                    <partial name="_BlogTarjeta" model="r" />
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('[data-copiar-enlace]').forEach(function (boton) {
+            boton.addEventListener('click', function () {
+                navigator.clipboard.writeText(window.location.href).then(function () {
+                    var original = boton.textContent;
+                    boton.textContent = '¡Enlace copiado!';
+                    setTimeout(function () { boton.textContent = original; }, 2000);
+                });
+            });
+        });
+    </script>
+}

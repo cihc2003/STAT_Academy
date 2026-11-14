@@ -1,90 +1,52 @@
 ﻿@model STAT_Academy.Web.Models.Carrito.CarritoResponse
 
+@{
+    ViewData["Title"] = "Finalizar compra";
+}
+
 <section class="section">
-    <div class="container">
+    <div class="container" style="max-width: 860px;">
         <a class="text-link" asp-action="Index">&larr; Volver al carrito</a>
 
         <div class="section-heading mt-3">
             <span class="eyebrow">Pago</span>
-            <h1>Finalizar compra</h1>
-            <p>Esta pasarela de pago es una simulación visual; ninguna transacción real se procesa todavía.</p>
+            <h1>Confirmar compra</h1>
+            <p>Revisa tu pedido. Al confirmar, se registra la compra y se reservan las unidades.</p>
         </div>
 
-        <div class="row g-4">
-            <!-- Resumen del pedido -->
-            <div class="col-lg-5">
-                <div class="card p-4">
-                    <h3>Resumen del pedido</h3>
+        <div class="card p-4">
+            <h2 class="h5">Resumen del pedido</h2>
 
-                    <ul class="list-unstyled mt-3">
-                        @foreach (var item in Model.items)
-                        {
-                            <li class="d-flex justify-content-between py-2 border-bottom">
-                                <span>@item.nombre <span class="text-muted">x@item.cantidad</span></span>
-                                <strong>@item.subtotal.ToString("C")</strong>
-                            </li>
-                        }
-                    </ul>
+            <ul class="list-unstyled mt-3 mb-0">
+                @foreach (var item in Model.items)
+                {
+                    <li class="d-flex justify-content-between gap-3 py-2 border-bottom">
+                        <span>
+                            @item.nombre
+                            <span class="text-muted">× @item.cantidad</span>
+                            <div class="small text-muted">@Formato.Colones(item.precio_unitario) c/u</div>
+                        </span>
+                        <strong class="text-nowrap">@Formato.Colones(item.subtotal)</strong>
+                    </li>
+                }
+            </ul>
 
-                    <div class="course-meta mt-3">
-                        <span>Total a pagar</span>
-                        <strong>@Model.total.ToString("C")</strong>
-                    </div>
-                </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="h5 mb-0">Total</span>
+                <strong class="h4 mb-0">@Formato.Colones(Model.total)</strong>
             </div>
 
-            <!-- Formulario de pago (visual únicamente) -->
-            <div class="col-lg-7">
-                <div class="card p-4">
-                    <h3>Información de pago</h3>
-
-                    <form id="checkoutForm" class="row g-3 mt-2" onsubmit="return simularPago(event)">
-                        <div class="col-12 form-group">
-                            <label for="nombreTitular">Nombre del titular</label>
-                            <input class="form-control" id="nombreTitular" placeholder="Como aparece en la tarjeta" required />
-                        </div>
-
-                        <div class="col-12 form-group">
-                            <label for="numeroTarjeta">Número de tarjeta</label>
-                            <input class="form-control" id="numeroTarjeta" placeholder="0000 0000 0000 0000" maxlength="19" required />
-                        </div>
-
-                        <div class="col-md-6 form-group">
-                            <label for="vencimiento">Vencimiento</label>
-                            <input class="form-control" id="vencimiento" placeholder="MM/AA" maxlength="5" required />
-                        </div>
-
-                        <div class="col-md-6 form-group">
-                            <label for="cvv">CVV</label>
-                            <input class="form-control" id="cvv" placeholder="123" maxlength="4" required />
-                        </div>
-
-                        <div class="col-12">
-                            <div id="mensajePago" class="alert alert-success d-none mt-2" role="alert">
-                                Pago simulado correctamente. Esta es una vista de demostración; no se realizó ningún cargo real.
-                            </div>
-                        </div>
-
-                        <div class="col-12 d-flex gap-2 mt-2">
-                            <button class="btn btn-primary" type="submit">
-                                Pagar @Model.total.ToString("C")
-                            </button>
-                            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
-                        </div>
-                    </form>
-                </div>
+            @* No se piden datos de tarjeta: todavía no hay pasarela de pago real. *@
+            <div class="alert alert-info mt-4 mb-0" role="note">
+                <strong>Pago de demostración.</strong> No se solicita ni se cobra ninguna tarjeta;
+                la compra queda registrada como pagada para pruebas.
             </div>
+
+            <form asp-action="Confirmar" method="post" class="d-flex flex-wrap gap-2 mt-4"
+                  onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+                <button class="btn btn-primary" type="submit">Confirmar compra · @Formato.Colones(Model.total)</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Volver al carrito</a>
+            </form>
         </div>
     </div>
 </section>
-
-<script>
-    function simularPago(event) {
-        event.preventDefault();
-
-        document.getElementById('mensajePago').classList.remove('d-none');
-        document.getElementById('checkoutForm').querySelector('button[type="submit"]').disabled = true;
-
-        return false;
-    }
-</script>

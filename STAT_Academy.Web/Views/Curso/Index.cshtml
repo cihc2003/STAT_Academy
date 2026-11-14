@@ -2,55 +2,81 @@
 
 @{
     ViewData["Title"] = "Cursos";
+    var buscar = ViewData["Buscar"] as string;
+    var total = ViewData["Total"] as int? ?? Model.Count();
+    var filtrando = !string.IsNullOrWhiteSpace(buscar);
 }
 
-<div class="container mt-4">
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Formación</span>
+            <h1>Cursos disponibles</h1>
+            <p>Encuentra el curso que necesitas y matricúlate en línea.</p>
+        </div>
 
-    <h2>Cursos Disponibles</h2>
+        <form method="get" asp-action="Index" class="filtros" role="search" aria-label="Buscar cursos">
+            <div class="filtros__campo filtros__campo--ancho">
+                <label for="buscar" class="form-label">Nombre del curso</label>
+                <input id="buscar" name="buscar" type="search" class="form-control" value="@buscar"
+                       placeholder="Ej.: SQL, RCP…" autocomplete="off" />
+            </div>
+            <div class="filtros__acciones">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                @if (filtrando)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
+                }
+            </div>
+        </form>
 
-    <div class="row">
+        <p class="filtros__resumen" aria-live="polite">
+            @if (filtrando)
+            {
+                <text>@Model.Count() de @total cursos coinciden con «@buscar».</text>
+            }
+            else
+            {
+                <text>@total @(total == 1 ? "curso disponible" : "cursos disponibles").</text>
+            }
+        </p>
 
-        @foreach (var item in Model)
+        @if (!Model.Any())
         {
-            <div class="col-md-4 mb-4">
-
-                <div class="card shadow h-100">
-
-                    <div class="card-body">
-
-                        <h4>@item.Nombre</h4>
-
-                        <p>@item.Descripcion</p>
-
-                        <p>
-                            <strong>Precio:</strong>
-                            ₡@item.Precio_Base
-                        </p>
-
-                        <p>
-                            <strong>Duración:</strong>
-                            @item.Duracion_Semanas semanas
-                        </p>
-
-                    </div>
-
-                    <div class="card-footer">
-
-                        <a asp-action="Details"
-                           asp-route-id="@item.Id"
-                           class="btn btn-primary">
-
-                            Ver Curso
-
-                        </a>
-
-                    </div>
-
-                </div>
-
+            <div class="info-block">
+                <h2 class="h5">@(filtrando ? "No encontramos cursos con ese nombre" : "Todavía no hay cursos disponibles")</h2>
+                @if (filtrando)
+                {
+                    <p class="mb-2">Prueba con otra palabra o revisa la ortografía.</p>
+                    <a asp-action="Index" class="btn btn-outline-primary btn-sm">Ver todos los cursos</a>
+                }
             </div>
         }
+        else
+        {
+            <div class="card-grid three">
+                @foreach (var item in Model)
+                {
+                    <article class="card p-4 curso-card">
+                        <h3>@item.Nombre</h3>
+                        <p class="text-muted">@item.Descripcion</p>
 
+                        <div class="course-meta">
+                            <span>Duración</span>
+                            <strong>@item.Duracion_Semanas @(item.Duracion_Semanas == 1 ? "semana" : "semanas")</strong>
+                        </div>
+                        <div class="course-meta">
+                            <span>Inicio</span>
+                            <strong>@item.Fecha_Inicio.ToString("dd/MM/yyyy")</strong>
+                        </div>
+
+                        <div class="curso-card__pie">
+                            <strong class="producto-card__precio">@Formato.Colones(item.Precio_Base)</strong>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-sm">Ver curso</a>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
     </div>
-
-</div>
+</section>

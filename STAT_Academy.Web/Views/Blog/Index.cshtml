@@ -5,103 +5,118 @@
     ViewData["Title"] = "Blog";
     var usuarioId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var esAdmin = User.IsInRole("Admin");
+    var buscar = ViewData["Buscar"] as string;
+    var total = ViewData["Total"] as int? ?? Model.Count;
+    var filtrando = !string.IsNullOrWhiteSpace(buscar);
+
+    // La entrada más reciente se destaca arriba (solo cuando no se está buscando).
+    var destacada = !filtrando ? Model.FirstOrDefault() : null;
+    var resto = destacada == null ? Model : Model.Skip(1).ToList();
 }
 
-<section class="page-hero blog-hero">
+<section class="blog-portada">
     <div class="container">
-        <span class="eyebrow">Blog académico</span>
-        <h1>Entradas del blog de STAT Academy</h1>
-        <p>
-            Noticias, publicaciones y contenido académico gestionado por el equipo.
-            Solo los administradores pueden crear entradas y cada autor puede editar las suyas.
-        </p>
+        <div class="blog-portada__texto">
+            <span class="eyebrow">Blog académico</span>
+            <h1>Ideas, novedades y recursos para tu formación</h1>
+            <p>Artículos del equipo de STAT Academy sobre salud, tecnología y aprendizaje.</p>
+        </div>
+
+        <form method="get" asp-action="Index" class="blog-buscador" role="search" aria-label="Buscar en el blog">
+            <label for="buscar" class="visually-hidden">Buscar entradas</label>
+            <input id="buscar" name="buscar" type="search" value="@buscar" placeholder="Buscar entradas…" autocomplete="off" />
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
 
         @if (esAdmin)
         {
-            <a asp-action="Create" class="btn btn-primary">Nueva entrada</a>
+            <a asp-action="Create" class="btn btn-light blog-portada__nueva">+ Nueva entrada</a>
         }
     </div>
 </section>
 
-<section class="section">
+<section class="section blog-listado">
     <div class="container">
-        @if (TempData["Mensaje"] != null)
+        @if (filtrando)
         {
-            <div class="alert alert-success">@TempData["Mensaje"]</div>
+            <p class="filtros__resumen">
+                @Model.Count de @total entradas coinciden con «@buscar».
+                <a asp-action="Index" class="ms-1">Ver todas</a>
+            </p>
         }
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
-
-        @if (Model == null || !Model.Any())
+        @if (Model.Count == 0)
         {
             <div class="info-block blog-empty">
-                <span class="tag">Sin publicaciones</span>
-                <h2>Aún no hay entradas en el blog</h2>
-                <p>Cuando se publique contenido nuevo aparecerá aquí.</p>
-
-                @if (esAdmin)
+                <span class="tag">@(filtrando ? "Sin resultados" : "Sin publicaciones")</span>
+                <h2>@(filtrando ? "No encontramos entradas con esa búsqueda" : "Aún no hay entradas en el blog")</h2>
+                <p>@(filtrando ? "Prueba con otras palabras." : "Cuando se publique contenido nuevo aparecerá aquí.")</p>
+                @if (esAdmin && !filtrando)
                 {
-                    <a asp-action="Create" class="btn btn-primary">Crear primera entrada</a>
+                    <a asp-action="Create" class="btn btn-primary">Crear la primera entrada</a>
                 }
             </div>
         }
         else
         {
-            <div class="card-grid two blog-grid">
-                @foreach (var blog in Model)
-                {
-                    var puedeEditar = usuarioId == blog.FkAutor.ToString();
+            @* ------------------ Entrada destacada ------------------ *@
+            @if (destacada != null)
+            {
+                var autor = string.IsNullOrWhiteSpace(destacada.Autor) ? $"Autor #{destacada.FkAutor}" : destacada.Autor;
 
-                    <article class="card blog-card">
-                        <div class="blog-card__visual">
-                            <span class="tag">@(blog.Estado ? "Publicado" : "Inactivo")</span>
+                <article class="blog-destacada @(destacada.Estado ? "" : "blog-tarjeta--inactiva")">
+                    <a asp-action="Details" asp-route-id="@destacada.Id" class="blog-destacada__portada" tabindex="-1" aria-hidden="true">
+                        @if (!string.IsNullOrEmpty(destacada.ImagenPrincipal))
+                        {
+                            <img src="@destacada.ImagenPrincipal" alt="" />
+                        }
+                        else
+                        {
+                            <span class="blog-tarjeta__sin-portada">@destacada.Titulo</span>
+                        }
+                    </a>
+                    <div class="blog-destacada__cuerpo">
+                        <span class="blog-etiqueta">@(destacada.Estado ? "Lo más reciente" : "Inactiva · solo administradores")</span>
+                        <h2><a asp-action="Details" asp-route-id="@destacada.Id">@destacada.Titulo</a></h2>
+                        <p class="blog-destacada__resumen">@destacada.Resumen</p>
+                        <p class="blog-meta">
+                            <span class="blog-autor">
+                                <span class="blog-autor__avatar" aria-hidden="true">@autor.Trim()[..1].ToUpperInvariant()</span>
+                                @autor
+                            </span>
+                            <span aria-hidden="true">·</span>
+                            <time datetime="@destacada.FechaCreacion.ToString("o")">@destacada.FechaCreacion.ToLocalTime().ToString("d 'de' MMMM, yyyy")</time>
+                            <span aria-hidden="true">·</span>
+                            <span>@destacada.MinutosLectura min de lectura</span>
+                        </p>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <a asp-action="Details" asp-route-id="@destacada.Id" class="btn btn-primary">Leer la entrada</a>
+                            <partial name="_BlogAcciones" model="destacada" />
                         </div>
+                    </div>
+                </article>
+            }
 
-                        <div class="card-body blog-card__body">
-                            <p class="blog-card__meta">
-                                @(string.IsNullOrWhiteSpace(blog.Autor) ? $"Autor #{blog.FkAutor}" : blog.Autor)
-                                · @blog.FechaCreacion.ToString("dd/MM/yyyy")
-                            </p>
+            @* ------------------ Resto de entradas ------------------ *@
+            @if (resto.Any())
+            {
+                @if (destacada != null)
+                {
+                    <h2 class="blog-listado__titulo">Más entradas</h2>
+                }
 
-                            <h3>@blog.Titulo</h3>
-
-                            <p class="blog-card__excerpt">
-                                @{
-                                    var resumen = blog.Contenido.Length > 180
-                                    ? blog.Contenido.Substring(0, 180) + "..."
-                                    : blog.Contenido;
-                                }
-                                @resumen
-                            </p>
-
-                            <div class="blog-card__actions">
-                                <a asp-action="Details" asp-route-id="@blog.Id" class="text-link">Leer más</a>
-
-                                @if (puedeEditar)
-                                {
-                                    <a asp-action="Edit" asp-route-id="@blog.Id" class="btn btn-outline-primary btn-sm">
-                                        Editar
-                                    </a>
-                                }
-
-                                @if (esAdmin)
-                                {
-                                    <form asp-action="Desactivar" asp-route-id="@blog.Id" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                onclick="return confirm('¿Deseas desactivar esta entrada?');">
-                                            Desactivar
-                                        </button>
-                                    </form>
-                                }
+                <div class="blog-rejilla">
+                    @foreach (var blog in resto)
+                    {
+                        <div class="blog-rejilla__item">
+                            <partial name="_BlogTarjeta" model="blog" />
+                            <div class="blog-rejilla__acciones">
+                                <partial name="_BlogAcciones" model="blog" />
                             </div>
                         </div>
-                    </article>
-                }
-            </div>
+                    }
+                </div>
+            }
         }
     </div>
 </section>

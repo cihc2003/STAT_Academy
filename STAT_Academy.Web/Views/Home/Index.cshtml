@@ -147,7 +147,7 @@
                         <span class="tag">@product.Category</span>
                         <h3>@product.Name</h3>
                         <p>@product.Description</p>
-                        <div class="course-meta"><span>Existencias @product.Stock</span><strong>@product.Price.ToString("C")</strong></div>
+                        <div class="course-meta"><span>Existencias @product.Stock</span><strong>@Formato.Colones(product.Price)</strong></div>
                         <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">Comprar</a>
                     </article>
                 }

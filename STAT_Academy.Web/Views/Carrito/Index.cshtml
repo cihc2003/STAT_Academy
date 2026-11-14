@@ -30,7 +30,7 @@
                         {
                             <tr>
                                 <td>@item.nombre</td>
-                                <td>@item.precio_unitario.ToString("C")</td>
+                                <td>@Formato.Colones(item.precio_unitario)</td>
                                 <td style="max-width: 140px;">
                                     <form asp-action="Actualizar" method="post" class="d-flex align-items-center gap-2">
                                         @Html.AntiForgeryToken()
@@ -44,7 +44,7 @@
                                         <button class="btn btn-sm btn-outline-primary" type="submit">Actualizar</button>
                                     </form>
                                 </td>
-                                <td>@item.subtotal.ToString("C")</td>
+                                <td>@Formato.Colones(item.subtotal)</td>
                                 <td class="text-end">
                                     <form asp-action="Eliminar" method="post"
                                           onsubmit="return confirm('¿Quitar este producto del carrito?');">
@@ -63,7 +63,7 @@
                 <div class="card p-4" style="min-width: 280px;">
                     <div class="course-meta">
                         <span>Total</span>
-                        <strong>@Model.total.ToString("C")</strong>
+                        <strong>@Formato.Colones(Model.total)</strong>
                     </div>
 
                     <a class="btn btn-primary w-100 mt-3" asp-action="Checkout">

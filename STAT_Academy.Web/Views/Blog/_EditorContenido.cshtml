@@ -1,0 +1,15 @@
+@* Editor de texto enriquecido para el contenido de una entrada.
+   Modelo: el HTML inicial (de la API ya limpio, o del propio formulario si vuelve por un error).
+   Se entrega como JSON: el serializador escapa < y > (<, >), así que el contenido no
+   puede "salirse" de la etiqueta ni ejecutarse; el editor lo interpreta con DOMParser (inerte). *@
+@model string
+
+<div class="editor-blog">
+    <div data-editor-blog data-campo="Contenido" data-subir-url="@Url.Action("SubirImagenContenido", "Blog")"></div>
+    <script type="application/json" data-editor-inicial>@Json.Serialize(Model ?? "")</script>
+    <input type="hidden" name="Contenido" value="" />
+    <div class="editor-blog__pie">
+        <span data-editor-estado aria-live="polite"></span>
+        <span class="text-muted">Haz clic en una imagen para cambiar su tamaño y posición.</span>
+    </div>
+</div>

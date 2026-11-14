@@ -1,0 +1,132 @@
+@using System.Globalization
+@model STAT_Academy.Web.Models.Tutor.TutorEntregas
+
+@{
+    var t = Model.Tarea;
+    ViewData["Title"] = "Entregas: " + t.Titulo;
+    var porCalificar = Model.Entregas.Count(e => e.Estado == "Entregada");
+    var sinEntregar = Model.Entregas.Count(e => e.EntregaId == null || e.FechaEntrega == null);
+}
+
+<section class="section">
+    <div class="container">
+        <a asp-action="Curso" asp-route-id="@t.CursoId" class="text-link">← Volver a @Model.Curso</a>
+
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mt-2 mb-4">
+            <div>
+                <span class="eyebrow">Entregas</span>
+                <h1 class="mb-1">@t.Titulo</h1>
+                @if (!string.IsNullOrWhiteSpace(t.Descripcion))
+                {
+                    <p class="text-muted mb-1">@t.Descripcion</p>
+                }
+                <p class="mb-0">
+                    Fecha límite: <strong>@(t.FechaLimite?.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong>
+                </p>
+            </div>
+            <a class="btn btn-outline-primary" asp-action="EditarTarea" asp-route-id="@t.Id">Editar tarea</a>
+        </div>
+
+        <dl class="tutor-cifras tutor-cifras--fila mb-4">
+            <div><dt>Entregadas</dt><dd>@t.Entregas / @t.Estudiantes</dd></div>
+            <div><dt>Por calificar</dt><dd>@porCalificar</dd></div>
+            <div><dt>Calificadas</dt><dd>@t.Calificadas</dd></div>
+            <div><dt>Sin entregar</dt><dd>@sinEntregar</dd></div>
+        </dl>
+
+        @if (Model.Entregas.Count == 0)
+        {
+            <div class="info-block">
+                <p class="mb-0">El curso no tiene estudiantes matriculados.</p>
+            </div>
+        }
+        else
+        {
+            <div class="tutor-entregas">
+                @foreach (var e in Model.Entregas)
+                {
+                    var entregada = e.EntregaId != null && e.FechaEntrega != null;
+                    var clasePill = e.Estado switch
+                    {
+                        "Calificada" => "tutor-pill--ok",
+                        "Entregada" => "tutor-pill--alerta",
+                        _ => "tutor-pill--gris"
+                    };
+
+                    <article class="card card-body tutor-entrega">
+                        <div class="tutor-entrega__cabecera">
+                            <div>
+                                <strong>@e.Estudiante</strong>
+                                <div class="text-muted small">@e.Email</div>
+                            </div>
+                            <div class="text-end">
+                                <span class="status-pill @clasePill">@e.Estado</span>
+                                @if (entregada)
+                                {
+                                    <div class="small mt-1 @(e.Tarde ? "text-danger" : "text-muted")">
+                                        @e.FechaEntrega!.Value.ToString("dd/MM/yyyy HH:mm")@(e.Tarde ? " · fuera de plazo" : "")
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        @if (entregada)
+                        {
+                            @if (e.Archivos.Count > 0 || !string.IsNullOrEmpty(e.Enlace))
+                            {
+                                <ul class="blog-documentos my-3">
+                                    @foreach (var a in e.Archivos)
+                                    {
+                                        <li>
+                                            <span class="blog-documentos__ext">@(System.IO.Path.GetExtension(a.Nombre).TrimStart('.').ToUpperInvariant())</span>
+                                            <a asp-action="ArchivoEntrega" asp-route-id="@a.Id">@a.Nombre</a>
+                                        </li>
+                                    }
+                                    @if (!string.IsNullOrEmpty(e.Enlace))
+                                    {
+                                        <li>
+                                            <span class="blog-documentos__ext">ENLACE</span>
+                                            <a href="@e.Enlace" target="_blank" rel="noopener noreferrer">@e.Enlace</a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted small my-3">La entrega no tiene archivos adjuntos.</p>
+                            }
+
+                            <form asp-action="Calificar" method="post" class="tutor-calificar">
+                                <input type="hidden" name="EntregaId" value="@e.EntregaId" />
+                                <input type="hidden" name="TareaId" value="@t.Id" />
+
+                                <div>
+                                    <label class="form-label" for="nota-@e.EntregaId">Calificación (0–100)</label>
+                                    <input id="nota-@e.EntregaId" name="Calificacion" type="number" min="0" max="100" step="0.01"
+                                           class="form-control" required
+                                           value="@(e.Calificacion?.ToString("0.##", CultureInfo.InvariantCulture))" />
+                                </div>
+
+                                <div class="tutor-calificar__feedback">
+                                    <label class="form-label" for="fb-@e.EntregaId">Retroalimentación</label>
+                                    <textarea id="fb-@e.EntregaId" name="Feedback" class="form-control" rows="2" maxlength="255"
+                                              placeholder="Comentario para el estudiante (opcional)">@e.Feedback</textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    @(e.Calificacion == null ? "Calificar" : "Actualizar nota")
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-0 mt-2">
+                                @(t.Vencida ? "No entregó la tarea." : "Todavía no ha entregado.")
+                            </p>
+                        }
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

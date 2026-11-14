@@ -14,9 +14,10 @@ namespace STAT_Academy.Api.Services
             _context = context;
         }
 
-        public List<CursoModel> GetAll()
+        public List<CursoModel> GetAll(bool incluirInactivos)
         {
             return _context.Curso
+                .Where(x => incluirInactivos || x.estado)
                 .OrderBy(x => x.nombre)
                 .ToList();
         }
@@ -24,6 +25,29 @@ namespace STAT_Academy.Api.Services
         public CursoModel GetById(int id)
         {
             return _context.Curso.FirstOrDefault(x => x.id == id);
+        }
+
+        /// <summary>
+        /// El tutor asignado debe ser un usuario activo con rol Tutor (FK_Tipo_Usuario = 2);
+        /// si no, el curso no aparecería en ningún panel de tutor.
+        /// </summary>
+        public string? ValidarTutor(int fkTutor)
+        {
+            var tutor = _context.Usuario
+                .Where(u => u.id == fkTutor)
+                .Select(u => new { u.fk_Tipo_Usuario, u.estado })
+                .FirstOrDefault();
+
+            if (tutor == null)
+                return $"No existe un usuario con id {fkTutor}.";
+
+            if (tutor.fk_Tipo_Usuario != 2)
+                return $"El usuario {fkTutor} no tiene rol de tutor.";
+
+            if (!tutor.estado)
+                return $"El tutor {fkTutor} está inactivo.";
+
+            return null;
         }
 
         public CursoModel Crear(CursoCreateRequest request)
@@ -35,7 +59,6 @@ namespace STAT_Academy.Api.Services
             curso.nombre = request.nombre;
             curso.descripcion = request.descripcion;
             curso.precio = request.precio;
-            curso.duracionSemanas = request.duracionSemanas;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
             curso.estado = true;
@@ -58,7 +81,6 @@ namespace STAT_Academy.Api.Services
             curso.nombre = request.nombre;
             curso.descripcion = request.descripcion;
             curso.precio = request.precio;
-            curso.duracionSemanas = request.duracionSemanas;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
 
