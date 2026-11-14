@@ -69,86 +69,33 @@
     window.addEventListener("pageshow", ocultar);
 })();
 
-// Ver la contraseña de forma temporal (botón de ojo, parcial _BotonVerContrasena).
-// - Mantener presionado (mouse o dedo): se ve mientras se mantiene y se oculta al soltar.
-// - Toque corto, clic, Enter o Espacio: se ve unos segundos y vuelve a ocultarse sola.
+// Mostrar u ocultar la contraseña (botón de ojo, parcial _BotonVerContrasena).
+// Cada clic, toque, Enter o Espacio alterna entre visible y oculta.
 (function () {
     "use strict";
-
-    var VISIBLE_MS = 4000;     // tiempo visible tras un toque corto o con teclado
-    var TOQUE_CORTO_MS = 350;  // por debajo de esto, soltar no la oculta de inmediato
 
     function iniciar(boton) {
         var campo = boton.closest(".campo-contrasena");
         var input = campo && campo.querySelector("input");
         if (!input) return;
 
-        var temporizador = null;
-        var inicioPresion = 0;
-        var presionando = false;
-
-        function mostrar() {
-            input.type = "text";
-            boton.setAttribute("aria-pressed", "true");
-            boton.setAttribute("aria-label", "Ocultar contraseña");
-            campo.classList.add("is-visible");
+        function poner(visible) {
+            input.type = visible ? "text" : "password";
+            boton.setAttribute("aria-pressed", visible ? "true" : "false");
+            boton.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+            campo.classList.toggle("is-visible", visible);
         }
 
-        function ocultar() {
-            clearTimeout(temporizador);
-            temporizador = null;
-            input.type = "password";
-            boton.setAttribute("aria-pressed", "false");
-            boton.setAttribute("aria-label", "Mostrar contraseña temporalmente");
-            campo.classList.remove("is-visible");
-        }
+        // Con el mouse, el foco se queda en el campo para seguir escribiendo.
+        boton.addEventListener("mousedown", function (e) { e.preventDefault(); });
 
-        function mostrarPorUnosSegundos() {
-            mostrar();
-            clearTimeout(temporizador);
-            temporizador = setTimeout(ocultar, VISIBLE_MS);
-        }
-
-        boton.addEventListener("pointerdown", function (e) {
-            if (e.button !== 0) return;
-            e.preventDefault(); // el foco se queda en el campo
-            presionando = true;
-            inicioPresion = Date.now();
-            clearTimeout(temporizador);
-            if (boton.setPointerCapture) boton.setPointerCapture(e.pointerId);
-            mostrar();
-        });
-
-        function soltar() {
-            if (!presionando) return;
-            presionando = false;
-            if (Date.now() - inicioPresion < TOQUE_CORTO_MS) {
-                mostrarPorUnosSegundos();
-            } else {
-                ocultar();
-            }
-        }
-
-        boton.addEventListener("pointerup", soltar);
-        boton.addEventListener("pointercancel", soltar);
-        boton.addEventListener("lostpointercapture", soltar);
-
-        // Mantener presionado en móvil no debe abrir el menú contextual.
-        boton.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-
-        // Teclado (Enter/Espacio llegan como clic con detail 0). Los clics del puntero ya se atendieron arriba.
-        boton.addEventListener("click", function (e) {
-            if (e.detail !== 0) return;
-            if (input.type === "text") {
-                ocultar();
-            } else {
-                mostrarPorUnosSegundos();
-            }
+        boton.addEventListener("click", function () {
+            poner(input.type === "password");
         });
 
         // Nunca enviar ni dejar la página con la contraseña a la vista.
-        if (input.form) input.form.addEventListener("submit", ocultar);
-        window.addEventListener("pagehide", ocultar);
+        if (input.form) input.form.addEventListener("submit", function () { poner(false); });
+        window.addEventListener("pagehide", function () { poner(false); });
     }
 
     document.querySelectorAll("[data-ver-contrasena]").forEach(iniciar);
