@@ -1,0 +1,32 @@
+@* Acciones de gestión de una entrada: solo para su autor o un administrador. *@
+@using System.Security.Claims
+@model STAT_Academy.Web.Models.Blog.BlogResponse
+
+@{
+    var esAutor = User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.FkAutor.ToString();
+    var esAdmin = User.IsInRole("Admin");
+}
+
+@if (esAutor)
+{
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">Editar</a>
+}
+
+@if (esAutor || esAdmin)
+{
+    if (Model.Estado)
+    {
+        <form asp-action="Desactivar" asp-route-id="@Model.Id" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-danger btn-sm"
+                    onclick="return confirm('¿Desactivar esta entrada? Dejará de verse para los clientes.');">
+                Desactivar
+            </button>
+        </form>
+    }
+    else
+    {
+        <form asp-action="Activar" asp-route-id="@Model.Id" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-success btn-sm">Publicar</button>
+        </form>
+    }
+}

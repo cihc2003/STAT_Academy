@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Services;
 
 namespace STAT_Academy.Api.Controllers
 {
     [ApiController]
+    [Authorize(Roles = Roles.Admin)]
     [Route("api/[controller]")]
     public class AuditoriaController : ControllerBase
     {

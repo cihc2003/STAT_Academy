@@ -1,18 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Api.Auth;
 using STAT_Academy.DTOs.Usuarios;
 using STAT_Academy.Api.Services;
 
 namespace STAT_Academy.Api.Controllers
 {
     [ApiController]
+    [Authorize(Roles = Roles.Admin)]
     [Route("api/[controller]")]
     public class UsuarioController : ControllerBase
     {
         private readonly UsuarioService _usuarioService;
+        private readonly CorreoService _correoService;
+        private readonly ILogger<UsuarioController> _logger;
 
-        public UsuarioController(UsuarioService usuarioService)
+        public UsuarioController(
+            UsuarioService usuarioService,
+            CorreoService correoService,
+            ILogger<UsuarioController> logger)
         {
             _usuarioService = usuarioService;
+            _correoService = correoService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -63,21 +73,39 @@ namespace STAT_Academy.Api.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("Registrar")]
-        public ActionResult<UsuarioResponse> RegisterUsuario(RegisterUsuarioRequest request)
+        public async Task<ActionResult<UsuarioResponse>> RegisterUsuario(RegisterUsuarioRequest request)
         {
+            UsuarioResponse newUsuario;
+
             try
             {
-                var newUsuario = _usuarioService.RegisterUsuario(request);
-                return CreatedAtAction(
-                    nameof(GetUsuario),
-                    new { id = newUsuario.id },
-                    newUsuario);
+                newUsuario = _usuarioService.RegisterUsuario(request);
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
+
+            // La cuenta ya existe: si el correo falla, no se revierte el registro.
+            try
+            {
+                await _correoService.EnviarConfirmacionRegistro(
+                    newUsuario.email,
+                    newUsuario.nombre);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "No se pudo enviar el correo de confirmación de registro al usuario {UsuarioId}.",
+                    newUsuario.id);
+            }
+
+            return CreatedAtAction(
+                nameof(GetUsuarioById),
+                new { id = newUsuario.id },
+                newUsuario);
         }
 
         [HttpPut("{id}")]

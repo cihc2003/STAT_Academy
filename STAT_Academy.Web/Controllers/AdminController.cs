@@ -36,7 +36,9 @@ namespace STAT_Academy.Web.Controllers
             var cursos = await _apiCursos.GetCursosAsync();
 
             ViewBag.Users = usuarios?.Count ?? 0;
-            ViewBag.Products = 0;
+            var productos = await _apiProductos.GetProductos() ?? [];
+            ViewBag.Products = productos.Count;
+            ViewBag.StockBajo = await _apiProductos.GetStockBajo();
             ViewBag.Courses = cursos?.Count ?? 0;
             ViewBag.Enrollments = 0;
             ViewBag.Orders = 0;
@@ -72,10 +74,42 @@ namespace STAT_Academy.Web.Controllers
             return View(rows);
         }
 
+        /// <summary>
+        /// Lista de tutores activos para el selector. Si el curso tiene asignado a alguien que
+        /// ya no es un tutor válido, se muestra marcado para que el administrador lo corrija.
+        /// </summary>
+        private async Task CargarTutores(int? tutorActual)
+        {
+            var tutores = (await _apiUsuarios.FiltrarPorTipoAsync(2) ?? [])
+                .Where(u => u.activo)
+                .OrderBy(u => u.nombre)
+                .Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = u.id.ToString(),
+                    Text = string.IsNullOrWhiteSpace(u.nombre) ? u.email : $"{u.nombre} ({u.email})",
+                    Selected = u.id == tutorActual
+                })
+                .ToList();
+
+            if (tutorActual is > 0 && tutores.All(t => t.Value != tutorActual.ToString()))
+            {
+                tutores.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = tutorActual.ToString(),
+                    Text = $"⚠ Usuario #{tutorActual}: no es un tutor activo, elija otro",
+                    Selected = true
+                });
+            }
+
+            ViewBag.Tutores = tutores;
+        }
+
         public async Task<IActionResult> CourseForm(int? id)
         {
             if (id == null)
             {
+                await CargarTutores(null);
+
                 return View(new CursoFormViewModel
                 {
                     estado = true
@@ -101,6 +135,8 @@ namespace STAT_Academy.Web.Controllers
                 fechaFin = curso.fechaFin
             };
 
+            await CargarTutores(model.fk_tutor);
+
             return View(model);
         }
 
@@ -108,8 +144,14 @@ namespace STAT_Academy.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CourseForm(CursoFormViewModel model)
         {
+            if (model.fk_tutor <= 0)
+                ModelState.AddModelError(nameof(model.fk_tutor), "Seleccione el tutor del curso.");
+
             if (!ModelState.IsValid)
+            {
+                await CargarTutores(model.fk_tutor);
                 return View(model);
+            }
 
             model.fk_creador = UsuarioId;
 
@@ -119,7 +161,9 @@ namespace STAT_Academy.Web.Controllers
 
             if (!resultado.ok)
             {
-                ModelState.AddModelError("", "No se pudo guardar el curso. Verifica los datos e intenta de nuevo.");
+                // Mensaje real de la API (p. ej. "El usuario 3 no tiene rol de tutor.").
+                ModelState.AddModelError("", resultado.message);
+                await CargarTutores(model.fk_tutor);
                 return View(model);
             }
 
@@ -161,7 +205,7 @@ namespace STAT_Academy.Web.Controllers
         }
     
 
-     public async Task<IActionResult> Products(string? search)
+     public async Task<IActionResult> Products(string? search, bool stockBajo = false)
         {
             var productosApi = await _apiProductos.GetProductos() ?? [];
 
@@ -175,7 +219,9 @@ namespace STAT_Academy.Web.Controllers
                 stock = p.stock,
                 min_stock = p.min_stock,
                 estado = p.estado,
-                fk_proveedor = p.fk_proveedor
+                fk_proveedor = p.fk_proveedor,
+                stock_bajo = p.stock_bajo,
+                imagen_principal = p.imagen_principal
             }).ToList();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -184,6 +230,15 @@ namespace STAT_Academy.Web.Controllers
                     p.nombre.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                     p.categoria.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
             }
+
+            ViewBag.TotalStockBajo = rows.Count(p => p.estado && p.stock_bajo);
+            ViewBag.FiltroStockBajo = stockBajo;
+
+            if (stockBajo)
+                rows = rows.Where(p => p.estado && p.stock_bajo).ToList();
+
+            // Lo que hay que reponer primero.
+            rows = rows.OrderByDescending(p => p.estado && p.stock_bajo).ThenBy(p => p.nombre).ToList();
 
             return View(rows);
         }
@@ -217,7 +272,8 @@ namespace STAT_Academy.Web.Controllers
                 stock = producto.stock,
                 min_stock = producto.min_stock,
                 fk_proveedor = producto.fk_proveedor,
-                ProveedoresDisponibles = proveedores
+                ProveedoresDisponibles = proveedores,
+                Imagenes = producto.imagenes
             };
 
             return View(model);
@@ -225,12 +281,13 @@ namespace STAT_Academy.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(ProductoFormViewModel.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = ProductoFormViewModel.MaxBytesPeticion)]
         public async Task<IActionResult> ProductForm(ProductoFormViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                model.ProveedoresDisponibles = await _apiProductos.GetProveedores() ?? [];
-                return View(model);
+                return await VolverAlFormulario(model);
             }
 
             var request = new ProductoCreateRequest
@@ -244,22 +301,83 @@ namespace STAT_Academy.Web.Controllers
                 fk_proveedor = model.fk_proveedor
             };
 
-            var resultado = model.id == null
+            var (resultado, mensaje) = model.id == null
                 ? await _apiProductos.CrearProducto(request)
                 : await _apiProductos.EditarProducto(model.id.Value, request);
 
             if (resultado == null)
             {
-                ModelState.AddModelError("", "No se pudo guardar el producto. Verifica los datos e intenta de nuevo.");
-                model.ProveedoresDisponibles = await _apiProductos.GetProveedores() ?? [];
-                return View(model);
+                // Mensaje real de la API (p. ej. "El precio debe ser mayor que 0").
+                ModelState.AddModelError("", mensaje);
+                return await VolverAlFormulario(model);
+            }
+
+            // Al crear, las imágenes elegidas se suben ahora que el producto ya existe.
+            if (model.id == null && model.NuevasImagenes.Count > 0)
+            {
+                var (exitoso, mensajeImagenes) = await _apiProductos.SubirImagenes(resultado.id, model.NuevasImagenes);
+                if (!exitoso)
+                {
+                    TempData["Error"] = "El producto se creó, pero las imágenes no: " + mensajeImagenes;
+                    return RedirectToAction(nameof(ProductForm), new { id = resultado.id });
+                }
             }
 
             TempData["Success"] = model.id == null
                 ? "Producto creado correctamente."
                 : "Producto actualizado correctamente.";
 
+            if (resultado.stock_bajo && resultado.estado)
+                TempData["Error"] = $"Atención: \"{resultado.nombre}\" quedó con {resultado.stock} unidades, en o por debajo del mínimo ({resultado.min_stock}).";
+
             return RedirectToAction(nameof(Products));
+        }
+
+        private async Task<IActionResult> VolverAlFormulario(ProductoFormViewModel model)
+        {
+            model.ProveedoresDisponibles = await _apiProductos.GetProveedores() ?? [];
+            if (model.id != null)
+                model.Imagenes = (await _apiProductos.GetProductoById(model.id.Value))?.imagenes ?? [];
+            return View(nameof(ProductForm), model);
+        }
+
+        // --- Imágenes del producto ----------------------------------------------
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(ProductoFormViewModel.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = ProductoFormViewModel.MaxBytesPeticion)]
+        public async Task<IActionResult> SubirImagenesProducto(int id, List<IFormFile> imagenes)
+        {
+            if (imagenes.Count == 0)
+            {
+                TempData["Error"] = "Seleccione al menos una imagen.";
+            }
+            else
+            {
+                var (exitoso, mensaje) = await _apiProductos.SubirImagenes(id, imagenes);
+                TempData[exitoso ? "Success" : "Error"] = mensaje;
+            }
+
+            return RedirectToAction(nameof(ProductForm), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImagenPrincipalProducto(int id, int imagenId)
+        {
+            var (exitoso, mensaje) = await _apiProductos.MarcarPrincipal(id, imagenId);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+            return RedirectToAction(nameof(ProductForm), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuitarImagenProducto(int id, int imagenId)
+        {
+            var (exitoso, mensaje) = await _apiProductos.QuitarImagen(id, imagenId);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+            return RedirectToAction(nameof(ProductForm), new { id });
         }
 
         [HttpPost]

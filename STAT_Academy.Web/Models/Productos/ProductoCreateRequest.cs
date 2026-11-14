@@ -18,11 +18,11 @@ namespace STAT_Academy.Web.Models.Productos
         public decimal precio_base { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
+        [Range(0, int.MaxValue, ErrorMessage = "Las existencias no pueden ser negativas.")]
         public int stock { get; set; }
 
         [Required]
-        [Range(0, int.MaxValue)]
+        [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo.")]
         public int min_stock { get; set; }
 
         [Required(ErrorMessage = "Debes seleccionar un proveedor.")]

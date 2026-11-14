@@ -1,0 +1,50 @@
+<script>
+    // Vista previa de los archivos elegidos: avisa antes de enviar si alguno no se aceptará.
+    // La validación definitiva la hace la API (extensión, tamaño y contenido real).
+    (function () {
+        const imagenes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        const documentos = ['pdf', 'doc', 'docx', 'xlsx', 'pptx', 'txt', 'csv'];
+        const MB = 1024 * 1024;
+
+        document.querySelectorAll('[data-blog-archivos]').forEach(function (input) {
+            const lista = input.parentElement.querySelector('[data-blog-seleccion]');
+            if (!lista) return;
+
+            input.addEventListener('change', function () {
+                lista.replaceChildren();
+                const archivos = Array.from(input.files);
+                lista.hidden = archivos.length === 0;
+
+                if (archivos.length > 10) {
+                    const aviso = document.createElement('li');
+                    aviso.className = 'text-danger';
+                    aviso.textContent = 'Puede subir como máximo 10 archivos a la vez.';
+                    lista.appendChild(aviso);
+                }
+
+                archivos.forEach(function (archivo) {
+                    const extension = (archivo.name.split('.').pop() || '').toLowerCase();
+                    const esImagen = imagenes.includes(extension);
+                    const permitido = esImagen || documentos.includes(extension);
+                    const maximo = esImagen ? 5 * MB : 10 * MB;
+
+                    const item = document.createElement('li');
+                    let detalle = (archivo.size / MB).toFixed(1) + ' MB';
+
+                    if (!permitido) {
+                        item.className = 'text-danger';
+                        detalle += ' · tipo no permitido';
+                    } else if (archivo.size > maximo) {
+                        item.className = 'text-danger';
+                        detalle += ' · supera ' + (maximo / MB) + ' MB';
+                    } else {
+                        detalle += esImagen ? ' · imagen' : ' · documento';
+                    }
+
+                    item.textContent = archivo.name + ' (' + detalle + ')';
+                    lista.appendChild(item);
+                });
+            });
+        });
+    })();
+</script>

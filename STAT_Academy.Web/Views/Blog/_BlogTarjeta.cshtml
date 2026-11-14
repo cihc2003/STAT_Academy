@@ -1,0 +1,46 @@
+@* Tarjeta de una entrada: portada, fecha y lectura, título, resumen y autor. *@
+@model STAT_Academy.Web.Models.Blog.BlogResponse
+
+@{
+    var autor = string.IsNullOrWhiteSpace(Model.Autor) ? $"Autor #{Model.FkAutor}" : Model.Autor;
+    var inicial = autor.Trim()[..1].ToUpperInvariant();
+}
+
+<article class="blog-tarjeta @(Model.Estado ? "" : "blog-tarjeta--inactiva")">
+    <a asp-action="Details" asp-route-id="@Model.Id" class="blog-tarjeta__portada" tabindex="-1" aria-hidden="true">
+        @if (!string.IsNullOrEmpty(Model.ImagenPrincipal))
+        {
+            <img src="@Model.ImagenPrincipal" alt="" loading="lazy" />
+        }
+        else
+        {
+            <span class="blog-tarjeta__sin-portada">@Model.Titulo</span>
+        }
+        @if (!Model.Estado)
+        {
+            <span class="blog-tarjeta__estado">Inactiva · solo administradores</span>
+        }
+    </a>
+
+    <div class="blog-tarjeta__cuerpo">
+        <p class="blog-meta">
+            <time datetime="@Model.FechaCreacion.ToString("o")">@Model.FechaCreacion.ToLocalTime().ToString("d 'de' MMMM, yyyy")</time>
+            <span aria-hidden="true">·</span>
+            <span>@Model.MinutosLectura min de lectura</span>
+        </p>
+
+        <h3 class="blog-tarjeta__titulo">
+            <a asp-action="Details" asp-route-id="@Model.Id">@Model.Titulo</a>
+        </h3>
+
+        <p class="blog-tarjeta__resumen">@Model.Resumen</p>
+
+        <div class="blog-tarjeta__pie">
+            <span class="blog-autor">
+                <span class="blog-autor__avatar" aria-hidden="true">@inicial</span>
+                @autor
+            </span>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="blog-tarjeta__leer">Leer <span aria-hidden="true">→</span></a>
+        </div>
+    </div>
+</article>

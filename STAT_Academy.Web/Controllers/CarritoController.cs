@@ -76,4 +76,30 @@ public class CarritoController : Controller
 
         return View(carrito);
     }
+
+    /// <summary>Confirma la compra (pago simulado): se crea la factura y se descuenta el stock.</summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Cliente")]
+    public async Task<IActionResult> Confirmar()
+    {
+        var (compra, mensaje) = await _apiCarrito.Comprar();
+
+        if (compra == null)
+        {
+            // P. ej. "Solo quedan 2 unidades de …": se vuelve al carrito para ajustar.
+            TempData["Error"] = mensaje;
+            return RedirectToAction(nameof(Index));
+        }
+
+        TempData["Success"] = "¡Compra realizada! Te dejamos el comprobante.";
+        return RedirectToAction(nameof(Compra), new { id = compra.facturaId });
+    }
+
+    /// <summary>Comprobante de una compra propia.</summary>
+    public async Task<IActionResult> Compra(int id)
+    {
+        var compra = await _apiCarrito.ObtenerCompra(id);
+        return compra == null ? NotFound() : View(compra);
+    }
 }

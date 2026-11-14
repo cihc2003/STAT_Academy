@@ -1,24 +1,29 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Api.Services;
 using STAT_Academy.DTOs.Contrasena;
 
 namespace STAT_Academy.Api.Controllers
 {
-    [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
-    public class ContrasenaController : ControllerBase
+    public class ContrasenaController : ApiControllerBase
     {
         private readonly ContrasenaService _contrasenaService;
         private readonly CorreoService _correoService;
+        private readonly ILogger<ContrasenaController> _logger;
 
         public ContrasenaController(
             ContrasenaService contrasenaService,
-            CorreoService correoService)
+            CorreoService correoService,
+            ILogger<ContrasenaController> logger)
         {
             _contrasenaService = contrasenaService;
             _correoService = correoService;
+            _logger = logger;
         }
 
+        [AllowAnonymous]
         [HttpPost("solicitar-recuperacion")]
         public async Task<IActionResult> SolicitarRecuperacion(
             SolicitarRecuperacionRequest request)
@@ -28,10 +33,19 @@ namespace STAT_Academy.Api.Controllers
 
             if (token != null)
             {
-                await _correoService.EnviarRecuperacionContrasena(
-                    request.email,
-                    token
-                );
+                try
+                {
+                    await _correoService.EnviarRecuperacionContrasena(
+                        request.email,
+                        token
+                    );
+                }
+                catch (Exception ex)
+                {
+                    // Misma respuesta que si el correo no existiera: un 500 solo para
+                    // cuentas existentes permitiría averiguar qué correos están registrados.
+                    _logger.LogError(ex, "No se pudo enviar el correo de recuperación de contraseña.");
+                }
             }
 
             return Ok(new
@@ -42,6 +56,7 @@ namespace STAT_Academy.Api.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("restablecer")]
         public IActionResult RestablecerContrasena(
             RestablecerContrasenaRequest request)
@@ -65,26 +80,36 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPost("cambiar")]
-        public IActionResult CambiarContrasena(
+        public async Task<IActionResult> CambiarContrasena(
             CambiarContrasenaRequest request)
         {
+            // Solo se puede cambiar la contraseña propia: el id sale del token.
             var resultado = _contrasenaService
-                .CambiarContrasena(request);
+                .CambiarContrasena(UsuarioActualId, request);
 
-            if (!resultado)
+            if (!resultado.exitoso)
             {
-                return BadRequest(new
-                {
-                    message =
-                        "No se pudo cambiar la contraseña. " +
-                        "Verifique la contraseña actual."
-                });
+                return BadRequest(new { message = resultado.mensaje });
             }
 
-            return Ok(new
+            // Aviso de seguridad al titular; si falla, el cambio ya está hecho.
+            if (!string.IsNullOrWhiteSpace(resultado.email))
             {
-                message = "La contraseña fue cambiada correctamente."
-            });
+                try
+                {
+                    await _correoService.EnviarAvisoCambioContrasena(
+                        resultado.email,
+                        resultado.nombre ?? resultado.email);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "No se pudo enviar el aviso de cambio de contraseña al usuario {UsuarioId}.",
+                        UsuarioActualId);
+                }
+            }
+
+            return Ok(new { message = resultado.mensaje });
         }
     }
 }

@@ -28,8 +28,23 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label asp-for="fk_tutor" class="form-label">ID Tutor</label>
-                    <input asp-for="fk_tutor" class="form-control" type="number" min="1" />
+                    @{
+                        var tutores = ViewBag.Tutores as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+                    }
+                    <label asp-for="fk_tutor" class="form-label">Tutor</label>
+                    @if (tutores.Count == 0)
+                    {
+                        <div class="alert alert-warning mb-0">
+                            No hay tutores activos.
+                            <a asp-controller="Usuario" asp-action="UserForm">Cree un usuario con rol Tutor</a> para poder asignarlo.
+                        </div>
+                    }
+                    else
+                    {
+                        <select asp-for="fk_tutor" asp-items="tutores" class="form-select" required>
+                            <option value="">Seleccione un tutor…</option>
+                        </select>
+                    }
                     <span asp-validation-for="fk_tutor" class="text-danger"></span>
                 </div>
 
@@ -46,9 +61,8 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label asp-for="duracionSemanas" class="form-label">Duración (semanas)</label>
-                    <input asp-for="duracionSemanas" class="form-control" type="number" min="1" />
-                    <span asp-validation-for="duracionSemanas" class="text-danger"></span>
+                    <label class="form-label">Duración</label>
+                    <input class="form-control" value="@(Model.id.HasValue ? Model.duracionSemanas + " semanas" : "Se calcula con las fechas")" readonly />
                 </div>
 
                 <div class="col-md-4">

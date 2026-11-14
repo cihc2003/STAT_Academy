@@ -1,0 +1,60 @@
+@model STAT_Academy.Web.Models.Tutor.TareaFormViewModel
+
+@{
+    var nueva = Model.Id == null;
+    ViewData["Title"] = nueva ? "Nueva tarea" : "Editar tarea";
+}
+
+<section class="section">
+    <div class="container" style="max-width: 760px;">
+        <a asp-action="Curso" asp-route-id="@Model.CursoId" class="text-link">← Volver a @Model.CursoNombre</a>
+
+        <h1 class="mt-2">@(nueva ? "Nueva tarea" : "Editar tarea")</h1>
+        <p class="text-muted">
+            Los estudiantes verán la tarea en su aula, ordenada por fecha límite.
+        </p>
+
+        <form asp-action="GuardarTarea" method="post" class="card blog-form card-body">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CursoId" />
+            <input type="hidden" asp-for="CursoNombre" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label"></label>
+                <input asp-for="Titulo" class="form-control" maxlength="100" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label"></label>
+                <textarea asp-for="Descripcion" class="form-control" rows="4" maxlength="255"></textarea>
+                <div class="form-text">Máximo 255 caracteres.</div>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="FechaInicio" class="form-label"></label>
+                    <input asp-for="FechaInicio" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="FechaLimite" class="form-label"></label>
+                    <input asp-for="FechaLimite" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="FechaLimite" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">@(nueva ? "Crear tarea" : "Guardar cambios")</button>
+                <a asp-action="Curso" asp-route-id="@Model.CursoId" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

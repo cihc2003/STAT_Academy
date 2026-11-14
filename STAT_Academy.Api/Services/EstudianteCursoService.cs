@@ -18,7 +18,8 @@ namespace STAT_Academy.Api.Services
             var cursos = (from ec in _context.EstudianteCurso
                           join c in _context.Set<CursoModel>()
                           on ec.CursoId equals c.id
-                          where ec.EstudianteId == estudianteId
+                          // Los cursos inactivos dejan de estar disponibles para el estudiante.
+                          where ec.EstudianteId == estudianteId && c.estado
                           select new CursoCompradoResponse
                           {
                               MatriculaId = ec.IdMatricula,

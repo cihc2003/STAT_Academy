@@ -1,0 +1,85 @@
+@model STAT_Academy.Web.Models.Tutor.TutorCalificacionesPagina
+
+@{
+    ViewData["Title"] = "Calificaciones · " + Model.Curso.Nombre;
+    var tareas = Model.Calificaciones.Tareas;
+    var filas = Model.Calificaciones.Estudiantes;
+}
+
+<section class="section">
+    <div class="container">
+        <partial name="_CursoNav" model="Model.Curso" />
+
+        <h2>Calificaciones</h2>
+
+        @if (tareas.Count == 0 || filas.Count == 0)
+        {
+            <div class="info-block">
+                <p class="mb-0">
+                    @(tareas.Count == 0 ? "El curso todavía no tiene tareas publicadas." : "El curso no tiene estudiantes con matrícula activa.")
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="table-card">
+                <table class="table align-middle mb-0 tutor-notas">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="tutor-notas__fijo">Estudiante</th>
+                            @foreach (var t in tareas)
+                            {
+                                <th scope="col" class="text-center">
+                                    <a asp-action="Entregas" asp-route-id="@t.Id" title="Ver entregas">@t.Titulo</a>
+                                    <div class="text-muted small fw-normal">@(t.FechaLimite?.ToString("dd/MM") ?? "")</div>
+                                </th>
+                            }
+                            <th scope="col" class="text-center">Promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var f in filas)
+                        {
+                            <tr>
+                                <th scope="row" class="tutor-notas__fijo">
+                                    @f.Nombre
+                                    <div class="text-muted small fw-normal">@f.Email</div>
+                                </th>
+                                @foreach (var c in f.Notas)
+                                {
+                                    <td class="text-center">
+                                        @if (c.Calificacion is decimal nota)
+                                        {
+                                            <strong class="@(nota < 70 ? "text-danger" : "")">@nota.ToString("0.##")</strong>
+                                        }
+                                        else if (c.Estado == "Entregada")
+                                        {
+                                            <a asp-action="Entregas" asp-route-id="@c.TareaId" class="status-pill tutor-pill--alerta">Por calificar</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted" title="Sin entregar">—</span>
+                                        }
+                                    </td>
+                                }
+                                <td class="text-center">
+                                    @if (f.Promedio is decimal p)
+                                    {
+                                        <strong class="@(p < 70 ? "text-danger" : "")">@p.ToString("0.##")</strong>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2">
+                Notas sobre 100. En rojo, por debajo de 70. El promedio considera solo las tareas calificadas.
+            </p>
+        }
+    </div>
+</section>

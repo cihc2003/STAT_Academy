@@ -42,8 +42,9 @@
         public int Id { get; set; }
         public string Titulo { get; set; } = string.Empty;
         public string UbicacionMaterial { get; set; } = string.Empty;
+        /// <summary>True = enlace externo; false = archivo privado (se descarga por la Web).</summary>
+        public bool EsEnlace { get; set; }
         public string Tipo { get; set; } = string.Empty;
         public int? Semana { get; set; }
-        public DateTime FechaCreacion { get; set; }
     }
 }

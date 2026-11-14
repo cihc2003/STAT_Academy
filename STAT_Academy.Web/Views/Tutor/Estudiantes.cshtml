@@ -1,0 +1,64 @@
+@model STAT_Academy.Web.Models.Tutor.TutorEstudiantesPagina
+
+@{
+    ViewData["Title"] = "Estudiantes · " + Model.Curso.Nombre;
+}
+
+<section class="section">
+    <div class="container">
+        <partial name="_CursoNav" model="Model.Curso" />
+
+        <h2>Estudiantes matriculados</h2>
+
+        @if (Model.Estudiantes.Count == 0)
+        {
+            <div class="info-block">
+                <p class="mb-0">Este curso todavía no tiene estudiantes matriculados.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-card">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Matrícula</th>
+                            <th>Tareas entregadas</th>
+                            <th>Promedio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model.Estudiantes)
+                        {
+                            var activa = e.EstadoMatricula == "Activo";
+
+                            <tr class="@(activa ? "" : "tutor-fila--oculta")">
+                                <td>
+                                    <strong>@e.Nombre</strong>
+                                    <div class="text-muted small">@e.Email</div>
+                                </td>
+                                <td>
+                                    <span class="status-pill @(activa ? "" : "tutor-pill--gris")">@e.EstadoMatricula</span>
+                                    <div class="text-muted small">desde @(e.FechaMatricula?.ToString("dd/MM/yyyy") ?? "—")</div>
+                                </td>
+                                <td>@e.TareasEntregadas / @e.TareasTotales</td>
+                                <td>
+                                    @if (e.Promedio is decimal p)
+                                    {
+                                        <strong class="@(p < 70 ? "text-danger" : "")">@p.ToString("0.##")</strong>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin notas</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2">El promedio considera solo las tareas ya calificadas.</p>
+        }
+    </div>
+</section>

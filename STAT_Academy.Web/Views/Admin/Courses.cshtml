@@ -75,7 +75,7 @@
                                     <strong>@curso.nombre</strong>
                                     <div class="text-muted small">@curso.descripcion</div>
                                 </td>
-                                <td>@curso.precio.ToString("C")</td>
+                                <td>@Formato.Colones(curso.precio)</td>
                                 <td>@curso.duracionSemanas semanas</td>
                                 <td>
                                     <span class="status-pill">
