@@ -10,6 +10,7 @@ using Microsoft.OpenApi;
 using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Configuration;
 using STAT_Academy.Api.Data;
+using STAT_Academy.Api.Errores;
 using STAT_Academy.Api.Services;
 using STAT_Academy.Api.Storage;
 
@@ -52,6 +53,14 @@ builder.Services.AddScoped<StockAlertaService>();
 builder.Services.AddScoped<CompraService>();
 builder.Services.AddScoped<ContrasenaService>();
 builder.Services.AddScoped<CorreoService>();
+
+// Errores no controlados: respuesta genérica { "message": "..." } y aviso a los administradores.
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = ctx =>
+        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier);
+builder.Services.AddExceptionHandler<ManejadorErroresGlobal>();
+builder.Services.AddSingleton<ErrorAlertaService>();
+builder.Services.AddHostedService<ErrorAlertaEnvioService>();
 
 // ---------------------------------------------------------------------------
 // Azure Blob Storage (misma configuración que la rama Pruebas_Blob_Storage)
@@ -154,6 +163,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// Primero, para atrapar cualquier excepción del resto del pipeline (también en Development:
+// el cliente nunca recibe trazas; el detalle queda en el log).
+app.UseExceptionHandler();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace STAT_Academy.Web.Services
@@ -23,6 +24,7 @@ namespace STAT_Academy.Web.Services
             CancellationToken cancellationToken)
         {
             var httpContext = _httpContextAccessor.HttpContext;
+            var tokenAdjunto = false;
 
             if (httpContext?.User.Identity?.IsAuthenticated == true
                 && request.Headers.Authorization == null)
@@ -33,10 +35,23 @@ namespace STAT_Academy.Web.Services
                 {
                     request.Headers.Authorization =
                         new AuthenticationHeaderValue("Bearer", token);
+                    tokenAdjunto = true;
                 }
             }
 
-            return await base.SendAsync(request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken);
+
+            // 401 del middleware JWT (trae "WWW-Authenticate: Bearer"): el token venció o no es válido.
+            // Un 401 de negocio (p. ej. credenciales incorrectas en el login) no trae ese encabezado.
+            if (tokenAdjunto
+                && response.StatusCode == HttpStatusCode.Unauthorized
+                && response.Headers.WwwAuthenticate.Any(h => h.Scheme.Equals("Bearer", StringComparison.OrdinalIgnoreCase)))
+            {
+                response.Dispose();
+                throw new ApiSesionExpiradaException();
+            }
+
+            return response;
         }
     }
 }

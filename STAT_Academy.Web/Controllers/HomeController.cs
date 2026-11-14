@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using STAT_Academy.Web.Models;
-using System.Diagnostics;
 
 namespace STAT_Academy.Web.Controllers
 {
@@ -26,12 +24,6 @@ namespace STAT_Academy.Web.Controllers
         public IActionResult Contacto()
         {
             return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

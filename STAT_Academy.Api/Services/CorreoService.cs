@@ -132,6 +132,44 @@ namespace STAT_Academy.Api.Services
                 await Enviar(configuracion, destino, "Aviso: productos con stock bajo", html);
         }
 
+        public async Task EnviarAlertaError(IReadOnlyCollection<string> destinos, Errores.AvisoError aviso)
+        {
+            var configuracion = ObtenerConfiguracion();
+
+            // El mensaje de la excepción es solo para administradores y se recorta.
+            var mensaje = aviso.Mensaje.Length > 500 ? aviso.Mensaje[..500] + "…" : aviso.Mensaje;
+            var repeticiones = aviso.Repeticiones > 0
+                ? $"<p>Este error se repitió <strong>{aviso.Repeticiones}</strong> vez/veces más desde el aviso anterior (no se enviaron correos para no saturar el buzón).</p>"
+                : "";
+
+            string Fila(string etiqueta, string valor) =>
+                $"<tr><th style=\"padding:6px 12px;text-align:left;background:#f4f7fb\">{etiqueta}</th>" +
+                $"<td style=\"padding:6px 12px\">{WebUtility.HtmlEncode(valor)}</td></tr>";
+
+            var html = $"""
+                <h2>Error del sistema en STAT Academy ({WebUtility.HtmlEncode(aviso.Origen)})</h2>
+
+                <p>Ocurrió un error no controlado. El usuario vio una página de error genérica.</p>
+
+                <table style="border-collapse:collapse;border:1px solid #dce5f2">
+                    {Fila("Fecha (UTC)", aviso.FechaUtc.ToString("dd/MM/yyyy HH:mm:ss"))}
+                    {Fila("Origen", aviso.Origen)}
+                    {Fila("Ruta", aviso.Ruta)}
+                    {Fila("Tipo", aviso.Tipo)}
+                    {Fila("Mensaje", mensaje)}
+                    {Fila("Código del error", aviso.TraceId)}
+                </table>
+
+                {repeticiones}
+
+                <p>Busque el código del error en los registros (logs) para ver el detalle completo.</p>
+                """;
+
+            var tipoCorto = aviso.Tipo.Split('.').Last();
+            foreach (var destino in destinos)
+                await Enviar(configuracion, destino, $"Error del sistema ({aviso.Origen}): {tipoCorto}", html);
+        }
+
         private async Task Enviar(
             ConfiguracionCorreo configuracion,
             string destino,

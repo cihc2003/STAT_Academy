@@ -1967,3 +1967,115 @@ a.tag:hover {
             flex: 1 1 0;
         }
 }
+
+/* ---------------------------------------------------------------------------
+   Páginas de error (403, 404, 500...)
+   --------------------------------------------------------------------------- */
+.pagina-error {
+    padding: 72px 0;
+}
+
+.pagina-error__tarjeta {
+    width: min(620px, 100%);
+    margin: 0 auto;
+    padding: 40px 36px;
+    text-align: center;
+    /* .card es flex en columna: se centran icono, etiqueta y botones */
+    align-items: center;
+}
+
+    .pagina-error__tarjeta:hover {
+        transform: none;
+    }
+
+.pagina-error__icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 76px;
+    margin-bottom: 18px;
+    border-radius: 50%;
+    color: var(--electric);
+    background: rgba(23, 107, 255, 0.1);
+}
+
+    .pagina-error__icono svg {
+        width: 36px;
+        height: 36px;
+    }
+
+.pagina-error__icono--alerta {
+    color: #c2410c;
+    background: rgba(234, 88, 12, 0.12);
+}
+
+.pagina-error__titulo {
+    margin: 8px 0 12px;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    line-height: 1.2;
+}
+
+.pagina-error__mensaje {
+    max-width: 480px;
+    margin: 0 auto;
+    color: var(--muted);
+}
+
+.pagina-error__nota {
+    margin: 12px 0 0;
+    color: var(--navy-2);
+    font-weight: 600;
+}
+
+.pagina-error__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.pagina-error__secundario {
+    color: var(--navy);
+    background: var(--white);
+    border: 1px solid var(--line);
+}
+
+    .pagina-error__secundario:hover {
+        border-color: var(--electric);
+        color: var(--electric);
+    }
+
+.pagina-error__codigo {
+    align-self: stretch;
+    margin: 28px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+    .pagina-error__codigo code {
+        display: inline-block;
+        margin-top: 4px;
+        padding: 2px 8px;
+        border-radius: 8px;
+        color: var(--navy);
+        background: var(--light);
+        word-break: break-all;
+    }
+
+@media (max-width: 576px) {
+    .pagina-error {
+        padding: 36px 0;
+    }
+
+    .pagina-error__tarjeta {
+        padding: 28px 20px;
+    }
+
+    .pagina-error__acciones .btn {
+        flex: 1 1 100%;
+    }
+}
