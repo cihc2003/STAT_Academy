@@ -79,7 +79,7 @@
                                     {
                                         <li>
                                             <span class="blog-documentos__ext">@(System.IO.Path.GetExtension(a.Nombre).TrimStart('.').ToUpperInvariant())</span>
-                                            <a asp-action="ArchivoEntrega" asp-route-id="@a.Id">@a.Nombre</a>
+                                            <a asp-action="ArchivoEntrega" data-sin-carga asp-route-id="@a.Id">@a.Nombre</a>
                                         </li>
                                     }
                                     @if (!string.IsNullOrEmpty(e.Enlace))

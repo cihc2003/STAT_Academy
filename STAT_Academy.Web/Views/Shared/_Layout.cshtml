@@ -125,6 +125,14 @@
         @RenderBody()
     </main>
 
+    @* Pantalla de carga: la muestra site.js al navegar o enviar formularios (las páginas esperan a la API). *@
+    <div id="pantalla-carga" class="pantalla-carga" role="status" aria-live="polite" hidden>
+        <div class="pantalla-carga__caja">
+            <span class="pantalla-carga__spinner" aria-hidden="true"></span>
+            <span class="pantalla-carga__texto">Cargando…</span>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="container footer-grid">
             <p>&copy; 2026 STATMEDICAL | STAT Academy. Todos los derechos reservados.</p>

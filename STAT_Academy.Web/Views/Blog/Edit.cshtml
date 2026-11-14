@@ -110,7 +110,7 @@
                     {
                         <li>
                             <span class="blog-documentos__ext">@documento.Extension</span>
-                            <a asp-action="Documento" asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
+                            <a asp-action="Documento" data-sin-carga asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
                             <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post" class="ms-auto">
                                 <input type="hidden" name="archivoId" value="@documento.Id" />
                                 <button type="submit" class="btn btn-link btn-sm p-0 text-danger"

@@ -81,7 +81,7 @@
                 {
                     <li>
                         <span class="blog-documentos__ext">@documento.Extension</span>
-                        <a asp-action="Documento" asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
+                        <a asp-action="Documento" data-sin-carga asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
                     </li>
                 }
             </ul>

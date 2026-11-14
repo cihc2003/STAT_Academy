@@ -107,7 +107,7 @@
                                 }
                                 else
                                 {
-                                    <a asp-action="Material" asp-route-id="@m.Id">@m.Titulo</a>
+                                    <a asp-action="Material" asp-route-id="@m.Id" data-sin-carga>@m.Titulo</a>
                                 }
                                 <form asp-action="QuitarMaterial" method="post" class="ms-auto">
                                     <input type="hidden" name="id" value="@m.Id" />

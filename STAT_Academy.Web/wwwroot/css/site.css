@@ -2079,3 +2079,67 @@ a.tag:hover {
         flex: 1 1 100%;
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Pantalla de carga (la controla site.js)
+   --------------------------------------------------------------------------- */
+.pantalla-carga {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(7, 27, 58, 0.35);
+    backdrop-filter: blur(2px);
+    animation: pantalla-carga-entrada 0.2s ease;
+}
+
+    .pantalla-carga[hidden] {
+        display: none;
+    }
+
+.pantalla-carga__caja {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 26px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--white);
+    box-shadow: var(--shadow);
+    color: var(--navy);
+    font-weight: 700;
+}
+
+.pantalla-carga__spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--line);
+    border-top-color: var(--electric);
+    border-radius: 50%;
+    animation: pantalla-carga-giro 0.8s linear infinite;
+}
+
+@keyframes pantalla-carga-giro {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pantalla-carga-entrada {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pantalla-carga {
+        animation: none;
+    }
+
+    .pantalla-carga__spinner {
+        animation-duration: 2.4s;
+    }
+}
