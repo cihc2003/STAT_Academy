@@ -33,6 +33,10 @@ namespace STAT_Academy.Api.Services
 
             return cursos;
         }
+        /// <summary>
+        /// Inscripción directa, solo para cursos gratuitos. Los cursos de pago se compran
+        /// (CompraService.ComprarCurso) y la matrícula se crea al aprobarse el pago.
+        /// </summary>
         public bool Matricular(int estudianteId, int cursoId)
         {
             // Verificar que el curso exista
@@ -44,6 +48,10 @@ namespace STAT_Academy.Api.Services
 
             // Verificar que el curso esté activo
             if (!curso.estado)
+                return false;
+
+            // Un curso de pago no se puede inscribir sin pagar.
+            if (curso.precio > 0)
                 return false;
 
             // Verificar si ya está matriculado

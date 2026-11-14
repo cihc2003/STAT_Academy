@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Web.Helpers;
 using STAT_Academy.Web.Models.Admin;
+using STAT_Academy.Web.Models.Facturas;
 using STAT_Academy.Web.Models.Productos;
 using STAT_Academy.Web.Services;
 using System.Security.Claims;
@@ -14,17 +16,20 @@ namespace STAT_Academy.Web.Controllers
         private readonly ApiProductoService _apiProductos;
         private readonly ApiProveedorService _apiProveedores;
         private readonly ApiCursoService _apiCursos;
+        private readonly ApiFacturaService _apiFacturas;
 
         public AdminController(
             ApiUsuarioService apiUsuarios,
             ApiProductoService apiProductos,
             ApiProveedorService apiProveedores,
-            ApiCursoService apiCursos)
+            ApiCursoService apiCursos,
+            ApiFacturaService apiFacturas)
         {
             _apiUsuarios = apiUsuarios;
             _apiProductos = apiProductos;
             _apiProveedores = apiProveedores;
             _apiCursos = apiCursos;
+            _apiFacturas = apiFacturas;
         }
 
         private int UsuarioId =>
@@ -42,6 +47,7 @@ namespace STAT_Academy.Web.Controllers
             ViewBag.Courses = cursos?.Count ?? 0;
             ViewBag.Enrollments = 0;
             ViewBag.Orders = 0;
+            ViewBag.PagosPendientes = await _apiFacturas.PagosPendientes();
 
             return View();
         }
@@ -414,6 +420,82 @@ namespace STAT_Academy.Web.Controllers
             }
 
             return RedirectToAction(nameof(Products));
+        }
+
+        // ---------------------------------------------------------------
+        // Facturas y pagos
+        // ---------------------------------------------------------------
+
+        /// <param name="vista">"pagos" (comprobantes, por defecto) o "facturas".</param>
+        /// <param name="estado">Comprobantes: PENDIENTE (por defecto), APROBADO, RECHAZADO o TODOS. Facturas: estado de la factura.</param>
+        /// <param name="buscar">Nombre o correo del usuario, o número de compra.</param>
+        public async Task<IActionResult> Invoices(string? vista, string? estado, string? buscar)
+        {
+            var model = new FacturasAdminViewModel
+            {
+                Vista = vista == "facturas" ? "facturas" : "pagos",
+                Buscar = buscar?.Trim(),
+                Pendientes = await _apiFacturas.PagosPendientes()
+            };
+
+            bool Coincide(int facturaId, string nombre, string correo) =>
+                string.IsNullOrWhiteSpace(model.Buscar)
+                || facturaId.ToString() == model.Buscar.TrimStart('#')
+                || Busqueda.Coincide(nombre, model.Buscar)
+                || Busqueda.Coincide(correo, model.Buscar);
+
+            if (model.Vista == "pagos")
+            {
+                model.Estado = string.IsNullOrWhiteSpace(estado) ? "PENDIENTE" : estado.ToUpperInvariant();
+                var pagos = await _apiFacturas.Pagos(model.Estado == "TODOS" ? null : model.Estado) ?? [];
+                var filtrados = pagos.Where(p => Coincide(p.facturaId ?? 0, p.usuarioNombre, p.usuarioEmail));
+
+                // Lo pendiente, por orden de llegada (el más antiguo primero); lo revisado, lo último primero.
+                model.Pagos = filtrados.Where(p => p.estado == "PENDIENTE").OrderBy(p => p.fechaEnvio)
+                    .Concat(filtrados.Where(p => p.estado != "PENDIENTE").OrderByDescending(p => p.fechaRevision ?? p.fechaEnvio))
+                    .ToList();
+            }
+            else
+            {
+                model.Estado = string.IsNullOrWhiteSpace(estado) ? null : estado.ToUpperInvariant();
+                var facturas = await _apiFacturas.TodasLasFacturas() ?? [];
+                model.Facturas = facturas
+                    .Where(f => model.Estado == null || f.estado == model.Estado)
+                    .Where(f => Coincide(f.id, f.usuarioNombre, f.usuarioEmail))
+                    .ToList();
+            }
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> Invoice(int id)
+        {
+            var factura = await _apiFacturas.Detalle(id);
+            return factura == null ? NotFound() : View(factura);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApprovePayment(int pagoId, int facturaId)
+        {
+            var (exitoso, mensaje) = await _apiFacturas.Aprobar(pagoId);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+            return RedirectToAction(nameof(Invoice), new { id = facturaId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectPayment(int pagoId, int facturaId, string? observacion)
+        {
+            if (string.IsNullOrWhiteSpace(observacion))
+            {
+                TempData["Error"] = "Indica el motivo del rechazo: se le enviará al usuario.";
+                return RedirectToAction(nameof(Invoice), new { id = facturaId });
+            }
+
+            var (exitoso, mensaje) = await _apiFacturas.Rechazar(pagoId, observacion);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+            return RedirectToAction(nameof(Invoice), new { id = facturaId });
         }
     }
 }

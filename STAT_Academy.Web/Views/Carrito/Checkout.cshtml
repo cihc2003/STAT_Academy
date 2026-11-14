@@ -11,7 +11,7 @@
         <div class="section-heading mt-3">
             <span class="eyebrow">Pago</span>
             <h1>Confirmar compra</h1>
-            <p>Revisa tu pedido. Al confirmar, se registra la compra y se reservan las unidades.</p>
+            <p>Revisa tu pedido. Al confirmar, se registra la compra, se reservan las unidades y te enviamos el comprobante por correo.</p>
         </div>
 
         <div class="card p-4">
@@ -36,10 +36,11 @@
                 <strong class="h4 mb-0">@Formato.Colones(Model.total)</strong>
             </div>
 
-            @* No se piden datos de tarjeta: todavía no hay pasarela de pago real. *@
+            @* El pago se hace fuera de la plataforma (SINPE Móvil o transferencia) y se verifica con el comprobante. *@
             <div class="alert alert-info mt-4 mb-0" role="note">
-                <strong>Pago de demostración.</strong> No se solicita ni se cobra ninguna tarjeta;
-                la compra queda registrada como pagada para pruebas.
+                <strong>Pago por SINPE Móvil o transferencia.</strong> Después de confirmar verás el número
+                de SINPE y la cuenta bancaria. Cuando pagues, sube el comprobante en
+                <em>Mis facturas y pagos</em>; te avisaremos por correo cuando lo verifiquemos.
             </div>
 
             <form asp-action="Confirmar" method="post" class="d-flex flex-wrap gap-2 mt-4"

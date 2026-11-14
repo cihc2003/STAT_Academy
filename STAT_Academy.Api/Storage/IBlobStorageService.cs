@@ -8,6 +8,10 @@ public interface IBlobStorageService
     /// Valida y sube el archivo. Devuelve los datos para guardar en la BD.
     Task<ArchivoSubido> SubirAsync(IFormFile archivo, ContenedorBlob contenedor, string carpeta, CancellationToken ct = default);
 
+    /// Sube contenido ya validado al contenedor privado (Documentos) con el Content-Type indicado,
+    /// sea imagen o documento. Para archivos sensibles como comprobantes de pago. Devuelve el nombre del blob.
+    Task<string> SubirPrivadoAsync(byte[] contenido, string extension, string contentType, string carpeta, CancellationToken ct = default);
+
     /// URL pública de una imagen (solo contenedor público).
     string ObtenerUrlPublica(string blobName);
 
