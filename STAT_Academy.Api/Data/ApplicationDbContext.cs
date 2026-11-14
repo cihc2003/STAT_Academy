@@ -27,6 +27,8 @@ namespace STAT_Academy.Api.Data
         public DbSet<PagoModel> Pago { get; set; }
         public DbSet<FacturaModel> Factura { get; set; }
         public DbSet<DetalleFacturaModel> DetalleFactura { get; set; }
+        public DbSet<PedidoPagoModel> PedidoPago { get; set; }
+        public DbSet<MetodoPagoModel> MetodoPago { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,6 +61,9 @@ namespace STAT_Academy.Api.Data
             modelBuilder.Entity<FacturaModel>().Property(f => f.total).HasPrecision(10, 2);
             modelBuilder.Entity<DetalleFacturaModel>().Property(d => d.precio_Unitario).HasPrecision(10, 2);
             modelBuilder.Entity<DetalleFacturaModel>().Property(d => d.subtotal).HasPrecision(10, 2);
+
+            // Comprobantes de pago: Monto decimal(12,2).
+            modelBuilder.Entity<PedidoPagoModel>().Property(p => p.monto).HasPrecision(12, 2);
 
             modelBuilder.Entity<FacturaModel>()
                 .HasMany(f => f.Detalles)

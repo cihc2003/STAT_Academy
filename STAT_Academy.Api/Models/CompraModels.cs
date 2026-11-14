@@ -3,7 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace STAT_Academy.Api.Models
 {
-    /// <summary>Pago de una compra (dbo.PAGO). El pago es simulado: no hay pasarela.</summary>
+    /// <summary>
+    /// Pago confirmado de una compra (dbo.PAGO). Se crea cuando un administrador aprueba
+    /// el comprobante (PEDIDO_PAGO) y queda enlazado desde FACTURA.FK_Pago.
+    /// </summary>
     [Table("PAGO")]
     public class PagoModel
     {
@@ -40,5 +43,43 @@ namespace STAT_Academy.Api.Models
         [Column("Cantidad")] public int? cantidad { get; set; }
         [Column("Precio_Unitario")] public decimal? precio_Unitario { get; set; }
         [Column("Subtotal")] public decimal? subtotal { get; set; }
+    }
+
+    /// <summary>
+    /// Comprobante de pago enviado por el usuario (dbo.PEDIDO_PAGO): SINPE Móvil o transferencia.
+    /// Cada envío es una fila; un administrador la aprueba o la rechaza.
+    /// FK_Factura la agrega el script 2026-11-14_facturas_pagos.sql.
+    /// </summary>
+    [Table("PEDIDO_PAGO")]
+    public class PedidoPagoModel
+    {
+        public const string Pendiente = "PENDIENTE";
+        public const string Aprobado = "APROBADO";
+        public const string Rechazado = "RECHAZADO";
+
+        public const string MetodoSinpe = "SINPE";
+        public const string MetodoTransferencia = "TRANSFERENCIA";
+
+        [Key, Column("ID")] public int id { get; set; }
+        [Column("FK_Usuario")] public int fk_Usuario { get; set; }
+        [Column("FK_Factura")] public int? fk_Factura { get; set; }
+        [Column("Metodo")] public string metodo { get; set; } = MetodoSinpe;
+        [Column("Estado")] public string estado { get; set; } = Pendiente;
+        [Column("Monto")] public decimal monto { get; set; }
+        [Column("ComprobanteBlob")] public string comprobanteBlob { get; set; } = "";
+        [Column("Referencia")] public string? referencia { get; set; }
+        [Column("FechaCreacion")] public DateTime fechaCreacion { get; set; }
+        [Column("FechaRevision")] public DateTime? fechaRevision { get; set; }
+        [Column("FK_Admin")] public int? fk_Admin { get; set; }
+        [Column("Observacion")] public string? observacion { get; set; }
+    }
+
+    /// <summary>Catálogo de métodos de pago (dbo.METODO_PAGO).</summary>
+    [Table("METODO_PAGO")]
+    public class MetodoPagoModel
+    {
+        [Key, Column("ID")] public int id { get; set; }
+        [Column("Nombre")] public string? nombre { get; set; }
+        [Column("Estado")] public bool? estado { get; set; }
     }
 }

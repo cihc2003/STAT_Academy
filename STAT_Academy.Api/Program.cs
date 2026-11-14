@@ -58,6 +58,7 @@ builder.Services.AddScoped<TutorService>();
 builder.Services.AddSingleton<BlogContenidoService>();
 builder.Services.AddScoped<StockAlertaService>();
 builder.Services.AddScoped<CompraService>();
+builder.Services.AddScoped<FacturaService>();
 builder.Services.AddScoped<ContrasenaService>();
 builder.Services.AddScoped<CorreoService>();
 
@@ -74,6 +75,9 @@ builder.Services.AddHostedService<ErrorAlertaEnvioService>();
 //  - Local: credencial de Visual Studio o "az login" (rol Storage Blob Data Contributor).
 //  - Azure: Managed Identity del App Service. No se usan claves de cuenta.
 // ---------------------------------------------------------------------------
+builder.Services.Configure<PagosOptions>(
+    builder.Configuration.GetSection(PagosOptions.Seccion));
+
 builder.Services.Configure<BlobStorageOptions>(
     builder.Configuration.GetSection(BlobStorageOptions.Seccion));
 

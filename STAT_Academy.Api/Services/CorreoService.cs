@@ -2,6 +2,8 @@ using MailKit;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+using STAT_Academy.DTOs.Factura;
+using System.Globalization;
 using System.Net;
 
 namespace STAT_Academy.Api.Services
@@ -168,6 +170,154 @@ namespace STAT_Academy.Api.Services
             var tipoCorto = aviso.Tipo.Split('.').Last();
             foreach (var destino in destinos)
                 await Enviar(configuracion, destino, $"Error del sistema ({aviso.Origen}): {tipoCorto}", html);
+        }
+
+        // ---------------------------------------------------------------
+        // Facturas y pagos
+        // ---------------------------------------------------------------
+
+        private static readonly CultureInfo CostaRica = CultureInfo.GetCultureInfo("es-CR");
+
+        private static string Colones(decimal monto) => monto.ToString("C", CostaRica);
+
+        /// <summary>Costa Rica es UTC-6 todo el año (sin horario de verano).</summary>
+        private static string HoraCostaRica(DateTime utc) =>
+            DateTime.SpecifyKind(utc, DateTimeKind.Utc).AddHours(-6).ToString("dd/MM/yyyy HH:mm", CostaRica);
+
+        private static string Html(string? texto) => WebUtility.HtmlEncode(texto ?? "");
+
+        /// <summary>Comprobante de la compra recién registrada, con los datos para pagar.</summary>
+        public Task EnviarCompraRegistrada(string correoDestino, string nombre, FacturaDetalleResponse factura)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Facturas/Detalle/{factura.id}";
+            var i = factura.instrucciones;
+
+            var filas = string.Concat(factura.lineas.Select(l =>
+                $"<tr><td style=\"padding:6px 12px\">{Html(l.nombre)}</td>" +
+                $"<td style=\"padding:6px 12px;text-align:center\">{l.cantidad}</td>" +
+                $"<td style=\"padding:6px 12px;text-align:right\">{Colones(l.precio_unitario)}</td>" +
+                $"<td style=\"padding:6px 12px;text-align:right\">{Colones(l.subtotal)}</td></tr>"));
+
+            var cedula = string.IsNullOrWhiteSpace(i.cedulaJuridica) ? "" : $" (cédula jurídica {Html(i.cedulaJuridica)})";
+
+            return Enviar(configuracion, correoDestino, $"Comprobante de compra #{factura.id} - STAT Academy", $"""
+                <h2>¡Gracias por tu compra, {Html(nombre)}!</h2>
+
+                <p>
+                    Registramos tu compra <strong>#{factura.id}</strong>
+                    el {HoraCostaRica(factura.fecha)} (hora de Costa Rica).
+                </p>
+
+                <table style="border-collapse:collapse;border:1px solid #dce5f2">
+                    <thead>
+                        <tr style="background:#f4f7fb">
+                            <th style="padding:6px 12px;text-align:left">Detalle</th>
+                            <th style="padding:6px 12px">Cantidad</th>
+                            <th style="padding:6px 12px;text-align:right">Precio</th>
+                            <th style="padding:6px 12px;text-align:right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>{filas}</tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="padding:6px 12px;text-align:right"><strong>Total</strong></td>
+                            <td style="padding:6px 12px;text-align:right"><strong>{Colones(factura.total)}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <h3>Cómo pagar</h3>
+                <p>Realiza el pago por <strong>{Colones(factura.total)}</strong> con una de estas opciones:</p>
+                <ul>
+                    <li><strong>SINPE Móvil:</strong> {Html(i.sinpeTelefono)} ({Html(i.sinpeNombre)})</li>
+                    <li>
+                        <strong>Transferencia o depósito:</strong> {Html(i.banco)},
+                        cuenta IBAN {Html(i.cuentaIban)}, a nombre de {Html(i.cuentaTitular)}{cedula}
+                    </li>
+                </ul>
+                <p>Indica en el detalle de la transferencia: <strong>Compra #{factura.id}</strong>.</p>
+
+                <p>
+                    Después, sube el comprobante en
+                    <a href="{enlace}">Mis facturas y pagos</a>.
+                    Te avisaremos por correo cuando lo verifiquemos.
+                </p>
+                """);
+        }
+
+        /// <summary>Aviso a los administradores: llegó un comprobante para revisar.</summary>
+        public async Task EnviarComprobanteRecibido(
+            IReadOnlyCollection<string> destinos, int facturaId, string usuarioNombre, decimal monto, string metodo)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Admin/Invoice/{facturaId}";
+            var metodoTexto = metodo == "SINPE" ? "SINPE Móvil" : "transferencia bancaria";
+
+            var html = $"""
+                <h2>Nuevo comprobante de pago por verificar</h2>
+
+                <p>
+                    {Html(usuarioNombre)} envió un comprobante por <strong>{Colones(monto)}</strong>
+                    ({metodoTexto}) para la compra <strong>#{facturaId}</strong>.
+                </p>
+
+                <p><a href="{enlace}">Revisar el comprobante</a></p>
+                """;
+
+            // Un correo por administrador: nadie ve las direcciones de los demás.
+            foreach (var destino in destinos)
+                await Enviar(configuracion, destino, $"Comprobante por verificar - compra #{facturaId}", html);
+        }
+
+        public Task EnviarPagoAprobado(
+            string correoDestino, string nombre, int facturaId, decimal monto, IReadOnlyCollection<string> cursos)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Facturas/Detalle/{facturaId}";
+            var enlaceCursos = $"{configuracion.WebBaseUrl}/Curso/MisCursos";
+
+            var bloqueCursos = cursos.Count == 0
+                ? ""
+                : "<p>Ya tienes acceso a:</p><ul>"
+                  + string.Concat(cursos.Select(c => $"<li>{Html(c)}</li>"))
+                  + $"</ul><p><a href=\"{enlaceCursos}\">Ir a Mis cursos</a></p>";
+
+            return Enviar(configuracion, correoDestino, $"Pago aprobado - compra #{facturaId}", $"""
+                <h2>¡Tu pago fue aprobado, {Html(nombre)}!</h2>
+
+                <p>
+                    Confirmamos el pago de <strong>{Colones(monto)}</strong>
+                    de tu compra <strong>#{facturaId}</strong>.
+                </p>
+
+                {bloqueCursos}
+
+                <p><a href="{enlace}">Ver la factura</a></p>
+                """);
+        }
+
+        public Task EnviarPagoRechazado(string correoDestino, string nombre, int facturaId, string observacion)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Facturas/Detalle/{facturaId}";
+
+            return Enviar(configuracion, correoDestino, $"No pudimos aprobar tu pago - compra #{facturaId}", $"""
+                <h2>Hola, {Html(nombre)}</h2>
+
+                <p>
+                    Revisamos el comprobante que enviaste para la compra
+                    <strong>#{facturaId}</strong> y <strong>no fue aprobado</strong>.
+                </p>
+
+                <p><strong>Motivo:</strong> {Html(observacion)}</p>
+
+                <p>
+                    Puedes enviar un nuevo comprobante desde
+                    <a href="{enlace}">Mis facturas y pagos</a>.
+                    Si crees que es un error, responde a este correo.
+                </p>
+                """);
         }
 
         private async Task Enviar(

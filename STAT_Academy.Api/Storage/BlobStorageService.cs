@@ -87,6 +87,22 @@ public sealed class BlobStorageService : IBlobStorageService
         return new ArchivoSubido(blobName, Path.GetFileName(archivo.FileName), contentType, archivo.Length);
     }
 
+    public async Task<string> SubirPrivadoAsync(byte[] contenido, string extension, string contentType, string carpeta, CancellationToken ct = default)
+    {
+        if (contenido is null || contenido.Length == 0)
+            throw new ArchivoInvalidoException("El archivo está vacío.");
+
+        var ext = extension.StartsWith('.') ? extension.ToLowerInvariant() : "." + extension.ToLowerInvariant();
+        var blobName = $"{carpeta.Trim('/').ToLowerInvariant()}/{Guid.NewGuid():N}{ext}";
+
+        await _documentos.GetBlobClient(blobName).UploadAsync(new BinaryData(contenido), new BlobUploadOptions
+        {
+            HttpHeaders = new BlobHttpHeaders { ContentType = contentType }
+        }, ct);
+
+        return blobName;
+    }
+
     public string ObtenerUrlPublica(string blobName)
     {
         // Compatibilidad: si en la BD ya había una URL completa, se devuelve tal cual

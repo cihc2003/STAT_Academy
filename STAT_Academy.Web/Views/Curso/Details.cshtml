@@ -58,13 +58,32 @@
 
         <div class="card-footer">
 
-            <a asp-action="Inscribirse"
-               asp-route-idCurso="@Model.Id"
-               class="btn btn-success">
+            @if (Model.Precio_Base > 0)
+            {
+                @* Curso de pago: se compra y el acceso se habilita al aprobarse el pago. *@
+                @if (User.IsInRole("Cliente"))
+                {
+                    <form asp-controller="Facturas" asp-action="ComprarCurso" method="post" class="d-inline"
+                          onsubmit="this.querySelector('button').disabled = true;">
+                        <input type="hidden" name="cursoId" value="@Model.Id" />
+                        <button class="btn btn-success" type="submit">Comprar curso · @Formato.Colones(Model.Precio_Base)</button>
+                    </form>
+                }
+                else if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a class="btn btn-success" asp-controller="Cuenta" asp-action="Login">Inicia sesión para comprar</a>
+                }
+            }
+            else
+            {
+                <a asp-action="Inscribirse"
+                   asp-route-idCurso="@Model.Id"
+                   class="btn btn-success">
 
-                Inscribirme
+                    Inscribirme
 
-            </a>
+                </a>
+            }
 
             <a asp-action="Index"
                class="btn btn-secondary">

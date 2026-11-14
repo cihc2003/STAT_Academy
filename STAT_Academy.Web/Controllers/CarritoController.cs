@@ -77,7 +77,10 @@ public class CarritoController : Controller
         return View(carrito);
     }
 
-    /// <summary>Confirma la compra (pago simulado): se crea la factura y se descuenta el stock.</summary>
+    /// <summary>
+    /// Confirma la compra: se crea la factura pendiente de pago, se reservan las unidades y
+    /// se envía el comprobante por correo. Luego el usuario paga y sube el comprobante.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Cliente")]
@@ -92,14 +95,10 @@ public class CarritoController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        TempData["Success"] = "¡Compra realizada! Te dejamos el comprobante.";
-        return RedirectToAction(nameof(Compra), new { id = compra.facturaId });
+        TempData["Success"] = "¡Compra registrada! Te enviamos el comprobante por correo. Realiza el pago y sube el comprobante aquí.";
+        return RedirectToAction("Detalle", "Facturas", new { id = compra.facturaId });
     }
 
-    /// <summary>Comprobante de una compra propia.</summary>
-    public async Task<IActionResult> Compra(int id)
-    {
-        var compra = await _apiCarrito.ObtenerCompra(id);
-        return compra == null ? NotFound() : View(compra);
-    }
+    /// <summary>Enlace anterior al comprobante: ahora vive en "Mis facturas y pagos".</summary>
+    public IActionResult Compra(int id) => RedirectToAction("Detalle", "Facturas", new { id });
 }
