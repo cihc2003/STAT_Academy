@@ -87,6 +87,10 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end menu-dropdown">
                                 <li><span class="dropdown-item-text small text-muted">@(esAdmin ? "Administrador" : esTutor ? "Tutor" : "Estudiante")</span></li>
+                                @if (esCliente)
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Facturas" asp-action="Index">Mis facturas y pagos</a></li>
+                                }
                                 <li><a class="dropdown-item" asp-controller="Cuenta" asp-action="CambiarContrasena">Cambiar contraseña</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>

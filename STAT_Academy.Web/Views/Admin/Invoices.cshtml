@@ -1,0 +1,153 @@
+@model STAT_Academy.Web.Models.Facturas.FacturasAdminViewModel
+
+@{
+    ViewData["Title"] = "Facturas y pagos";
+    var esPagos = Model.Vista == "pagos";
+
+    var estadosPago = new[] { ("PENDIENTE", "Por verificar"), ("APROBADO", "Aprobados"), ("RECHAZADO", "Rechazados"), ("TODOS", "Todos") };
+    var estadosFactura = new[] { ("", "Todas"), ("PENDIENTE_PAGO", "Pendientes de pago"), ("EN_VERIFICACION", "En verificación"), ("RECHAZADA", "Pago rechazado"), ("PAGADA", "Pagadas") };
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="mb-3">
+            <span class="eyebrow">Administración</span>
+            <h1>Facturas y pagos</h1>
+            <p class="text-muted mb-0">Revisa los comprobantes de SINPE Móvil y transferencia y aprueba o rechaza cada pago.</p>
+        </div>
+
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link @(esPagos ? "active" : "")" aria-current="@(esPagos ? "page" : null)"
+                   asp-action="Invoices" asp-route-vista="pagos">
+                    Comprobantes
+                    @if (Model.Pendientes > 0)
+                    {
+                        <span class="badge text-bg-warning ms-1">@Model.Pendientes</span>
+                    }
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(!esPagos ? "active" : "")" aria-current="@(!esPagos ? "page" : null)"
+                   asp-action="Invoices" asp-route-vista="facturas">Facturas</a>
+            </li>
+        </ul>
+
+        <form class="row g-2 mb-3" method="get" asp-action="Invoices">
+            <input type="hidden" name="vista" value="@Model.Vista" />
+            <div class="col-md-4">
+                <label class="visually-hidden" for="estado">Estado</label>
+                <select class="form-select" id="estado" name="estado">
+                    @foreach (var (valor, texto) in esPagos ? estadosPago : estadosFactura)
+                    {
+                        <option value="@valor" selected="@((Model.Estado ?? "") == valor)">@texto</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="visually-hidden" for="buscar">Buscar</label>
+                <input class="form-control" id="buscar" name="buscar" value="@Model.Buscar"
+                       placeholder="Nombre, correo o número de compra" />
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="table-card">
+            @if (esPagos)
+            {
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Compra</th>
+                            <th>Usuario</th>
+                            <th>Método</th>
+                            <th class="text-end">Monto</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Pagos.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">No hay comprobantes con este filtro.</td></tr>
+                        }
+                        @foreach (var p in Model.Pagos)
+                        {
+                            var (texto, clase) = EstadoPago.Comprobante(p.estado);
+                            <tr>
+                                <td>
+                                    <strong>#@p.facturaId</strong>
+                                    <div class="text-muted small">Enviado el @EstadoPago.Fecha(p.fechaEnvio)</div>
+                                </td>
+                                <td>
+                                    @p.usuarioNombre
+                                    <div class="text-muted small">@p.usuarioEmail</div>
+                                </td>
+                                <td>
+                                    @EstadoPago.Metodo(p.metodo)
+                                    @if (!string.IsNullOrWhiteSpace(p.referencia))
+                                    {
+                                        <div class="text-muted small">Ref. @p.referencia</div>
+                                    }
+                                </td>
+                                <td class="text-end text-nowrap">@Formato.Colones(p.monto)</td>
+                                <td><span class="status-pill @clase">@texto</span></td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm @(p.estado == "PENDIENTE" ? "btn-primary" : "btn-outline-primary")"
+                                       asp-action="Invoice" asp-route-id="@p.facturaId">
+                                        @(p.estado == "PENDIENTE" ? "Revisar" : "Ver")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Compra</th>
+                            <th>Usuario</th>
+                            <th>Detalle</th>
+                            <th class="text-end">Total</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Facturas.Count == 0)
+                        {
+                            <tr><td colspan="6" class="text-center text-muted py-4">No hay facturas con este filtro.</td></tr>
+                        }
+                        @foreach (var f in Model.Facturas)
+                        {
+                            var (texto, clase) = EstadoPago.Factura(f.estado);
+                            <tr>
+                                <td>
+                                    <strong>#@f.id</strong>
+                                    <div class="text-muted small">@EstadoPago.Fecha(f.fecha)</div>
+                                </td>
+                                <td>
+                                    @f.usuarioNombre
+                                    <div class="text-muted small">@f.usuarioEmail</div>
+                                </td>
+                                <td>@f.descripcion</td>
+                                <td class="text-end text-nowrap">@Formato.Colones(f.total)</td>
+                                <td><span class="status-pill @clase">@texto</span></td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm btn-outline-primary" asp-action="Invoice" asp-route-id="@f.id">Ver</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </section>
+</div>

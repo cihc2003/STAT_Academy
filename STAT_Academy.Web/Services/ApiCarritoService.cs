@@ -64,7 +64,7 @@ namespace STAT_Academy.Web.Services
             return await response.Content.ReadFromJsonAsync<CarritoResponse>();
         }
 
-        /// <summary>Confirma la compra del carrito: la API crea la factura y descuenta el stock.</summary>
+        /// <summary>Confirma la compra del carrito: la API crea la factura pendiente de pago y reserva el stock.</summary>
         public async Task<(CompraResponse? compra, string mensaje)> Comprar()
         {
             using var response = await _httpClient.PostAsync("api/Compra", null);
@@ -74,12 +74,6 @@ namespace STAT_Academy.Web.Services
 
             var (_, mensaje) = await ApiRespuesta.Leer(response);
             return (null, mensaje);
-        }
-
-        public async Task<CompraResponse?> ObtenerCompra(int facturaId)
-        {
-            using var response = await _httpClient.GetAsync($"api/Compra/{facturaId}");
-            return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<CompraResponse>() : null;
         }
 
         private static async Task<string> LeerMensajeError(HttpResponseMessage response)

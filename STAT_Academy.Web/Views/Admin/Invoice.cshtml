@@ -1,0 +1,135 @@
+@model STAT_Academy.Web.Models.Facturas.FacturaDetalle
+
+@{
+    ViewData["Title"] = $"Compra #{Model.id}";
+    var (estadoTexto, estadoClase) = EstadoPago.Factura(Model.estado);
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <a class="text-link" asp-action="Invoices">&larr; Facturas y pagos</a>
+
+        <div class="mt-3 mb-3">
+            <span class="eyebrow">Administración</span>
+            <h1>Compra #@Model.id</h1>
+            <p class="mb-0">
+                @EstadoPago.Fecha(Model.fecha) ·
+                <span class="status-pill @estadoClase">@estadoTexto</span>
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card p-4 mb-4">
+                    <h2 class="h5">Cliente</h2>
+                    <p class="mb-0">
+                        <strong>@Model.usuarioNombre</strong><br />
+                        <a href="mailto:@Model.usuarioEmail">@Model.usuarioEmail</a>
+                    </p>
+                </div>
+
+                <div class="card p-4">
+                    <h2 class="h5">Detalle</h2>
+                    <partial name="_FacturaLineas" model="Model" />
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card p-4">
+                    <h2 class="h5">Comprobantes de pago</h2>
+
+                    @if (Model.pagos.Count == 0)
+                    {
+                        <p class="text-muted mb-0">El usuario todavía no ha enviado ningún comprobante.</p>
+                    }
+
+                    @foreach (var p in Model.pagos)
+                    {
+                        var (texto, clase) = EstadoPago.Comprobante(p.estado);
+                        var montoDistinto = p.monto != Model.total;
+
+                        <article class="comprobante-revision">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <div>
+                                    <strong>@EstadoPago.Metodo(p.metodo)</strong> · @Formato.Colones(p.monto)
+                                    <div class="small text-muted">
+                                        Enviado el @EstadoPago.Fecha(p.fechaEnvio)
+                                        @if (!string.IsNullOrWhiteSpace(p.referencia))
+                                        {
+                                            <text>· Ref. <strong>@p.referencia</strong></text>
+                                        }
+                                    </div>
+                                </div>
+                                <span><span class="status-pill @clase">@texto</span></span>
+                            </div>
+
+                            @if (montoDistinto)
+                            {
+                                <div class="alert alert-warning py-2 mt-2 mb-0 small">El monto del comprobante no coincide con el total de la factura.</div>
+                            }
+
+                            @if (p.esImagen)
+                            {
+                                <a asp-controller="Facturas" asp-action="Comprobante" asp-route-id="@p.id" target="_blank" rel="noopener">
+                                    <img class="comprobante-vista" src="@Url.Action("Comprobante", "Facturas", new { id = p.id })"
+                                         alt="Comprobante de pago de la compra #@Model.id" loading="lazy" />
+                                </a>
+                            }
+
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <a class="btn btn-sm btn-outline-secondary" asp-controller="Facturas" asp-action="Comprobante"
+                                   asp-route-id="@p.id" target="_blank" rel="noopener">@(p.esImagen ? "Abrir en otra pestaña" : "Ver PDF")</a>
+                                <a class="btn btn-sm btn-outline-secondary" asp-controller="Facturas" asp-action="Comprobante"
+                                   asp-route-id="@p.id" asp-route-descargar="true">Descargar</a>
+                            </div>
+
+                            @if (p.estado == "PENDIENTE")
+                            {
+                                <hr />
+                                <div class="d-flex flex-wrap gap-3 align-items-start">
+                                    <form asp-action="ApprovePayment" method="post"
+                                          onsubmit="if (!confirm('¿Confirmas que el pago de @Formato.Colones(p.monto) se recibió? Se avisará al usuario y se habilitarán los cursos comprados.')) return false; this.querySelector('button').disabled = true;">
+                                        <input type="hidden" name="pagoId" value="@p.id" />
+                                        <input type="hidden" name="facturaId" value="@Model.id" />
+                                        <button class="btn btn-success" type="submit">Aprobar pago</button>
+                                    </form>
+
+                                    <form asp-action="RejectPayment" method="post" class="flex-grow-1"
+                                          onsubmit="this.querySelector('button').disabled = true;">
+                                        <input type="hidden" name="pagoId" value="@p.id" />
+                                        <input type="hidden" name="facturaId" value="@Model.id" />
+                                        <label class="form-label small" for="motivo-@p.id">Motivo del rechazo (se envía al usuario)</label>
+                                        <textarea class="form-control mb-2" id="motivo-@p.id" name="observacion" rows="2"
+                                                  maxlength="500" required
+                                                  placeholder="Ej.: el monto no coincide o no encontramos la transferencia."></textarea>
+                                        <button class="btn btn-outline-danger" type="submit">Rechazar pago</button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="small text-muted mt-2">
+                                    @(p.estado == "APROBADO" ? "Aprobado" : "Rechazado")
+                                    @if (p.fechaRevision is DateTime revision)
+                                    {
+                                        <text>el @EstadoPago.Fecha(revision)</text>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(p.revisadoPor))
+                                    {
+                                        <text>por @p.revisadoPor</text>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(p.observacion))
+                                    {
+                                        <div>Motivo: @p.observacion</div>
+                                    }
+                                </div>
+                            }
+                        </article>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

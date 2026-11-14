@@ -1,0 +1,72 @@
+@model List<STAT_Academy.Web.Models.Facturas.FacturaResumen>
+
+@{
+    ViewData["Title"] = "Mis facturas y pagos";
+    var porPagar = Model.Count(f => f.estado is "PENDIENTE_PAGO" or "RECHAZADA");
+}
+
+<section class="section">
+    <div class="container" style="max-width: 960px;">
+        <div class="section-heading">
+            <span class="eyebrow">Mi cuenta</span>
+            <h1>Mis facturas y pagos</h1>
+            <p>Consulta tus compras, el estado de cada pago y envía los comprobantes de SINPE Móvil o transferencia.</p>
+        </div>
+
+        @if (porPagar > 0)
+        {
+            <div class="alert alert-warning" role="status">
+                Tienes <strong>@porPagar @(porPagar == 1 ? "compra pendiente" : "compras pendientes")</strong> de pago.
+                Abre la factura para ver los datos de pago y subir el comprobante.
+            </div>
+        }
+
+        @if (Model.Count == 0)
+        {
+            <div class="card p-4 text-center">
+                <p class="mb-3">Todavía no tienes compras registradas.</p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ir a la tienda</a>
+                    <a class="btn btn-outline-primary" asp-controller="Curso" asp-action="Index">Ver cursos</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-card">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Compra</th>
+                            <th>Detalle</th>
+                            <th class="text-end">Total</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var f in Model)
+                        {
+                            var (texto, clase) = EstadoPago.Factura(f.estado);
+                            <tr>
+                                <td>
+                                    <strong>#@f.id</strong>
+                                    <div class="text-muted small">@EstadoPago.Fecha(f.fecha)</div>
+                                </td>
+                                <td>@f.descripcion</td>
+                                <td class="text-end text-nowrap">@Formato.Colones(f.total)</td>
+                                <td><span class="status-pill @clase">@texto</span></td>
+                                <td class="text-end">
+                                    <a class="btn btn-sm @(f.estado is "PENDIENTE_PAGO" or "RECHAZADA" ? "btn-primary" : "btn-outline-primary")"
+                                       asp-action="Detalle" asp-route-id="@f.id">
+                                        @(f.estado is "PENDIENTE_PAGO" or "RECHAZADA" ? "Pagar" : "Ver")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

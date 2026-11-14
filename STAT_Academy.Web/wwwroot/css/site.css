@@ -1892,7 +1892,8 @@ main .d-flex.justify-content-between {
 @media print {
     .site-header,
     .site-footer,
-    .btn {
+    .btn,
+    .no-print {
         display: none !important;
     }
 }
@@ -1966,4 +1967,63 @@ a.tag:hover {
         .filtros__acciones .btn {
             flex: 1 1 0;
         }
+}
+
+/* =====================================================================
+   Facturas y pagos
+   ===================================================================== */
+
+.pill--rechazo {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.pago-opciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.pago-opcion {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--light);
+    min-width: 0;
+}
+
+.pago-dato {
+    margin-bottom: 4px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--navy);
+    overflow-wrap: anywhere;
+}
+
+.filtro-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.comprobante-revision {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+.comprobante-revision + .comprobante-revision {
+    margin-top: 16px;
+}
+
+.comprobante-vista {
+    display: block;
+    max-width: 100%;
+    max-height: 520px;
+    margin: 12px 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    object-fit: contain;
+    background: var(--light);
 }

@@ -6,21 +6,24 @@ using STAT_Academy.DTOs.Compra;
 namespace STAT_Academy.Api.Services
 {
     /// <summary>
-    /// Convierte el carrito del usuario en una compra: PAGO + FACTURA + DETALLE_FACTURA,
-    /// descuenta el stock y vacía el carrito, todo en una sola transacción.
-    /// El pago es simulado (no hay pasarela todavía).
+    /// Convierte el carrito del usuario en una compra: FACTURA + DETALLE_FACTURA,
+    /// descuenta (reserva) el stock y vacía el carrito, todo en una sola transacción.
+    /// La factura queda pendiente de pago: el usuario paga por SINPE Móvil o transferencia,
+    /// sube el comprobante y un administrador lo aprueba (ver FacturaService).
     /// </summary>
     public class CompraService
     {
         private readonly ApplicationDbContext _context;
         private readonly AuditoriaService _auditoria;
         private readonly StockAlertaService _alertas;
+        private readonly FacturaService _facturas;
 
-        public CompraService(ApplicationDbContext context, AuditoriaService auditoria, StockAlertaService alertas)
+        public CompraService(ApplicationDbContext context, AuditoriaService auditoria, StockAlertaService alertas, FacturaService facturas)
         {
             _context = context;
             _auditoria = auditoria;
             _alertas = alertas;
+            _facturas = facturas;
         }
 
         public async Task<(CompraResponse? compra, string? error)> Comprar(int usuarioId, string usuarioEmail)
@@ -108,23 +111,13 @@ namespace STAT_Academy.Api.Services
                 var total = detalles.Sum(d => d.subtotal ?? 0);
                 var ahora = DateTime.UtcNow;
 
-                var pago = new PagoModel
-                {
-                    fk_Usuario = usuarioId,
-                    monto = total,
-                    fecha_Pago = ahora,
-                    estado = true
-                };
-                _context.Pago.Add(pago);
-                await _context.SaveChangesAsync();
-
+                // Sin PAGO todavía: se crea cuando un administrador aprueba el comprobante.
                 var factura = new FacturaModel
                 {
                     fk_Usuario = usuarioId,
-                    fk_Pago = pago.id,
                     fecha = ahora,
                     total = total,
-                    pagada = true,
+                    pagada = false,
                     Detalles = detalles
                 };
                 _context.Factura.Add(factura);
@@ -139,7 +132,7 @@ namespace STAT_Academy.Api.Services
                     facturaId = factura.id,
                     fecha = DateTime.SpecifyKind(ahora, DateTimeKind.Utc),
                     total = total,
-                    pagada = true,
+                    pagada = false,
                     lineas = detalles.Select(d => new CompraLineaResponse
                     {
                         productoId = d.fk_Producto,
@@ -158,8 +151,66 @@ namespace STAT_Academy.Api.Services
                 $"Compra de {compra.lineas.Sum(l => l.cantidad)} artículo(s) por {compra.total:0.00}", usuarioEmail, compra.facturaId);
 
             await _alertas.Notificar(cruzaronMinimo);
+            await _facturas.EnviarComprobanteDeCompra(compra.facturaId);
 
             return (compra, null);
+        }
+
+        /// <summary>
+        /// Compra de un curso de pago: crea la factura pendiente con una línea del curso.
+        /// El acceso se habilita cuando un administrador aprueba el pago.
+        /// Si ya hay una factura sin pagar de ese curso, se devuelve esa en lugar de crear otra.
+        /// </summary>
+        public async Task<(int? facturaId, string? error, bool existente)> ComprarCurso(int usuarioId, string usuarioEmail, int cursoId)
+        {
+            var curso = await _context.Curso.AsNoTracking().FirstOrDefaultAsync(c => c.id == cursoId && c.estado);
+            if (curso == null)
+                return (null, "El curso no existe o no está disponible.", false);
+
+            if (curso.precio <= 0)
+                return (null, "Este curso es gratuito: puedes inscribirte directamente.", false);
+
+            var yaInscrito = await _context.EstudianteCurso
+                .AnyAsync(m => m.EstudianteId == usuarioId && m.CursoId == cursoId && m.Estado == "Activo");
+            if (yaInscrito)
+                return (null, "Ya estás inscrito en este curso.", false);
+
+            var pendiente = await _context.Factura.AsNoTracking()
+                .Where(f => f.fk_Usuario == usuarioId && f.pagada != true
+                            && f.Detalles.Any(d => d.fk_Curso == cursoId))
+                .OrderByDescending(f => f.id)
+                .Select(f => (int?)f.id)
+                .FirstOrDefaultAsync();
+            if (pendiente != null)
+                return (pendiente, null, true);
+
+            var factura = new FacturaModel
+            {
+                fk_Usuario = usuarioId,
+                fecha = DateTime.UtcNow,
+                total = curso.precio,
+                pagada = false,
+                Detalles =
+                [
+                    new DetalleFacturaModel
+                    {
+                        fk_Curso = cursoId,
+                        cantidad = 1,
+                        precio_Unitario = curso.precio,
+                        subtotal = curso.precio
+                    }
+                ]
+            };
+
+            _context.Factura.Add(factura);
+            await _context.SaveChangesAsync();
+
+            _auditoria.Registrar("FACTURA", "CREATE",
+                $"Compra del curso \"{curso.nombre}\" por {curso.precio:0.00}", usuarioEmail, factura.id);
+
+            await _facturas.EnviarComprobanteDeCompra(factura.id);
+
+            return (factura.id, null, false);
         }
 
         /// <summary>Una compra del usuario (o cualquiera, si es Admin).</summary>

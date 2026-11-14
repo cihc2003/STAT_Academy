@@ -1,0 +1,176 @@
+@model STAT_Academy.Web.Models.Facturas.FacturaDetalle
+@using STAT_Academy.Web.Models.Facturas
+
+@{
+    ViewData["Title"] = $"Compra #{Model.id}";
+    var (estadoTexto, estadoClase) = EstadoPago.Factura(Model.estado);
+    var formulario = ViewBag.Formulario as EnviarComprobanteViewModel ?? new EnviarComprobanteViewModel { FacturaId = Model.id };
+    var ultimo = Model.pagos.FirstOrDefault();
+    var i = Model.instrucciones;
+    var tieneCursos = Model.lineas.Any(l => l.tipo == "CURSO");
+}
+
+<section class="section">
+    <div class="container" style="max-width: 860px;">
+        <a class="text-link no-print" asp-action="Index">&larr; Mis facturas y pagos</a>
+
+        <div class="section-heading mt-3">
+            <span class="eyebrow">Comprobante de compra</span>
+            <h1>Compra #@Model.id</h1>
+            <p>
+                @EstadoPago.Fecha(Model.fecha) ·
+                <span class="status-pill @estadoClase">@estadoTexto</span>
+            </p>
+        </div>
+
+        @* Mensaje según el estado del pago *@
+        @switch (Model.estado)
+        {
+            case "PAGADA":
+                <div class="alert alert-success" role="status">
+                    Pago confirmado.
+                    @if (tieneCursos)
+                    {
+                        <text>Ya tienes acceso a tu curso en <a asp-controller="Curso" asp-action="MisCursos">Mis cursos</a>.</text>
+                    }
+                </div>
+                break;
+            case "EN_VERIFICACION":
+                <div class="alert alert-info" role="status">
+                    Recibimos tu comprobante el @EstadoPago.Fecha(ultimo!.fechaEnvio). Lo estamos verificando y
+                    te avisaremos por correo cuando se apruebe.
+                </div>
+                break;
+            case "RECHAZADA":
+                <div class="alert alert-danger" role="status">
+                    <strong>Tu último comprobante no fue aprobado.</strong>
+                    @if (!string.IsNullOrWhiteSpace(ultimo?.observacion))
+                    {
+                        <div>Motivo: @ultimo.observacion</div>
+                    }
+                    <div>Revisa el pago y envía un nuevo comprobante.</div>
+                </div>
+                break;
+        }
+
+        <div class="card p-4">
+            <h2 class="h5">Detalle de la compra</h2>
+            <partial name="_FacturaLineas" model="Model" />
+        </div>
+
+        @if (!Model.pagada)
+        {
+            <div class="card p-4 mt-4">
+                <h2 class="h5">Cómo pagar</h2>
+                <p class="mb-3">
+                    Paga <strong>@Formato.Colones(Model.total)</strong> con una de estas opciones e indica
+                    <strong>Compra #@Model.id</strong> en el detalle de la transferencia.
+                </p>
+
+                <div class="pago-opciones">
+                    <div class="pago-opcion">
+                        <h3 class="h6">SINPE Móvil</h3>
+                        <p class="pago-dato">@i.sinpeTelefono</p>
+                        <p class="text-muted small mb-0">A nombre de @i.sinpeNombre</p>
+                    </div>
+                    <div class="pago-opcion">
+                        <h3 class="h6">Transferencia o depósito</h3>
+                        <p class="mb-1">@i.banco</p>
+                        <p class="pago-dato">@i.cuentaIban</p>
+                        <p class="text-muted small mb-0">
+                            A nombre de @i.cuentaTitular
+                            @if (!string.IsNullOrWhiteSpace(i.cedulaJuridica))
+                            {
+                                <text>· Cédula jurídica @i.cedulaJuridica</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.puedeEnviarComprobante)
+        {
+            <div class="card p-4 mt-4 no-print">
+                <h2 class="h5">Enviar comprobante de pago</h2>
+                <p class="text-muted">
+                    Sube la captura o el PDF del comprobante (imagen JPG, PNG o WEBP de hasta 5 MB, o PDF de hasta 10 MB).
+                </p>
+
+                <form asp-action="EnviarComprobante" method="post" enctype="multipart/form-data"
+                      onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+                    <input type="hidden" name="FacturaId" value="@Model.id" />
+
+                    <fieldset class="mb-3">
+                        <legend class="form-label fs-6">¿Cómo pagaste?</legend>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Metodo" id="metodo-sinpe" value="SINPE" checked="@(formulario.Metodo != "TRANSFERENCIA")" />
+                            <label class="form-check-label" for="metodo-sinpe">SINPE Móvil</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Metodo" id="metodo-transferencia" value="TRANSFERENCIA" checked="@(formulario.Metodo == "TRANSFERENCIA")" />
+                            <label class="form-check-label" for="metodo-transferencia">Transferencia o depósito</label>
+                        </div>
+                    </fieldset>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="referencia">Número de referencia o comprobante <span class="text-muted">(opcional)</span></label>
+                        <input class="form-control" id="referencia" name="Referencia" maxlength="100" autocomplete="off" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="archivo">Comprobante</label>
+                        <input class="form-control" id="archivo" name="Archivo" type="file" required
+                               accept="@EnviarComprobanteViewModel.Aceptados" />
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Enviar comprobante</button>
+                </form>
+            </div>
+        }
+
+        @if (Model.pagos.Count > 0)
+        {
+            <div class="card p-4 mt-4">
+                <h2 class="h5">Pagos enviados</h2>
+                <ul class="list-unstyled mb-0">
+                    @foreach (var p in Model.pagos)
+                    {
+                        var (texto, clase) = EstadoPago.Comprobante(p.estado);
+                        <li class="py-2 border-bottom">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <span>
+                                    <strong>@EstadoPago.Metodo(p.metodo)</strong> · @Formato.Colones(p.monto)
+                                    <div class="small text-muted">
+                                        Enviado el @EstadoPago.Fecha(p.fechaEnvio)
+                                        @if (!string.IsNullOrWhiteSpace(p.referencia))
+                                        {
+                                            <text>· Ref. @p.referencia</text>
+                                        }
+                                        @if (p.fechaRevision is DateTime revision)
+                                        {
+                                            <text>· Revisado el @EstadoPago.Fecha(revision)</text>
+                                        }
+                                    </div>
+                                    @if (p.estado == "RECHAZADO" && !string.IsNullOrWhiteSpace(p.observacion))
+                                    {
+                                        <div class="small text-danger">Motivo: @p.observacion</div>
+                                    }
+                                </span>
+                                <span class="d-flex align-items-start gap-2">
+                                    <span class="status-pill @clase">@texto</span>
+                                    <a class="btn btn-sm btn-outline-secondary no-print" asp-action="Comprobante" asp-route-id="@p.id" target="_blank" rel="noopener">Ver comprobante</a>
+                                </span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="d-flex flex-wrap gap-2 mt-4 no-print">
+            <a class="btn btn-outline-primary" asp-action="Index">Volver a mis facturas</a>
+            <button class="btn btn-outline-secondary" type="button" onclick="window.print()">Imprimir comprobante</button>
+        </div>
+    </div>
+</section>

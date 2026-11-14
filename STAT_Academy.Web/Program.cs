@@ -51,6 +51,7 @@ AddApiClient<ApiCarritoService>();
 AddApiClient<ApiCursoService>();
 AddApiClient<ApiBlogService>();
 AddApiClient<ApiTutorService>();
+AddApiClient<ApiFacturaService>();
 
 // Cliente con nombre para los controladores que usan HttpClient directamente.
 builder.Services.AddHttpClient(ApiClient.Nombre, client => client.BaseAddress = apiUri)

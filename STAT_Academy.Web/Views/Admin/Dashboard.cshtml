@@ -15,6 +15,21 @@
             var stockBajo = ViewBag.StockBajo as List<STAT_Academy.Web.Models.Productos.ProductoResponse> ?? new();
         }
 
+        @{
+            var pagosPendientes = (int)(ViewBag.PagosPendientes ?? 0);
+        }
+
+        @if (pagosPendientes > 0)
+        {
+            <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-2" role="status">
+                <span>
+                    <strong>@pagosPendientes @(pagosPendientes == 1 ? "comprobante de pago espera" : "comprobantes de pago esperan")</strong>
+                    tu verificación.
+                </span>
+                <a class="btn btn-sm btn-primary" asp-action="Invoices">Revisar pagos</a>
+            </div>
+        }
+
         @if (stockBajo.Count > 0)
         {
             <div class="card p-4 mb-4 alerta-stock" role="status">
