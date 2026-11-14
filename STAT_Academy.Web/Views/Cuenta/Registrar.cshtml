@@ -1,21 +1,70 @@
-﻿@model STAT_Academy.Web.Models.Usuarios.RegisterUsuarioRequest
+﻿@model STAT_Academy.Web.Models.Cuenta.RegistroViewModel
 @{
     ViewData["Title"] = "Registro";
 }
 
-<section class="section">
-    <div class="card auth-card">
-        <span class="eyebrow">Nuevo estudiante</span>
-        <h1>Crear cuenta</h1>
-        <form asp-action="Registrar" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group mb-3"><label asp-for="nombre"></label><input asp-for="nombre" /><span asp-validation-for="nombre" class="text-danger"></span></div>
-            <div class="form-group mb-3"><label asp-for="email"></label><input asp-for="email" /><span asp-validation-for="email" class="text-danger"></span></div>
-            <div class="form-group mb-3"><label asp-for="password"></label><input asp-for="password" /><span asp-validation-for="password" class="text-danger"></span></div>
-            <button class="btn btn-primary w-100" type="submit">Registrarme</button>
-        </form>
-    </div>
-</section>
+<div class="auth-split">
+    <aside class="auth-brand" aria-labelledby="auth-brand-titulo">
+        <div class="auth-brand__contenido">
+            <span class="eyebrow">STAT Academy</span>
+            <h2 id="auth-brand-titulo" class="auth-brand__titulo">Aprenda con cursos pensados para profesionales</h2>
+            <p class="auth-brand__texto">Cree su cuenta gratis y empiece hoy mismo.</p>
+            <ul class="auth-brand__lista">
+                <li>Cursos guiados por tutores</li>
+                <li>Avance a su ritmo, desde cualquier dispositivo</li>
+                <li>Su progreso y sus compras siempre a mano</li>
+            </ul>
+        </div>
+    </aside>
+
+    <section class="auth-panel" aria-labelledby="auth-titulo">
+        <div class="auth-form">
+            <span class="eyebrow">Nuevo estudiante</span>
+            <h1 id="auth-titulo">Crear cuenta</h1>
+            <p class="auth-form__intro">Complete sus datos. La contraseña debe tener al menos 8 caracteres.</p>
+
+            <form asp-action="Registrar" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="nombre"></label>
+                    <input asp-for="nombre" autocomplete="name" />
+                    <span asp-validation-for="nombre" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="email"></label>
+                    <input asp-for="email" type="email" autocomplete="email" inputmode="email" />
+                    <span asp-validation-for="email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="password"></label>
+                    <div class="campo-contrasena">
+                        <input asp-for="password" autocomplete="new-password" />
+                        <partial name="_BotonVerContrasena" />
+                    </div>
+                    <span asp-validation-for="password" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="confirmarPassword"></label>
+                    <div class="campo-contrasena">
+                        <input asp-for="confirmarPassword" autocomplete="new-password" />
+                        <partial name="_BotonVerContrasena" />
+                    </div>
+                    <span asp-validation-for="confirmarPassword" class="text-danger"></span>
+                </div>
+
+                <button class="btn btn-primary w-100" type="submit">Registrarme</button>
+            </form>
+
+            <div class="auth-form__enlaces">
+                <span>¿Ya tiene cuenta? <a class="text-link" asp-action="Login">Iniciar sesión</a></span>
+            </div>
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

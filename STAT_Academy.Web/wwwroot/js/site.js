@@ -68,3 +68,35 @@
     // Al volver con el botón "Atrás" (caché del navegador) la pantalla no debe quedar visible.
     window.addEventListener("pageshow", ocultar);
 })();
+
+// Mostrar u ocultar la contraseña (botón de ojo, parcial _BotonVerContrasena).
+// Cada clic, toque, Enter o Espacio alterna entre visible y oculta.
+(function () {
+    "use strict";
+
+    function iniciar(boton) {
+        var campo = boton.closest(".campo-contrasena");
+        var input = campo && campo.querySelector("input");
+        if (!input) return;
+
+        function poner(visible) {
+            input.type = visible ? "text" : "password";
+            boton.setAttribute("aria-pressed", visible ? "true" : "false");
+            boton.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+            campo.classList.toggle("is-visible", visible);
+        }
+
+        // Con el mouse, el foco se queda en el campo para seguir escribiendo.
+        boton.addEventListener("mousedown", function (e) { e.preventDefault(); });
+
+        boton.addEventListener("click", function () {
+            poner(input.type === "password");
+        });
+
+        // Nunca enviar ni dejar la página con la contraseña a la vista.
+        if (input.form) input.form.addEventListener("submit", function () { poner(false); });
+        window.addEventListener("pagehide", function () { poner(false); });
+    }
+
+    document.querySelectorAll("[data-ver-contrasena]").forEach(iniciar);
+})();
