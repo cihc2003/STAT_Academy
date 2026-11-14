@@ -49,6 +49,16 @@ namespace STAT_Academy.Api.Errores
             var traceId = httpContext.TraceIdentifier;
             var ruta = $"{httpContext.Request.Method} {httpContext.Request.Path}";
 
+            // Base de datos no disponible por un momento (p. ej. Azure SQL serverless reanudándose):
+            // 503 con aviso de reintentar y sin correo a los administradores, porque es esperado.
+            if (EsBaseDeDatosNoDisponible(exception))
+            {
+                _logger.LogWarning(exception, "Base de datos no disponible en {Ruta}. TraceId: {TraceId}", ruta, traceId);
+                httpContext.Response.Headers.RetryAfter = "30";
+                return await Escribir(httpContext, exception, StatusCodes.Status503ServiceUnavailable,
+                    "El servicio se está iniciando. Intente de nuevo en unos segundos.");
+            }
+
             _logger.LogError(exception, "Error no controlado en {Ruta}. TraceId: {TraceId}", ruta, traceId);
 
             _alertas.Avisar(new AvisoError(
@@ -60,6 +70,24 @@ namespace STAT_Academy.Api.Errores
                 FechaUtc: DateTime.UtcNow));
 
             return await Escribir(httpContext, exception, StatusCodes.Status500InternalServerError, MensajeGenerico);
+        }
+
+        /// <summary>
+        /// Errores de SQL que indican que la base no está disponible por ahora:
+        /// -2 tiempo de espera, 40613 base no disponible (reanudándose), 40197 / 40501 / 49918-49920 servicio ocupado.
+        /// Se revisan las excepciones internas porque EF Core las envuelve (p. ej. RetryLimitExceededException).
+        /// </summary>
+        private static bool EsBaseDeDatosNoDisponible(Exception exception)
+        {
+            for (var ex = exception; ex != null; ex = ex.InnerException)
+            {
+                if (ex is Microsoft.Data.SqlClient.SqlException sql
+                    && sql.Errors.Cast<Microsoft.Data.SqlClient.SqlError>().Any(e =>
+                        e.Number is -2 or 40613 or 40197 or 40501 or 49918 or 49919 or 49920))
+                    return true;
+            }
+
+            return false;
         }
 
         private async ValueTask<bool> Escribir(HttpContext httpContext, Exception exception, int estado, string mensaje)

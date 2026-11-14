@@ -66,8 +66,8 @@ namespace STAT_Academy.Web.Controllers
 
             var modelo = ErrorViewModel.ParaCodigo(500, traceId);
 
-            // API caída o sin respuesta: se explica como "servicio no disponible".
-            if (feature?.Error is HttpRequestException { StatusCode: null } or TaskCanceledException)
+            // API caída, sin respuesta o iniciándose (503): se explica como "servicio no disponible".
+            if (feature?.Error is HttpRequestException { StatusCode: null or System.Net.HttpStatusCode.ServiceUnavailable } or TaskCanceledException)
                 modelo = ErrorViewModel.ParaCodigo(503, traceId);
 
             Response.StatusCode = modelo.Codigo;

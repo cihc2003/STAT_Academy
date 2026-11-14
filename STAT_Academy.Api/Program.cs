@@ -24,6 +24,13 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException(
         "Falta ConnectionStrings:DefaultConnection. Configúrela con user-secrets o en Azure App Settings.");
 
+// Azure SQL serverless (GP_S) se pausa cuando no hay uso y tarda hasta ~1 minuto en reanudarse.
+// Con el tiempo de conexión por defecto (30 s) la primera petición tras la pausa fallaba.
+var conexionSql = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+if (conexionSql.ConnectTimeout < 90)
+    conexionSql.ConnectTimeout = 90;
+connectionString = conexionSql.ConnectionString;
+
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.Seccion).Get<JwtOptions>() ?? new JwtOptions();
 if (string.IsNullOrWhiteSpace(jwtOptions.Key))
     throw new InvalidOperationException(
