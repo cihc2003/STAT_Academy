@@ -1,0 +1,85 @@
+@model STAT_Academy.Web.Models.Contrasena.CambiarContrasenaViewModel
+
+@{
+    ViewData["Title"] = "Cambiar contraseña";
+}
+
+<section class="section">
+    <div class="card auth-card">
+        <span class="eyebrow">Seguridad de la cuenta</span>
+
+        <h1>Cambiar contraseña</h1>
+
+        <p>
+            Escriba su contraseña actual y después la contraseña nueva.
+        </p>
+
+        <form asp-action="CambiarContrasena" method="post">
+            <div
+                asp-validation-summary="ModelOnly"
+                class="text-danger mb-3">
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="contrasenaActual"></label>
+
+                <input
+                    asp-for="contrasenaActual"
+                    class="form-control"
+                    autocomplete="current-password" />
+
+                <span
+                    asp-validation-for="contrasenaActual"
+                    class="text-danger">
+                </span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="nuevaContrasena"></label>
+
+                <input
+                    asp-for="nuevaContrasena"
+                    class="form-control"
+                    autocomplete="new-password" />
+
+                <span
+                    asp-validation-for="nuevaContrasena"
+                    class="text-danger">
+                </span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="confirmarContrasena"></label>
+
+                <input
+                    asp-for="confirmarContrasena"
+                    class="form-control"
+                    autocomplete="new-password" />
+
+                <span
+                    asp-validation-for="confirmarContrasena"
+                    class="text-danger">
+                </span>
+            </div>
+
+            <button
+                class="btn btn-primary w-100"
+                type="submit">
+                Cambiar contraseña
+            </button>
+        </form>
+
+        <div class="mt-3">
+            <a
+                class="text-link"
+                asp-controller="Home"
+                asp-action="Index">
+                Volver al inicio
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

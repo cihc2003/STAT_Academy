@@ -1,0 +1,90 @@
+﻿@model STAT_Academy.Web.Models.Cursos.CursoContenidoViewModel
+
+@{
+    ViewData["Title"] = Model.Curso.nombre;
+}
+
+<section class="section">
+    <div class="container">
+        <a class="text-link" asp-controller="Curso" asp-action="MisCursos">&larr; Volver a mis cursos</a>
+
+        <div class="section-heading mt-3">
+            <span class="eyebrow">Curso</span>
+            <h1>@Model.Curso.nombre</h1>
+            <p>@Model.Curso.descripcion</p>
+        </div>
+
+        <div class="course-meta mb-4">
+            <span>@Model.Curso.duracionSemanas semanas</span>
+            <span>@Model.Curso.fechaInicio.ToString("dd/MM/yyyy") &ndash; @Model.Curso.fechaFin.ToString("dd/MM/yyyy")</span>
+        </div>
+
+        <!-- Pestañas: Información general + una por cada semana -->
+        <ul class="nav nav-tabs" id="cursoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-general" data-bs-toggle="tab" data-bs-target="#panel-general"
+                        type="button" role="tab">
+                    General
+                </button>
+            </li>
+
+            @foreach (var semana in Model.Semanas)
+            {
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-semana-@semana.Numero" data-bs-toggle="tab"
+                            data-bs-target="#panel-semana-@semana.Numero" type="button" role="tab">
+                        Semana @semana.Numero
+                    </button>
+                </li>
+            }
+
+            @if (Model.SinSemana.TieneContenido)
+            {
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="tab-sin-semana" data-bs-toggle="tab"
+                            data-bs-target="#panel-sin-semana" type="button" role="tab">
+                        Otros
+                    </button>
+                </li>
+            }
+        </ul>
+
+        <div class="tab-content pt-4" id="cursoTabsContent">
+            <!-- Panel general -->
+            <div class="tab-pane fade show active" id="panel-general" role="tabpanel">
+                <div class="card p-4">
+                    <h3>Sobre este curso</h3>
+                    <p>@Model.Curso.descripcion</p>
+
+                    <div class="course-meta">
+                        <span>Duración</span>
+                        <strong>@Model.Curso.duracionSemanas semanas</strong>
+                    </div>
+                    <div class="course-meta">
+                        <span>Fecha de inicio</span>
+                        <strong>@Model.Curso.fechaInicio.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                    <div class="course-meta">
+                        <span>Fecha de finalización</span>
+                        <strong>@Model.Curso.fechaFin.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Un panel por semana -->
+            @foreach (var semana in Model.Semanas)
+            {
+                <div class="tab-pane fade" id="panel-semana-@semana.Numero" role="tabpanel">
+                    @await Html.PartialAsync("_SemanaContenido", semana)
+                </div>
+            }
+
+            @if (Model.SinSemana.TieneContenido)
+            {
+                <div class="tab-pane fade" id="panel-sin-semana" role="tabpanel">
+                    @await Html.PartialAsync("_SemanaContenido", Model.SinSemana)
+                </div>
+            }
+        </div>
+    </div>
+</section>

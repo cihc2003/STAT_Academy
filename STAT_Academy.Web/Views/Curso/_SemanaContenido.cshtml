@@ -1,0 +1,58 @@
+﻿@model STAT_Academy.Web.Models.Cursos.SemanaViewModel
+
+@if (!Model.TieneContenido)
+{
+    <p>Todavía no hay contenido publicado para esta semana.</p>
+}
+else
+{
+    @if (Model.Material.Any())
+    {
+        <h4>Material</h4>
+        <div class="card-grid two mb-4">
+            @foreach (var item in Model.Material)
+            {
+                <article class="card p-4">
+                    <span class="tag">@item.Tipo</span>
+                    <h3>@item.Titulo</h3>
+                    <a class="text-link" href="@item.UbicacionMaterial" target="_blank" rel="noopener">
+                        Abrir material
+                    </a>
+                </article>
+            }
+        </div>
+    }
+
+    @if (Model.Tareas.Any())
+    {
+        <h4>Tareas</h4>
+        <div class="table-card">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Título</th>
+                        <th>Fecha límite</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tarea in Model.Tareas)
+                    {
+                        <tr>
+                            <td>
+                                @tarea.Titulo
+                                <div class="text-muted" style="font-size: 0.85rem;">@tarea.Descripcion</div>
+                            </td>
+                            <td>@tarea.FechaLimite.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <span class="status-pill">
+                                    @(tarea.Entregada ? "Entregada" : "Pendiente")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}

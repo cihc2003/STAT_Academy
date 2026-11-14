@@ -1,0 +1,80 @@
+﻿@model STAT_Academy.Web.Models.CursoModel
+
+@{
+    ViewData["Title"] = "Detalle";
+}
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header">
+
+            <h2>@Model.Nombre</h2>
+
+        </div>
+
+        <div class="card-body">
+
+            <h5>Descripción</h5>
+
+            <p>@Model.Descripcion</p>
+
+            <hr />
+
+            <p>
+
+                <strong>Precio:</strong>
+
+                ₡@Model.Precio_Base
+
+            </p>
+
+            <p>
+
+                <strong>Duración:</strong>
+
+                @Model.Duracion_Semanas semanas
+
+            </p>
+
+            <p>
+
+                <strong>Inicio:</strong>
+
+                @Model.Fecha_Inicio.ToShortDateString()
+
+            </p>
+
+            <p>
+
+                <strong>Finaliza:</strong>
+
+                @Model.Fecha_Fin.ToShortDateString()
+
+            </p>
+
+        </div>
+
+        <div class="card-footer">
+
+            <a asp-action="Inscribirse"
+               asp-route-idCurso="@Model.Id"
+               class="btn btn-success">
+
+                Inscribirme
+
+            </a>
+
+            <a asp-action="Index"
+               class="btn btn-secondary">
+
+                Regresar
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

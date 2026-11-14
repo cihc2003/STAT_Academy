@@ -1,0 +1,49 @@
+﻿@model List<STAT_Academy.Web.Models.Cursos.CursoCompradoResponse>
+
+@{
+    ViewData["Title"] = "Mis Cursos";
+}
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Aula virtual</span>
+            <h1>Mis cursos</h1>
+            <p>Cursos en los que estás matriculado actualmente.</p>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <p>Todavía no estás matriculado en ningún curso.</p>
+            <a class="btn btn-primary" asp-controller="Curso" asp-action="Index">Explorar cursos</a>
+        }
+        else
+        {
+            <div class="card-grid three">
+                @foreach (var curso in Model)
+                {
+                    <article class="card p-4">
+                        <span class="tag">@curso.Estado</span>
+                        <h3>@curso.NombreCurso</h3>
+                        <p>@curso.Descripcion</p>
+
+                        <div class="course-meta">
+                            <span>Progreso</span>
+                            <strong>@curso.Progreso%</strong>
+                        </div>
+
+                        <div class="progress mt-2 mb-3" style="height: 8px;">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: @curso.Progreso%;"
+                                 aria-valuenow="@curso.Progreso" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+
+                        <a class="text-link" asp-controller="Curso" asp-action="Contenido" asp-route-id="@curso.CursoId">
+                            Entrar al curso
+                        </a>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

@@ -1,0 +1,87 @@
+﻿@model STAT_Academy.Web.Models.Admin.CursoFormViewModel
+
+@{
+    ViewData["Title"] = Model.id == null ? "Crear Curso" : "Editar Curso";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="section-heading">
+            <span class="eyebrow">Administración</span>
+            <h1>@ViewData["Title"]</h1>
+            <p>Administra nombre, tutor, precio, fechas y estado del curso.</p>
+        </div>
+
+        <form asp-action="CourseForm" method="post" class="card-card form-card">
+            @Html.AntiForgeryToken()
+            <input asp-for="id" type="hidden" />
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="nombre" class="form-label">Nombre</label>
+                    <input asp-for="nombre" class="form-control" />
+                    <span asp-validation-for="nombre" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="fk_tutor" class="form-label">ID Tutor</label>
+                    <input asp-for="fk_tutor" class="form-control" type="number" min="1" />
+                    <span asp-validation-for="fk_tutor" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="descripcion" class="form-label">Descripción</label>
+                    <textarea asp-for="descripcion" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="descripcion" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="precio" class="form-label">Precio</label>
+                    <input asp-for="precio" class="form-control" type="number" min="0" step="0.01" />
+                    <span asp-validation-for="precio" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="duracionSemanas" class="form-label">Duración (semanas)</label>
+                    <input asp-for="duracionSemanas" class="form-control" type="number" min="1" />
+                    <span asp-validation-for="duracionSemanas" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="estado" class="form-label">Estado</label>
+                    <select asp-for="estado" class="form-select">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="fechaInicio" class="form-label">Fecha inicio</label>
+                    <input asp-for="fechaInicio" class="form-control" type="date" />
+                    <span asp-validation-for="fechaInicio" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="fechaFin" class="form-label">Fecha fin</label>
+                    <input asp-for="fechaFin" class="form-control" type="date" />
+                    <span asp-validation-for="fechaFin" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    @(Model.id == null ? "Guardar" : "Actualizar")
+                </button>
+                <a asp-action="Courses" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

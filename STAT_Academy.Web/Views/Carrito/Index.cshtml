@@ -1,0 +1,76 @@
+﻿@model STAT_Academy.Web.Models.Carrito.CarritoResponse
+
+<section class="section">
+    <div class="container">
+        <div class="section-heading">
+            <span class="eyebrow">Tu compra</span>
+            <h1>Carrito</h1>
+        </div>
+
+        @if (Model == null || !Model.items.Any())
+        {
+            <p>Tu carrito está vacío.</p>
+            <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ir a la tienda</a>
+        }
+        else
+        {
+            <div class="table-card">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Cantidad</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.items)
+                        {
+                            <tr>
+                                <td>@item.nombre</td>
+                                <td>@item.precio_unitario.ToString("C")</td>
+                                <td style="max-width: 140px;">
+                                    <form asp-action="Actualizar" method="post" class="d-flex align-items-center gap-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="detalleId" value="@item.detalleId" />
+                                        <input type="number"
+                                               name="cantidad"
+                                               value="@item.cantidad"
+                                               min="1"
+                                               max="@item.stock_disponible"
+                                               class="form-control form-control-sm" />
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Actualizar</button>
+                                    </form>
+                                </td>
+                                <td>@item.subtotal.ToString("C")</td>
+                                <td class="text-end">
+                                    <form asp-action="Eliminar" method="post"
+                                          onsubmit="return confirm('¿Quitar este producto del carrito?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="detalleId" value="@item.detalleId" />
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Quitar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <div class="card p-4" style="min-width: 280px;">
+                    <div class="course-meta">
+                        <span>Total</span>
+                        <strong>@Model.total.ToString("C")</strong>
+                    </div>
+
+                    <a class="btn btn-primary w-100 mt-3" asp-action="Checkout">
+                        Proceder al pago
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</section>
