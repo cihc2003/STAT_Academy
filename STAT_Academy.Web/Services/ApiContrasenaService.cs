@@ -43,8 +43,9 @@ namespace STAT_Academy.Web.Services
         /// <summary>
         /// Cambia la contraseña del usuario autenticado y devuelve el mensaje
         /// exacto de la API (por ejemplo, "La contraseña actual es incorrecta.").
+        /// Si tuvo éxito trae el token nuevo: el cambio revoca el anterior.
         /// </summary>
-        public async Task<(bool exitoso, string mensaje)> CambiarContrasena(
+        public async Task<(bool exitoso, string mensaje, string? token, DateTime? expiraEn)> CambiarContrasena(
             CambiarContrasenaViewModel model)
         {
             HttpResponseMessage response;
@@ -64,15 +65,21 @@ namespace STAT_Academy.Web.Services
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "No se pudo contactar la API para cambiar la contraseña.");
-                return (false, "No se pudo contactar el servidor. Intente nuevamente.");
+                return (false, "No se pudo contactar el servidor. Intente nuevamente.", null, null);
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                return (false, "Su sesión expiró. Cierre sesión e inicie sesión nuevamente.");
+                return (false, "Su sesión expiró. Cierre sesión e inicie sesión nuevamente.", null, null);
             }
 
-            var mensaje = await LeerMensaje(response);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                return (false, "Demasiados intentos. Espere unos minutos e intente de nuevo.", null, null);
+            }
+
+            var contenido = await response.Content.ReadAsStringAsync();
+            var mensaje = LeerMensaje(contenido);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -81,19 +88,43 @@ namespace STAT_Academy.Web.Services
                     (int)response.StatusCode, mensaje);
             }
 
+            var (token, expiraEn) = response.IsSuccessStatusCode ? LeerToken(contenido) : (null, null);
+
             return (
                 response.IsSuccessStatusCode,
                 mensaje ?? (response.IsSuccessStatusCode
                     ? "La contraseña fue cambiada correctamente."
-                    : "No se pudo cambiar la contraseña. Intente nuevamente.")
+                    : "No se pudo cambiar la contraseña. Intente nuevamente."),
+                token,
+                expiraEn
             );
+        }
+
+        private static (string? token, DateTime? expiraEn) LeerToken(string contenido)
+        {
+            try
+            {
+                using var documento = JsonDocument.Parse(contenido);
+                var raiz = documento.RootElement;
+
+                if (raiz.ValueKind == JsonValueKind.Object
+                    && raiz.TryGetProperty("token", out var token) && token.ValueKind == JsonValueKind.String
+                    && raiz.TryGetProperty("expiraEn", out var expira) && expira.TryGetDateTime(out var expiraEn))
+                {
+                    return (token.GetString(), expiraEn);
+                }
+            }
+            catch (JsonException)
+            {
+            }
+
+            return (null, null);
         }
 
         // Lee { "message": "..." } o, si es un error de validación (ProblemDetails),
         // el primer mensaje de "errors".
-        private static async Task<string?> LeerMensaje(HttpResponseMessage response)
+        private static string? LeerMensaje(string contenido)
         {
-            var contenido = await response.Content.ReadAsStringAsync();
 
             if (string.IsNullOrWhiteSpace(contenido))
                 return null;

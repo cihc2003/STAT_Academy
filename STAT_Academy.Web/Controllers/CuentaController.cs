@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using STAT_Academy.Web.Models;
+using STAT_Academy.Web.Seguridad;
 using STAT_Academy.Web.Models.Contrasena;
 using STAT_Academy.Web.Models.Cuenta;
 using STAT_Academy.Web.Models.Usuarios;
@@ -36,6 +38,7 @@ namespace STAT_Academy.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting(LimitesSolicitudesWeb.Login)]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
             // Solo direcciones de este sitio (evita redirecciones abiertas).
@@ -47,13 +50,13 @@ namespace STAT_Academy.Web.Controllers
                 return View(model);
             }
 
-            var usuario = await _apiUserGateway.LoginAsync(model);
+            var (usuario, error) = await _apiUserGateway.LoginAsync(model);
 
             if (usuario == null)
             {
                 ModelState.AddModelError(
                     "",
-                    "Usuario o contraseña incorrectos."
+                    error ?? "Usuario o contraseña incorrectos."
                 );
 
                 return View(model);
@@ -83,40 +86,7 @@ namespace STAT_Academy.Web.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme
             );
 
-            var principal = new ClaimsPrincipal(identity);
-
-            var expiraToken = new DateTimeOffset(
-                DateTime.SpecifyKind(usuario.expiraEn, DateTimeKind.Utc));
-
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = false,
-                // La sesión nunca dura más que el token de la API.
-                ExpiresUtc = expiraToken < DateTimeOffset.UtcNow.AddMinutes(30)
-                    ? expiraToken
-                    : DateTimeOffset.UtcNow.AddMinutes(30)
-            };
-
-            // El JWT viaja cifrado dentro de la cookie y BearerTokenHandler lo reenvía a la API.
-            authProperties.StoreTokens(new[]
-            {
-                new AuthenticationToken
-                {
-                    Name = BearerTokenHandler.NombreToken,
-                    Value = usuario.token
-                },
-                new AuthenticationToken
-                {
-                    Name = "expires_at",
-                    Value = expiraToken.ToString("o")
-                }
-            });
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                principal,
-                authProperties
-            );
+            await IniciarSesionAsync(new ClaimsPrincipal(identity), usuario.token, usuario.expiraEn);
 
             // Volver a la página que pedía iniciar sesión (p. ej. tras vencer la sesión).
             if (returnUrl != null)
@@ -166,6 +136,7 @@ namespace STAT_Academy.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting(LimitesSolicitudesWeb.Cuenta)]
         public async Task<IActionResult> Registrar(
             RegistroViewModel model)
         {
@@ -175,7 +146,7 @@ namespace STAT_Academy.Web.Controllers
             }
 
             // La API solo recibe nombre, email y password; la confirmación no se envía.
-            var resultado = await _apiUsuarioService.RegistrarUsuarioAsync(
+            var (resultado, mensajeError) = await _apiUsuarioService.RegistrarUsuarioAsync(
                 new RegisterUsuarioRequest
                 {
                     nombre = model.nombre.Trim(),
@@ -188,7 +159,9 @@ namespace STAT_Academy.Web.Controllers
             {
                 ModelState.AddModelError(
                     "",
-                    "No se pudo registrar el usuario. Es posible que el correo ya esté registrado."
+                    string.IsNullOrWhiteSpace(mensajeError) || mensajeError == "No se pudo procesar la solicitud."
+                        ? "No se pudo registrar el usuario. Es posible que el correo ya esté registrado."
+                        : mensajeError
                 );
 
                 return View(model);
@@ -209,6 +182,7 @@ namespace STAT_Academy.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting(LimitesSolicitudesWeb.Cuenta)]
         public async Task<IActionResult> Forgotpassword(
             SolicitarRecuperacionViewModel model)
         {
@@ -257,6 +231,7 @@ namespace STAT_Academy.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting(LimitesSolicitudesWeb.Cuenta)]
         public async Task<IActionResult> RestablecerContrasena(
             RestablecerContrasenaViewModel model)
         {
@@ -314,10 +289,59 @@ namespace STAT_Academy.Web.Controllers
                 return View(model);
             }
 
-            // La sesión sigue activa: se muestra la confirmación en la misma página.
+            // El cambio revoca el token anterior en la API: se guarda el nuevo para que la sesión
+            // siga activa. Si no llegó, se pide iniciar sesión de nuevo.
+            if (resultado.token == null || resultado.expiraEn == null)
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                TempData["Success"] = resultado.mensaje + " Inicie sesión con la contraseña nueva.";
+                return RedirectToAction(nameof(Login));
+            }
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(
+                User.Claims, CookieAuthenticationDefaults.AuthenticationScheme));
+            await IniciarSesionAsync(principal, resultado.token, resultado.expiraEn.Value);
+
             TempData["Success"] = resultado.mensaje;
 
             return RedirectToAction(nameof(CambiarContrasena));
+        }
+
+        /// <summary>Crea la cookie de sesión con el JWT de la API (cifrado dentro de la cookie).</summary>
+        private async Task IniciarSesionAsync(ClaimsPrincipal principal, string token, DateTime expiraEnUtc)
+        {
+            var expiraToken = new DateTimeOffset(
+                DateTime.SpecifyKind(expiraEnUtc, DateTimeKind.Utc));
+
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = false,
+                // La sesión nunca dura más que el token de la API.
+                ExpiresUtc = expiraToken < DateTimeOffset.UtcNow.AddMinutes(30)
+                    ? expiraToken
+                    : DateTimeOffset.UtcNow.AddMinutes(30)
+            };
+
+            // BearerTokenHandler lo reenvía a la API en cada petición.
+            authProperties.StoreTokens(new[]
+            {
+                new AuthenticationToken
+                {
+                    Name = BearerTokenHandler.NombreToken,
+                    Value = token
+                },
+                new AuthenticationToken
+                {
+                    Name = "expires_at",
+                    Value = expiraToken.ToString("o")
+                }
+            });
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                authProperties
+            );
         }
     }
 }

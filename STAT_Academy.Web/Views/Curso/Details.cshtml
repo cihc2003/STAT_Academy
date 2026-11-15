@@ -1,4 +1,4 @@
-﻿@model STAT_Academy.Web.Models.CursoModel
+@model STAT_Academy.Web.Models.CursoModel
 
 @{
     ViewData["Title"] = Model.Nombre;
@@ -66,7 +66,7 @@
             {
                 @* Curso de pago: se genera la factura y el acceso se habilita al aprobarse el pago. *@
                 <form asp-controller="Facturas" asp-action="ComprarCurso" method="post"
-                      onsubmit="this.querySelector('button').disabled = true;">
+                      data-un-solo-envio>
                     <input type="hidden" name="cursoId" value="@Model.Id" />
                     <button class="btn btn-primary w-100" type="submit">Comprar curso</button>
                 </form>

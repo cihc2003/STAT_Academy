@@ -19,17 +19,17 @@ namespace STAT_Academy.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
             // El catálogo público solo muestra cursos activos que no han iniciado; Admin ve todos.
-            return Ok(_service.GetAll(esAdmin: EsAdmin));
+            return Ok(await _service.GetAllAsync(esAdmin: EsAdmin));
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var curso = _service.GetById(id);
+            var curso = await _service.GetByIdAsync(id);
 
             // Un curso inactivo solo lo ven Admin y su propio tutor; para el resto "no existe".
             var esSuTutor = curso != null && EsTutor(curso.fk_tutor);
@@ -38,7 +38,7 @@ namespace STAT_Academy.Api.Controllers
                 return NotFound();
 
             // Un curso ya iniciado sí se puede consultar (inscripcionAbierta = false).
-            return Ok(_service.GetResponse(id));
+            return Ok(await _service.GetResponseAsync(id));
         }
 
         // La duración del curso se calcula con las fechas, así que deben ser coherentes.
@@ -46,27 +46,27 @@ namespace STAT_Academy.Api.Controllers
             "La fecha de fin no puede ser anterior a la fecha de inicio.";
 
         [HttpPost]
-        public IActionResult Crear(CursoCreateRequest request)
+        public async Task<IActionResult> Crear(CursoCreateRequest request)
         {
             if (request.fechaFin < request.fechaInicio)
                 return BadRequest(new { message = FechasInvalidas });
 
-            if (_service.ValidarTutor(request.fk_tutor) is string errorTutor)
+            if (await _service.ValidarTutorAsync(request.fk_tutor) is string errorTutor)
                 return BadRequest(new { message = errorTutor });
 
-            return Ok(_service.Crear(request));
+            return Ok(await _service.CrearAsync(request, UsuarioActualId));
         }
 
         [HttpPut("{id}")]
-        public IActionResult Editar(int id, CursoCreateRequest request)
+        public async Task<IActionResult> Editar(int id, CursoCreateRequest request)
         {
             if (request.fechaFin < request.fechaInicio)
                 return BadRequest(new { message = FechasInvalidas });
 
-            if (_service.ValidarTutor(request.fk_tutor) is string errorTutor)
+            if (await _service.ValidarTutorAsync(request.fk_tutor) is string errorTutor)
                 return BadRequest(new { message = errorTutor });
 
-            var curso = _service.Editar(id, request);
+            var curso = await _service.EditarAsync(id, request);
 
             if (curso == null)
                 return NotFound();
@@ -100,9 +100,9 @@ namespace STAT_Academy.Api.Controllers
                 : NotFound(new { message = "El curso no tiene portada." });
 
         [HttpPatch("activar/{id}")]
-        public IActionResult Activar(int id)
+        public async Task<IActionResult> Activar(int id)
         {
-            var curso = _service.Activar(id);
+            var curso = await _service.ActivarAsync(id);
 
             if (curso == null)
                 return NotFound();
@@ -111,9 +111,9 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPatch("desactivar/{id}")]
-        public IActionResult Desactivar(int id)
+        public async Task<IActionResult> Desactivar(int id)
         {
-            var curso = _service.Desactivar(id);
+            var curso = await _service.DesactivarAsync(id);
 
             if (curso == null)
                 return NotFound();

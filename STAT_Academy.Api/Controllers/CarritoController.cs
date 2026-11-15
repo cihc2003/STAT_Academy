@@ -37,8 +37,10 @@ namespace STAT_Academy.Api.Controllers
             {
                 return Ok(_service.AgregarItem(request));
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
+                // Reglas del carrito (stock, producto no disponible). Cualquier otro error va al
+                // manejador global, que no muestra detalles internos.
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
@@ -53,8 +55,10 @@ namespace STAT_Academy.Api.Controllers
             {
                 return Ok(_service.ActualizarCantidad(detalleId, usuarioId, request.cantidad));
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
+                // Reglas del carrito (stock, producto no disponible). Cualquier otro error va al
+                // manejador global, que no muestra detalles internos.
                 return BadRequest(new { mensaje = ex.Message });
             }
         }

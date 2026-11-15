@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using STAT_Academy.Web.Controllers;
 using STAT_Academy.Web.Filtros;
+using STAT_Academy.Web.Seguridad;
 using STAT_Academy.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,7 +43,6 @@ void AddApiClient<TClient>() where TClient : class =>
         .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler)
         .AddHttpMessageHandler<BearerTokenHandler>();
 
-AddApiClient<CursoService>();
 AddApiClient<ApiUserGateway>();
 AddApiClient<ApiContrasenaService>();
 AddApiClient<ApiUsuarioService>();
@@ -62,7 +62,8 @@ builder.Services.AddHttpClient(ApiClient.Nombre, client => client.BaseAddress = 
 // 401/403/404 de la API → login o página de error (ver ErroresApiFilter).
 builder.Services.AddControllersWithViews(options => options.Filters.Add<ErroresApiFilter>());
 
-builder.Services.AddSession();
+// Límites por IP en login, registro y recuperación de contraseña.
+builder.Services.AddLimitesSolicitudesWeb();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -74,6 +75,10 @@ builder.Services
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
+        // En Azure la cookie (que lleva el JWT) solo viaja por HTTPS; en local se permite http://localhost.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
 
         // Si el JWT de la API ya expiró, la sesión de la Web tampoco sirve:
         // se cierra y el usuario vuelve a iniciar sesión.
@@ -121,6 +126,30 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Encabezados de seguridad en todas las respuestas (una acción puede fijar los suyos antes).
+app.Use(async (context, next) =>
+{
+    var encabezados = context.Response.Headers;
+    encabezados.XContentTypeOptions = "nosniff";
+    // Ningún otro sitio puede mostrar estas páginas en un marco (clickjacking).
+    encabezados.XFrameOptions = "SAMEORIGIN";
+    encabezados["Referrer-Policy"] = "strict-origin-when-cross-origin";
+
+    // CSP solo en páginas HTML (no en PDF ni descargas) y sin pisar la de una acción
+    // (p. ej. el comprobante de pago, que fija la suya con "sandbox").
+    context.Response.OnStarting(() =>
+    {
+        if (context.Response.ContentType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) == true
+            && !encabezados.ContainsKey("Content-Security-Policy"))
+        {
+            encabezados["Content-Security-Policy"] = PoliticaContenido;
+        }
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
+
 // 404, 403, 405... sin contenido → /Error/{código}, conservando la URL original.
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
@@ -130,7 +159,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseSession();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -138,3 +167,25 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+public partial class Program
+{
+    /// <summary>
+    /// Content-Security-Policy de las páginas. Sin JavaScript inline: los comportamientos van en site.js
+    /// con atributos data-*. Los estilos inline se permiten (atributos style= de las vistas y colores del
+    /// contenido del blog, ya saneado en la API). Externos: Quill (jsDelivr), imágenes de Azure Blob
+    /// Storage y el mapa de Google en Contacto.
+    /// </summary>
+    private const string PoliticaContenido =
+        "default-src 'self'; " +
+        "script-src 'self' https://cdn.jsdelivr.net; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "img-src 'self' data: blob: https://*.blob.core.windows.net; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self'; " +
+        "frame-src https://www.google.com https://maps.google.com; " +
+        "frame-ancestors 'self'; " +
+        "form-action 'self'; " +
+        "base-uri 'self'; " +
+        "object-src 'none'";
+}

@@ -1,5 +1,6 @@
-﻿using STAT_Academy.Web.Models.Usuarios;
+using STAT_Academy.Web.Models.Usuarios;
 using STAT_Academy.Web.Models.Cuenta;
+using System.Net;
 using System.Net.Http.Json;
 
 namespace STAT_Academy.Web.Services
@@ -13,20 +14,27 @@ namespace STAT_Academy.Web.Services
             _httpClient = httpClient;
         }
 
-        public async Task<LoginResult?> LoginAsync(LoginViewModel model)
+        /// <summary>
+        /// Inicia sesión en la API. Si falla, <c>error</c> trae el motivo para mostrar
+        /// (null = usuario o contraseña incorrectos).
+        /// </summary>
+        public async Task<(LoginResult? usuario, string? error)> LoginAsync(LoginViewModel model)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/Login", new
+            using var response = await _httpClient.PostAsJsonAsync("api/Login", new
             {
                 email = model.email,
                 password = model.password
-            }); 
+            });
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
+            if (response.IsSuccessStatusCode)
+                return (await response.Content.ReadFromJsonAsync<LoginResult>(), null);
 
-            return await response.Content.ReadFromJsonAsync<LoginResult>();
+            // 401 = credenciales incorrectas; otros (429 demasiados intentos, 503 base iniciándose...) traen su mensaje.
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                return (null, null);
+
+            var (_, mensaje) = await ApiRespuesta.Leer(response);
+            return (null, mensaje);
         }
 
         public async Task LogoutAsync()

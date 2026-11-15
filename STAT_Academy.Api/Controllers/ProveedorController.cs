@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Api.Auth;
 using STAT_Academy.DTOs.Proveedor;
@@ -53,8 +53,9 @@ namespace STAT_Academy.Api.Controllers
 
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
+                // Regla de negocio (tiene productos activos); otros errores van al manejador global.
                 return BadRequest(ex.Message);
             }
         }

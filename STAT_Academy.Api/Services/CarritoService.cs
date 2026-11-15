@@ -59,7 +59,7 @@ namespace STAT_Academy.Api.Services
             var producto = _context.Producto.FirstOrDefault(p => p.id == request.productoId && p.estado);
 
             if (producto == null)
-                throw new Exception("Producto no existe o no está disponible.");
+                throw new InvalidOperationException("Producto no existe o no está disponible.");
 
             var carrito = ObtenerOCrearCarrito(request.usuarioId);
 
@@ -69,7 +69,7 @@ namespace STAT_Academy.Api.Services
             var cantidadDeseada = (detalle?.cantidad ?? 0) + request.cantidad;
 
             if (cantidadDeseada > producto.stock)
-                throw new Exception($"Solo hay {producto.stock} unidades disponibles.");
+                throw new InvalidOperationException($"Solo hay {producto.stock} unidades disponibles.");
 
             if (detalle == null)
             {
@@ -99,12 +99,12 @@ namespace STAT_Academy.Api.Services
                 d.id == detalleId && d.fk_Carrito == carrito.id);
 
             if (detalle == null)
-                throw new Exception("El producto no está en el carrito.");
+                throw new InvalidOperationException("El producto no está en el carrito.");
 
             var producto = _context.Producto.FirstOrDefault(p => p.id == detalle.fk_Producto);
 
             if (producto != null && cantidad > producto.stock)
-                throw new Exception($"Solo hay {producto.stock} unidades disponibles.");
+                throw new InvalidOperationException($"Solo hay {producto.stock} unidades disponibles.");
 
             detalle.cantidad = cantidad;
             _context.SaveChanges();

@@ -1,4 +1,4 @@
-﻿using STAT_Academy.Api.Data;
+using STAT_Academy.Api.Data;
 using STAT_Academy.DTOs.Proveedor;
 using STAT_Academy.Api.Models;
 
@@ -68,7 +68,7 @@ namespace STAT_Academy.Api.Services
 
             return proveedor;
         }
-        public ProveedorModel Desactivar(int id)
+        public ProveedorModel? Desactivar(int id)
         {
             var proveedor = _context.Proveedor.FirstOrDefault(p => p.id == id);
 
@@ -79,7 +79,7 @@ namespace STAT_Academy.Api.Services
                 .Any(p => p.fk_proveedor == id && p.estado == true);
 
             if (tieneProductosActivos)
-                throw new Exception("No se puede desactivar el proveedor porque tiene productos activos");
+                throw new InvalidOperationException("No se puede desactivar el proveedor porque tiene productos activos");
 
             proveedor.estado = false;
 

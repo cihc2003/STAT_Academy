@@ -98,7 +98,7 @@
                 </p>
 
                 <form asp-action="EnviarComprobante" method="post" enctype="multipart/form-data"
-                      onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+                      data-un-solo-envio>
                     <input type="hidden" name="FacturaId" value="@Model.id" />
 
                     <fieldset class="mb-3">
@@ -170,7 +170,7 @@
 
         <div class="d-flex flex-wrap gap-2 mt-4 no-print">
             <a class="btn btn-outline-primary" asp-action="Index">Volver a mis facturas</a>
-            <button class="btn btn-outline-secondary" type="button" onclick="window.print()">Imprimir comprobante</button>
+            <button class="btn btn-outline-secondary" type="button" data-imprimir>Imprimir comprobante</button>
         </div>
     </div>
 </section>

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.DTOs.Contrasena;
@@ -12,14 +13,20 @@ namespace STAT_Academy.Api.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ValidadorSesion _validadorSesion;
+        private readonly LoginService _loginService;
         private readonly PasswordHasher<UsuarioModel> _passwordHasher;
 
         public ContrasenaService(
             ApplicationDbContext context,
-            AuditoriaService auditoria)
+            AuditoriaService auditoria,
+            ValidadorSesion validadorSesion,
+            LoginService loginService)
         {
+            _loginService = loginService;
             _context = context;
             _auditoria = auditoria;
+            _validadorSesion = validadorSesion;
             _passwordHasher = new PasswordHasher<UsuarioModel>();
         }
 
@@ -89,8 +96,11 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_hash = null;
             usuario.reset_token_expiracion = null;
             usuario.intentos_login = 0;
+            // Quien demuestra tener el correo recupera el acceso aunque la cuenta estuviera bloqueada.
+            _loginService.Desbloquear(usuario.id);
 
             _context.SaveChanges();
+            _validadorSesion.Invalidar(usuario.id); // revoca los tokens emitidos con la contraseña anterior
 
             _auditoria.Registrar(
                 "USUARIO",
@@ -156,6 +166,7 @@ namespace STAT_Academy.Api.Services
             usuario.intentos_login = 0;
 
             _context.SaveChanges();
+            _validadorSesion.Invalidar(usuario.id); // revoca los tokens emitidos con la contraseña anterior
 
             _auditoria.Registrar(
                 "USUARIO",

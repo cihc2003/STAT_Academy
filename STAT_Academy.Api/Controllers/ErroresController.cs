@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using STAT_Academy.Api.Seguridad;
 using STAT_Academy.Api.Errores;
 
 namespace STAT_Academy.Api.Controllers
@@ -22,6 +24,7 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting(LimitesSolicitudes.ReporteErrores)]
         public IActionResult Reportar([FromBody] ReporteErrorRequest request)
         {
             _logger.LogWarning("Error reportado por la Web: {Tipo} en {Ruta}. TraceId: {TraceId}",
