@@ -15,6 +15,7 @@ namespace STAT_Academy.Web.Controllers
 {
     public class CuentaController : Controller
     {
+
         private readonly ApiUserGateway _apiUserGateway;
         private readonly ApiUsuarioService _apiUsuarioService;
         private readonly ApiContrasenaService _apiContrasenaService;
@@ -260,88 +261,15 @@ namespace STAT_Academy.Web.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        /// <summary>Dirección anterior: el cambio de contraseña ahora vive en el perfil (PerfilController).</summary>
         [Authorize]
         [HttpGet]
         public IActionResult CambiarContrasena()
         {
-            return View();
+            return RedirectToAction("Contrasena", "Perfil");
         }
 
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CambiarContrasena(
-            CambiarContrasenaViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            // La API identifica al usuario por su token; no se envía el id.
-            var resultado = await _apiContrasenaService
-                .CambiarContrasena(model);
-
-            if (!resultado.exitoso)
-            {
-                ModelState.AddModelError("", resultado.mensaje);
-
-                return View(model);
-            }
-
-            // El cambio revoca el token anterior en la API: se guarda el nuevo para que la sesión
-            // siga activa. Si no llegó, se pide iniciar sesión de nuevo.
-            if (resultado.token == null || resultado.expiraEn == null)
-            {
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                TempData["Success"] = resultado.mensaje + " Inicie sesión con la contraseña nueva.";
-                return RedirectToAction(nameof(Login));
-            }
-
-            var principal = new ClaimsPrincipal(new ClaimsIdentity(
-                User.Claims, CookieAuthenticationDefaults.AuthenticationScheme));
-            await IniciarSesionAsync(principal, resultado.token, resultado.expiraEn.Value);
-
-            TempData["Success"] = resultado.mensaje;
-
-            return RedirectToAction(nameof(CambiarContrasena));
-        }
-
-        /// <summary>Crea la cookie de sesión con el JWT de la API (cifrado dentro de la cookie).</summary>
-        private async Task IniciarSesionAsync(ClaimsPrincipal principal, string token, DateTime expiraEnUtc)
-        {
-            var expiraToken = new DateTimeOffset(
-                DateTime.SpecifyKind(expiraEnUtc, DateTimeKind.Utc));
-
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = false,
-                // La sesión nunca dura más que el token de la API.
-                ExpiresUtc = expiraToken < DateTimeOffset.UtcNow.AddMinutes(30)
-                    ? expiraToken
-                    : DateTimeOffset.UtcNow.AddMinutes(30)
-            };
-
-            // BearerTokenHandler lo reenvía a la API en cada petición.
-            authProperties.StoreTokens(new[]
-            {
-                new AuthenticationToken
-                {
-                    Name = BearerTokenHandler.NombreToken,
-                    Value = token
-                },
-                new AuthenticationToken
-                {
-                    Name = "expires_at",
-                    Value = expiraToken.ToString("o")
-                }
-            });
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                principal,
-                authProperties
-            );
-        }
+        private Task IniciarSesionAsync(ClaimsPrincipal principal, string token, DateTime expiraEnUtc) =>
+            SesionWeb.IniciarAsync(HttpContext, principal, token, expiraEnUtc);
     }
 }

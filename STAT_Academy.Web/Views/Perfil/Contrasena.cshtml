@@ -1,0 +1,58 @@
+@model STAT_Academy.Web.Models.Contrasena.CambiarContrasenaViewModel
+
+@{
+    ViewData["Title"] = "Cambiar contraseña";
+}
+
+<section class="section">
+    <div class="container perfil-shell">
+        <partial name="_PerfilNav" />
+
+        <div class="perfil-contenido">
+            <div class="perfil-encabezado">
+                <span class="eyebrow">Seguridad de la cuenta</span>
+                <h1>Cambiar contraseña</h1>
+                <p>Escriba su contraseña actual y después la nueva.</p>
+            </div>
+
+            <div class="card perfil-card">
+                <form asp-action="Contrasena" method="post" class="perfil-form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="contrasenaActual"></label>
+                        <div class="campo-contrasena">
+                            <input asp-for="contrasenaActual" autocomplete="current-password" />
+                            <partial name="_BotonVerContrasena" />
+                        </div>
+                        <span asp-validation-for="contrasenaActual" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="nuevaContrasena"></label>
+                        <div class="campo-contrasena">
+                            <input asp-for="nuevaContrasena" autocomplete="new-password" />
+                            <partial name="_BotonVerContrasena" />
+                        </div>
+                        <span asp-validation-for="nuevaContrasena" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="confirmarContrasena"></label>
+                        <div class="campo-contrasena">
+                            <input asp-for="confirmarContrasena" autocomplete="new-password" />
+                            <partial name="_BotonVerContrasena" />
+                        </div>
+                        <span asp-validation-for="confirmarContrasena" class="text-danger"></span>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Cambiar contraseña</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

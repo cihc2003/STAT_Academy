@@ -99,6 +99,6 @@ public class CarritoController : Controller
         return RedirectToAction("Detalle", "Facturas", new { id = compra.facturaId });
     }
 
-    /// <summary>Enlace anterior al comprobante: ahora vive en "Mis facturas y pagos".</summary>
+    /// <summary>Enlace anterior al comprobante: ahora vive en "Facturas y pedidos".</summary>
     public IActionResult Compra(int id) => RedirectToAction("Detalle", "Facturas", new { id });
 }

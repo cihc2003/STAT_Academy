@@ -1,0 +1,44 @@
+@{
+    // Menú lateral de las páginas del perfil (Mis datos, Contraseña y, para clientes, Facturas y pedidos).
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    var esCliente = User.IsInRole("Cliente");
+
+    var nombre = User.Identity?.Name ?? "";
+    var inicial = string.IsNullOrWhiteSpace(nombre) ? "?" : nombre.Trim()[..1].ToUpperInvariant();
+    var correo = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+
+    var opciones = new List<(string controlador, string accion, string texto, string icono)>
+    {
+        ("Perfil", "Index", "Mis datos", "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21a8 8 0 0 1 16 0\"/>"),
+        ("Perfil", "Contrasena", "Contraseña", "<rect x=\"4\" y=\"11\" width=\"16\" height=\"10\" rx=\"2\"/><path d=\"M8 11V7a4 4 0 0 1 8 0v4\"/>")
+    };
+    if (esCliente)
+    {
+        opciones.Add(("Facturas", "Index", "Facturas y pedidos", "<path d=\"M6 2h12v20l-3-2-3 2-3-2-3 2z\"/><path d=\"M9 7h6\"/><path d=\"M9 11h6\"/><path d=\"M9 15h4\"/>"));
+    }
+}
+
+<aside class="perfil-nav" aria-label="Mi cuenta">
+    <div class="perfil-nav__usuario">
+        <span class="menu-usuario__avatar perfil-nav__avatar" aria-hidden="true">@inicial</span>
+        <div class="perfil-nav__texto">
+            <strong>@nombre</strong>
+            <small>@correo</small>
+        </div>
+    </div>
+
+    <nav class="perfil-nav__links">
+        @foreach (var o in opciones)
+        {
+            var activo = controlador == o.controlador && accion == o.accion;
+            <a asp-controller="@o.controlador" asp-action="@o.accion"
+               class="perfil-nav__link @(activo ? "perfil-nav__link--activo" : "")"
+               aria-current="@(activo ? "page" : null)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(o.icono)</svg>
+                <span>@o.texto</span>
+            </a>
+        }
+    </nav>
+</aside>

@@ -69,6 +69,51 @@ namespace STAT_Academy.Api.Services
         public Task<List<FacturaResumenResponse>> MisFacturas(int usuarioId) =>
             Resumenes(_context.Factura.Where(f => f.fk_Usuario == usuarioId));
 
+        /// <summary>
+        /// Una página de las facturas (compras) de un usuario, paginada y ordenada en la base de datos.
+        /// </summary>
+        /// <param name="orden">recientes (por defecto), antiguas, total_desc o total.</param>
+        public async Task<FacturaPaginaResponse> MisFacturasPaginadas(int usuarioId, string? orden, int pagina, int tamano)
+        {
+            var consulta = _context.Factura.AsNoTracking().Where(f => f.fk_Usuario == usuarioId);
+
+            var total = await consulta.CountAsync();
+            var (paginaReal, tamanoReal, totalPaginas) = PaginaConsulta.Normalizar(pagina, tamano, total, TamanoPaginaMaximo);
+
+            // Por pagar = sin pagar y sin comprobante esperando revisión (PENDIENTE_PAGO o RECHAZADA).
+            var porPagar = await consulta.CountAsync(f => f.pagada != true &&
+                !_context.PedidoPago.Any(p => p.fk_Factura == f.id && p.estado == PedidoPagoModel.Pendiente));
+
+            var facturas = await Ordenar(consulta, orden)
+                .Skip((paginaReal - 1) * tamanoReal)
+                .Take(tamanoReal)
+                .Include(f => f.Detalles)
+                .ToListAsync();
+
+            return new FacturaPaginaResponse
+            {
+                items = await Resumenes(facturas),
+                pagina = paginaReal,
+                tamano = tamanoReal,
+                total = total,
+                totalPaginas = totalPaginas,
+                orden = OrdenFacturas.Normalizar(orden),
+                porPagar = porPagar
+            };
+        }
+
+        public const int TamanoPaginaMaximo = 100;
+
+        /// <summary>Ordena las facturas según <see cref="OrdenFacturas"/>; el id desempata.</summary>
+        public static IQueryable<FacturaModel> Ordenar(IQueryable<FacturaModel> consulta, string? orden) =>
+            OrdenFacturas.Normalizar(orden) switch
+            {
+                OrdenFacturas.Antiguas => consulta.OrderBy(f => f.fecha).ThenBy(f => f.id),
+                OrdenFacturas.TotalMayor => consulta.OrderByDescending(f => f.total).ThenByDescending(f => f.fecha).ThenByDescending(f => f.id),
+                OrdenFacturas.TotalMenor => consulta.OrderBy(f => f.total).ThenByDescending(f => f.fecha).ThenByDescending(f => f.id),
+                _ => consulta.OrderByDescending(f => f.fecha).ThenByDescending(f => f.id)
+            };
+
         /// <summary>Todas las facturas (Admin).</summary>
         public Task<List<FacturaResumenResponse>> Todas() =>
             Resumenes(_context.Factura);
@@ -141,7 +186,7 @@ namespace STAT_Academy.Api.Services
 
         /// <summary>
         /// Envía al comprador el comprobante de su compra con los datos para pagar.
-        /// Un fallo del correo no deshace la compra: la factura queda en "Mis facturas y pagos".
+        /// Un fallo del correo no deshace la compra: la factura queda en "Facturas y pedidos".
         /// </summary>
         public async Task EnviarComprobanteDeCompra(int facturaId)
         {
@@ -449,11 +494,15 @@ namespace STAT_Academy.Api.Services
 
         private async Task<List<FacturaResumenResponse>> Resumenes(IQueryable<FacturaModel> consulta)
         {
-            var facturas = await consulta.AsNoTracking()
+            var facturas = await Ordenar(consulta.AsNoTracking(), null)
                 .Include(f => f.Detalles)
-                .OrderByDescending(f => f.fecha).ThenByDescending(f => f.id)
                 .ToListAsync();
 
+            return await Resumenes(facturas);
+        }
+
+        private async Task<List<FacturaResumenResponse>> Resumenes(List<FacturaModel> facturas)
+        {
             if (facturas.Count == 0)
                 return [];
 

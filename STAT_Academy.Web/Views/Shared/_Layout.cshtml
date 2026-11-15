@@ -14,6 +14,7 @@
 
     var nombre = User.Identity?.Name ?? "";
     var inicial = string.IsNullOrWhiteSpace(nombre) ? "?" : nombre.Trim()[..1].ToUpperInvariant();
+    var correo = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
 }
 <!DOCTYPE html>
 <html lang="es">
@@ -85,13 +86,26 @@
                                 <span class="menu-usuario__avatar" aria-hidden="true">@inicial</span>
                                 <span class="menu-usuario__nombre">@nombre</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end menu-dropdown">
-                                <li><span class="dropdown-item-text small text-muted">@(esAdmin ? "Administrador" : esTutor ? "Tutor" : "Estudiante")</span></li>
+                            @* Menú de perfil: agrupa las opciones de la cuenta (cualquier rol). *@
+                            <ul class="dropdown-menu dropdown-menu-end menu-dropdown menu-perfil">
+                                <li class="menu-perfil__cabecera">
+                                    <span class="menu-usuario__avatar menu-perfil__avatar" aria-hidden="true">@inicial</span>
+                                    <span class="menu-perfil__texto">
+                                        <strong>@nombre</strong>
+                                        @if (!string.IsNullOrEmpty(correo))
+                                        {
+                                            <small>@correo</small>
+                                        }
+                                        <span class="menu-perfil__rol">@(esAdmin ? "Administrador" : esTutor ? "Tutor" : "Estudiante")</span>
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item @Activo("Perfil", "Index")" aria-current="@Actual("Perfil", "Index")" asp-controller="Perfil" asp-action="Index">Mi perfil</a></li>
+                                <li><a class="dropdown-item @Activo("Perfil", "Contrasena")" aria-current="@Actual("Perfil", "Contrasena")" asp-controller="Perfil" asp-action="Contrasena">Cambiar contraseña</a></li>
                                 @if (esCliente)
                                 {
-                                    <li><a class="dropdown-item" asp-controller="Facturas" asp-action="Index">Mis facturas y pagos</a></li>
+                                    <li><a class="dropdown-item @Activo("Facturas")" aria-current="@Actual("Facturas")" asp-controller="Facturas" asp-action="Index">Facturas y pedidos</a></li>
                                 }
-                                <li><a class="dropdown-item" asp-controller="Cuenta" asp-action="CambiarContrasena">Cambiar contraseña</a></li>
                                 <li><hr class="dropdown-divider" /></li>
                                 <li>
                                     <form asp-controller="Cuenta" asp-action="Logout" method="post">
