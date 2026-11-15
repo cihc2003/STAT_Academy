@@ -25,7 +25,7 @@ namespace STAT_Academy.Api.Controllers
 
         [HttpPost]
         [EnableRateLimiting(LimitesSolicitudes.Anonimo)]
-        public IActionResult Login([FromBody] LoginModel model)
+        public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             // Por cuenta: frena la fuerza bruta aunque el atacante cambie de IP.
             if (!_limitador.PermitirLogin(model.email))
@@ -34,9 +34,16 @@ namespace STAT_Academy.Api.Controllers
                     new { message = LimitesSolicitudes.MensajeRechazo });
             }
 
-            var sesion = _loginService.Login(
+            var (resultado, sesion) = await _loginService.LoginAsync(
                 model.email,
                 model.password);
+
+            // Cuenta bloqueada por intentos fallidos: mismo mensaje que el límite por correo.
+            if (resultado == ResultadoLogin.Bloqueado)
+            {
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    new { message = LimitesSolicitudes.MensajeRechazo });
+            }
 
             if (sesion == null)
             {
