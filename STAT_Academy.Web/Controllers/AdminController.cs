@@ -138,7 +138,8 @@ namespace STAT_Academy.Web.Controllers
                 duracionSemanas = curso.duracionSemanas,
                 estado = curso.estado,
                 fechaInicio = curso.fechaInicio,
-                fechaFin = curso.fechaFin
+                fechaFin = curso.fechaFin,
+                ImagenPortadaActual = curso.imagenPortada
             };
 
             await CargarTutores(model.fk_tutor);
@@ -148,29 +149,51 @@ namespace STAT_Academy.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(CursoFormViewModel.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = CursoFormViewModel.MaxBytesPeticion)]
         public async Task<IActionResult> CourseForm(CursoFormViewModel model)
         {
             if (model.fk_tutor <= 0)
                 ModelState.AddModelError(nameof(model.fk_tutor), "Seleccione el tutor del curso.");
 
             if (!ModelState.IsValid)
-            {
-                await CargarTutores(model.fk_tutor);
-                return View(model);
-            }
+                return await VolverAlFormularioCurso(model);
 
             model.fk_creador = UsuarioId;
 
-            var resultado = model.id == null
-                ? await _apiCursos.CrearCursoAsync(model)
-                : await _apiCursos.EditarCursoAsync(model.id.Value, model);
-
-            if (!resultado.ok)
+            int cursoId;
+            if (model.id == null)
             {
-                // Mensaje real de la API (p. ej. "El usuario 3 no tiene rol de tutor.").
-                ModelState.AddModelError("", resultado.message);
-                await CargarTutores(model.fk_tutor);
-                return View(model);
+                var (ok, message, id) = await _apiCursos.CrearCursoAsync(model);
+                if (!ok || id == null)
+                {
+                    // Mensaje real de la API (p. ej. "El usuario 3 no tiene rol de tutor.").
+                    ModelState.AddModelError("", message);
+                    return await VolverAlFormularioCurso(model);
+                }
+                cursoId = id.Value;
+            }
+            else
+            {
+                var (ok, message) = await _apiCursos.EditarCursoAsync(model.id.Value, model);
+                if (!ok)
+                {
+                    ModelState.AddModelError("", message);
+                    return await VolverAlFormularioCurso(model);
+                }
+                cursoId = model.id.Value;
+            }
+
+            // La portada se sube cuando el curso ya existe; si falla, el curso igual queda guardado.
+            if (model.Portada is { Length: > 0 })
+            {
+                var (ok, message) = await _apiCursos.SubirPortadaAsync(cursoId, model.Portada);
+                if (!ok)
+                {
+                    TempData["Error"] = (model.id == null ? "El curso se creó" : "El curso se actualizó")
+                                        + ", pero la portada no: " + message;
+                    return RedirectToAction(nameof(CourseForm), new { id = cursoId });
+                }
             }
 
             TempData["Success"] = model.id == null
@@ -178,6 +201,24 @@ namespace STAT_Academy.Web.Controllers
                 : "Curso actualizado correctamente.";
 
             return RedirectToAction(nameof(Courses));
+        }
+
+        private async Task<IActionResult> VolverAlFormularioCurso(CursoFormViewModel model)
+        {
+            if (model.id != null)
+                model.ImagenPortadaActual = (await _apiCursos.GetCursoByIdAsync(model.id.Value))?.imagenPortada;
+
+            await CargarTutores(model.fk_tutor);
+            return View(nameof(CourseForm), model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuitarPortadaCurso(int id)
+        {
+            var (ok, message) = await _apiCursos.QuitarPortadaAsync(id);
+            TempData[ok ? "Success" : "Error"] = ok ? "Portada eliminada." : message;
+            return RedirectToAction(nameof(CourseForm), new { id });
         }
 
         [HttpPost]

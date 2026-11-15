@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Web.Helpers;
 using STAT_Academy.Web.Models;
@@ -40,8 +40,9 @@ namespace STAT_Academy.Web.Controllers
                     PropertyNameCaseInsensitive = true
                 }) ?? [];
 
-            // El catálogo es público: solo cursos activos (un Admin recibe también inactivos de la API).
-            var visibles = cursos.Where(c => c.Estado).ToList();
+            // El catálogo es público: solo cursos activos que no han iniciado. La API ya los filtra,
+            // pero a un Admin le devuelve todos.
+            var visibles = cursos.Where(c => c.Estado && c.InscripcionAbierta).ToList();
             ViewData["Total"] = visibles.Count;
 
             return View(visibles

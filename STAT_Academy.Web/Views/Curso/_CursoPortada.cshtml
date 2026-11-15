@@ -1,0 +1,15 @@
+@model STAT_Academy.Web.Models.CursoModel
+
+@* Portada del curso o, si no tiene, un respaldo con sus iniciales (el color depende del id). *@
+<div class="curso-portada">
+    @if (!string.IsNullOrEmpty(Model.ImagenPortada))
+    {
+        <img src="@Model.ImagenPortada" alt="" loading="lazy" />
+    }
+    else
+    {
+        <div class="curso-portada__respaldo curso-portada__respaldo--@(Model.Id % 4)" aria-hidden="true">
+            <span>@Formato.Iniciales(Model.Nombre)</span>
+        </div>
+    }
+</div>

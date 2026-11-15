@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Services;
@@ -21,8 +21,8 @@ namespace STAT_Academy.Api.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            // El catálogo público solo muestra cursos activos; Admin ve todos.
-            return Ok(_service.GetAll(incluirInactivos: EsAdmin));
+            // El catálogo público solo muestra cursos activos que no han iniciado; Admin ve todos.
+            return Ok(_service.GetAll(esAdmin: EsAdmin));
         }
 
         [AllowAnonymous]
@@ -37,7 +37,8 @@ namespace STAT_Academy.Api.Controllers
             if (curso == null || (!curso.estado && !EsAdmin && !esSuTutor))
                 return NotFound();
 
-            return Ok(curso);
+            // Un curso ya iniciado sí se puede consultar (inscripcionAbierta = false).
+            return Ok(_service.GetResponse(id));
         }
 
         // La duración del curso se calcula con las fechas, así que deben ser coherentes.
@@ -72,6 +73,31 @@ namespace STAT_Academy.Api.Controllers
 
             return Ok(curso);
         }
+
+        // ---------------------------------------------------------------
+        // Portada (una sola imagen por curso; subir otra la reemplaza)
+        // ---------------------------------------------------------------
+
+        [HttpPost("{id:int}/portada")]
+        [RequestSizeLimit(BlogArchivoValidador.MaxBytesImagen + 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = BlogArchivoValidador.MaxBytesImagen + 1024 * 1024)]
+        public async Task<IActionResult> SubirPortada(int id, [FromForm] IFormFile? imagen, CancellationToken ct)
+        {
+            var (curso, error) = await _service.CambiarPortada(id, imagen, UsuarioActualEmail, ct);
+
+            if (curso == null)
+                return error == "El curso no existe."
+                    ? NotFound(new { message = error })
+                    : BadRequest(new { message = error });
+
+            return Ok(curso);
+        }
+
+        [HttpDelete("{id:int}/portada")]
+        public async Task<IActionResult> QuitarPortada(int id) =>
+            await _service.QuitarPortada(id, UsuarioActualEmail)
+                ? Ok(new { message = "Portada eliminada." })
+                : NotFound(new { message = "El curso no tiene portada." });
 
         [HttpPatch("activar/{id}")]
         public IActionResult Activar(int id)

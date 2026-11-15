@@ -184,6 +184,11 @@ namespace STAT_Academy.Api.Services
             if (pendiente != null)
                 return (pendiente, null, true);
 
+            // Una compra pendiente hecha antes del inicio se puede terminar de pagar,
+            // pero un curso que ya inició no acepta compras nuevas.
+            if (!curso.inscripcionAbierta)
+                return (null, "Este curso ya inició y no acepta nuevas inscripciones.", false);
+
             var factura = new FacturaModel
             {
                 fk_Usuario = usuarioId,

@@ -1,4 +1,4 @@
-﻿using STAT_Academy.Api.Data;
+using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.DTOs.EstudianteCurso;
 
@@ -48,6 +48,10 @@ namespace STAT_Academy.Api.Services
 
             // Verificar que el curso esté activo
             if (!curso.estado)
+                return false;
+
+            // Un curso que ya inició no acepta inscripciones nuevas.
+            if (!curso.inscripcionAbierta)
                 return false;
 
             // Un curso de pago no se puede inscribir sin pagar.

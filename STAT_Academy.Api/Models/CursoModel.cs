@@ -41,6 +41,16 @@ namespace STAT_Academy.Api.Models
         [NotMapped]
         public int duracionSemanas => CalcularSemanas(fechaInicio, fechaFin);
 
+        /// <summary>Fecha de hoy en Costa Rica (UTC-6, sin horario de verano).</summary>
+        public static DateTime HoyCostaRica => DateTime.UtcNow.AddHours(-6).Date;
+
+        /// <summary>
+        /// Se puede comprar o matricular mientras el curso esté activo y no haya iniciado
+        /// (un curso que inicia hoy todavía acepta inscripciones).
+        /// </summary>
+        [NotMapped]
+        public bool inscripcionAbierta => estado && fechaInicio.Date >= HoyCostaRica;
+
         public static int CalcularSemanas(DateTime inicio, DateTime fin)
         {
             var dias = (fin.Date - inicio.Date).TotalDays + 1;

@@ -1,99 +1,81 @@
 ﻿@model STAT_Academy.Web.Models.CursoModel
 
 @{
-    ViewData["Title"] = "Detalle";
+    ViewData["Title"] = Model.Nombre;
+    var esPago = Model.Precio_Base > 0;
+    var semanas = Model.Duracion_Semanas;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 
-<div class="container mt-4">
-
-    <div class="card shadow">
-
-        <div class="card-header">
-
-            <h2>@Model.Nombre</h2>
-
+<section class="curso-hero">
+    <div class="catalogo-ancho curso-hero__grid">
+        <div class="curso-hero__texto">
+            <a asp-action="Index" class="curso-hero__volver">← Cursos</a>
+            <h1>@Model.Nombre</h1>
         </div>
+        <partial name="_CursoPortada" model="Model" />
+    </div>
+</section>
 
-        <div class="card-body">
+<section class="catalogo-ancho curso-detalle">
+    <article class="curso-detalle__descripcion">
+        <h2>Sobre el curso</h2>
+        <p>@Model.Descripcion</p>
+    </article>
 
-            <h5>Descripción</h5>
+    <aside class="curso-compra" aria-label="Inscripción">
+        <div class="curso-compra__precio">@(esPago ? Formato.Colones(Model.Precio_Base) : "Gratis")</div>
 
-            <p>@Model.Descripcion</p>
-
-            <hr />
-
-            <p>
-
-                <strong>Precio:</strong>
-
-                @Formato.Colones(Model.Precio_Base)
-
-            </p>
-
-            <p>
-
-                <strong>Duración:</strong>
-
-                @Model.Duracion_Semanas semanas
-
-            </p>
-
-            <p>
-
-                <strong>Inicio:</strong>
-
-                @Model.Fecha_Inicio.ToShortDateString()
-
-            </p>
-
-            <p>
-
-                <strong>Finaliza:</strong>
-
-                @Model.Fecha_Fin.ToShortDateString()
-
-            </p>
-
-        </div>
-
-        <div class="card-footer">
-
-            @if (Model.Precio_Base > 0)
+        <dl class="curso-compra__datos">
+            <div>
+                <dt>Inicio</dt>
+                <dd>@Formato.FechaLarga(Model.Fecha_Inicio)</dd>
+            </div>
+            <div>
+                <dt>Fin</dt>
+                <dd>@Formato.FechaLarga(Model.Fecha_Fin)</dd>
+            </div>
+            <div>
+                <dt>Duración</dt>
+                <dd>@semanas @(semanas == 1 ? "semana" : "semanas")</dd>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.TutorNombre))
             {
-                @* Curso de pago: se compra y el acceso se habilita al aprobarse el pago. *@
-                @if (User.IsInRole("Cliente"))
-                {
-                    <form asp-controller="Facturas" asp-action="ComprarCurso" method="post" class="d-inline"
-                          onsubmit="this.querySelector('button').disabled = true;">
-                        <input type="hidden" name="cursoId" value="@Model.Id" />
-                        <button class="btn btn-success" type="submit">Comprar curso · @Formato.Colones(Model.Precio_Base)</button>
-                    </form>
-                }
-                else if (User.Identity?.IsAuthenticated != true)
-                {
-                    <a class="btn btn-success" asp-controller="Cuenta" asp-action="Login">Inicia sesión para comprar</a>
-                }
+                <div>
+                    <dt>Tutor</dt>
+                    <dd>@Model.TutorNombre</dd>
+                </div>
+            }
+        </dl>
+
+        @if (!Model.InscripcionAbierta)
+        {
+            <div class="curso-compra__aviso" role="status">
+                Este curso ya inició y no acepta nuevas inscripciones.
+            </div>
+        }
+        else if (User.Identity?.IsAuthenticated != true)
+        {
+            <a class="btn btn-primary w-100" asp-controller="Cuenta" asp-action="Login" asp-route-returnUrl="@returnUrl">
+                Inicia sesión para inscribirte
+            </a>
+        }
+        else if (User.IsInRole("Cliente"))
+        {
+            if (esPago)
+            {
+                @* Curso de pago: se genera la factura y el acceso se habilita al aprobarse el pago. *@
+                <form asp-controller="Facturas" asp-action="ComprarCurso" method="post"
+                      onsubmit="this.querySelector('button').disabled = true;">
+                    <input type="hidden" name="cursoId" value="@Model.Id" />
+                    <button class="btn btn-primary w-100" type="submit">Comprar curso</button>
+                </form>
+                <p class="curso-compra__nota">Tendrás acceso al curso cuando se apruebe el pago.</p>
             }
             else
             {
-                <a asp-action="Inscribirse"
-                   asp-route-idCurso="@Model.Id"
-                   class="btn btn-success">
-
-                    Inscribirme
-
-                </a>
+                <a asp-action="Inscribirse" asp-route-idCurso="@Model.Id" class="btn btn-primary w-100">Inscribirme</a>
             }
-
-            <a asp-action="Index"
-               class="btn btn-secondary">
-
-                Regresar
-
-            </a>
-
-        </div>
-
-    </div>
-
-</div>
+        }
+    </aside>
+</section>

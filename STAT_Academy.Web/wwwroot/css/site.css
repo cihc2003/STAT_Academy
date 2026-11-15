@@ -2450,3 +2450,385 @@ main .auth-brand__titulo {
     .ver-contrasena[aria-pressed="true"] .ver-contrasena__tachado {
         display: block;
     }
+
+/* =====================================================================
+   Cursos (cliente): catálogo a página completa, tarjetas con portada,
+   detalle del curso y campo de portada en el formulario de Admin
+   ===================================================================== */
+
+.catalogo-ancho {
+    width: min(1440px, calc(100% - 2 * clamp(16px, 4vw, 56px)));
+    margin: 0 auto;
+}
+
+.catalogo-hero,
+.curso-hero {
+    color: var(--white);
+    background: radial-gradient(circle at 85% 10%, rgba(100, 215, 255, 0.22), transparent 34%), linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+
+.catalogo-hero {
+    padding: 56px 0 64px;
+}
+
+    .catalogo-hero .eyebrow {
+        color: var(--sky);
+    }
+
+    .catalogo-hero h1 {
+        margin: 6px 0 24px;
+        font-size: clamp(2.2rem, 5vw, 3.4rem);
+        line-height: 1.05;
+    }
+
+.catalogo-buscar {
+    display: flex;
+    gap: 10px;
+    max-width: 620px;
+}
+
+    .catalogo-buscar .form-control {
+        min-height: 52px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 14px;
+        font-size: 1rem;
+    }
+
+    .catalogo-buscar .btn {
+        flex: 0 0 auto;
+        min-height: 52px;
+    }
+
+.catalogo-cuerpo {
+    min-height: 50vh;
+    padding: 28px 0 80px;
+    background: var(--light);
+}
+
+.catalogo-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    align-items: baseline;
+    min-height: 1.6em;
+    margin-bottom: 20px;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+    .catalogo-resumen a {
+        color: var(--electric);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+.catalogo-vacio {
+    padding: 48px 24px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    background: var(--white);
+    text-align: center;
+}
+
+.curso-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+}
+
+.curso-tarjeta {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--navy);
+    text-decoration: none;
+    box-shadow: 0 6px 18px rgba(7, 27, 58, 0.06);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+    .curso-tarjeta:hover,
+    .curso-tarjeta:focus-visible {
+        color: var(--navy);
+        transform: translateY(-4px);
+        border-color: rgba(23, 107, 255, 0.35);
+        box-shadow: var(--shadow);
+    }
+
+    .curso-tarjeta:focus-visible {
+        outline: 3px solid var(--sky);
+        outline-offset: 2px;
+    }
+
+    .curso-tarjeta:hover .curso-portada img {
+        transform: scale(1.04);
+    }
+
+.curso-tarjeta__cuerpo {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 20px 20px;
+}
+
+.curso-tarjeta__nombre {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1.12rem;
+    font-weight: 800;
+    line-height: 1.3;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.curso-tarjeta__precio {
+    margin-top: auto;
+    color: var(--electric);
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+/* Portada (tarjeta y detalle) con respaldo cuando no hay imagen */
+.curso-portada {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--light);
+}
+
+    .curso-portada img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+.curso-portada__respaldo {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.92);
+    background: linear-gradient(135deg, var(--navy-2), var(--electric));
+}
+
+    .curso-portada__respaldo span {
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: 0.04em;
+    }
+
+.curso-portada__respaldo--1 {
+    background: linear-gradient(135deg, var(--electric), #6d5dfc);
+}
+
+.curso-portada__respaldo--2 {
+    background: linear-gradient(135deg, var(--navy), #1f8fbf);
+}
+
+.curso-portada__respaldo--3 {
+    background: linear-gradient(135deg, #4b3bb5, var(--sky));
+}
+
+/* Detalle del curso */
+.curso-hero {
+    padding: 40px 0 48px;
+}
+
+.curso-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+    gap: 40px;
+    align-items: center;
+}
+
+.curso-hero__volver {
+    display: inline-block;
+    margin-bottom: 14px;
+    color: var(--sky);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+    .curso-hero__volver:hover {
+        color: var(--white);
+    }
+
+.curso-hero h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+}
+
+.curso-hero .curso-portada {
+    border-radius: var(--radius);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.3);
+}
+
+.curso-detalle {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 40px;
+    align-items: start;
+    padding: 44px 0 80px;
+}
+
+.curso-detalle__descripcion h2 {
+    margin: 0 0 14px;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.curso-detalle__descripcion p {
+    max-width: 760px;
+    margin: 0;
+    color: #34445c;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.curso-compra {
+    position: sticky;
+    top: 96px;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+.curso-compra__precio {
+    margin-bottom: 18px;
+    color: var(--navy);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.curso-compra__datos {
+    margin: 0 0 22px;
+}
+
+    .curso-compra__datos > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 0;
+        border-top: 1px solid var(--line);
+    }
+
+    .curso-compra__datos dt {
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .curso-compra__datos dd {
+        margin: 0;
+        font-weight: 700;
+        text-align: right;
+    }
+
+.curso-compra__aviso {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: #fff4e0;
+    color: #7a4b00;
+    font-weight: 600;
+}
+
+.curso-compra__nota {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-align: center;
+}
+
+@media (max-width: 992px) {
+    .curso-hero__grid,
+    .curso-detalle {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
+
+    .curso-hero__grid .curso-portada {
+        max-width: 640px;
+    }
+
+    /* En pantallas angostas, precio e inscripción antes de la descripción. */
+    .curso-compra {
+        position: static;
+        order: -1;
+    }
+
+    .curso-detalle {
+        padding-top: 28px;
+    }
+}
+
+@media (max-width: 576px) {
+    .catalogo-hero {
+        padding: 36px 0 40px;
+    }
+
+    .catalogo-buscar .btn {
+        padding: 0 16px;
+    }
+
+    .curso-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .curso-hero {
+        padding: 28px 0 32px;
+    }
+}
+
+/* Formulario de Admin: vista previa de la portada */
+.portada-campo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.portada-campo__vista {
+    display: grid;
+    flex: 0 0 240px;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--light);
+}
+
+    .portada-campo__vista img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.portada-campo__vacio {
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.portada-campo__controles {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+    .portada-campo__controles .btn-outline-danger {
+        min-height: 36px;
+        border: 1px solid #dc3545;
+    }

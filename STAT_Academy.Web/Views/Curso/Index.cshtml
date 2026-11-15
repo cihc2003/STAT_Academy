@@ -7,74 +7,52 @@
     var filtrando = !string.IsNullOrWhiteSpace(buscar);
 }
 
-<section class="section">
-    <div class="container">
-        <div class="section-heading">
-            <span class="eyebrow">Formación</span>
-            <h1>Cursos disponibles</h1>
-            <p>Encuentra el curso que necesitas y matricúlate en línea.</p>
-        </div>
+<section class="catalogo-hero">
+    <div class="catalogo-ancho">
+        <span class="eyebrow">Formación</span>
+        <h1>Cursos</h1>
 
-        <form method="get" asp-action="Index" class="filtros" role="search" aria-label="Buscar cursos">
-            <div class="filtros__campo filtros__campo--ancho">
-                <label for="buscar" class="form-label">Nombre del curso</label>
-                <input id="buscar" name="buscar" type="search" class="form-control" value="@buscar"
-                       placeholder="Ej.: SQL, RCP…" autocomplete="off" />
-            </div>
-            <div class="filtros__acciones">
-                <button type="submit" class="btn btn-primary">Buscar</button>
-                @if (filtrando)
-                {
-                    <a asp-action="Index" class="btn btn-outline-secondary">Limpiar</a>
-                }
-            </div>
+        <form method="get" asp-action="Index" class="catalogo-buscar" role="search" aria-label="Buscar cursos">
+            <label for="buscar" class="visually-hidden">Buscar por nombre</label>
+            <input id="buscar" name="buscar" type="search" class="form-control" value="@buscar"
+                   placeholder="Buscar por nombre" autocomplete="off" />
+            <button type="submit" class="btn btn-primary">Buscar</button>
         </form>
+    </div>
+</section>
 
-        <p class="filtros__resumen" aria-live="polite">
+<section class="catalogo-cuerpo">
+    <div class="catalogo-ancho">
+        <div class="catalogo-resumen" aria-live="polite">
             @if (filtrando)
             {
-                <text>@Model.Count() de @total cursos coinciden con «@buscar».</text>
+                <span>@Model.Count() de @total @(total == 1 ? "curso" : "cursos") para «@buscar»</span>
+                <a asp-action="Index">Ver todos</a>
             }
-            else
+            else if (total > 0)
             {
-                <text>@total @(total == 1 ? "curso disponible" : "cursos disponibles").</text>
+                <span>@total @(total == 1 ? "curso disponible" : "cursos disponibles")</span>
             }
-        </p>
+        </div>
 
         @if (!Model.Any())
         {
-            <div class="info-block">
-                <h2 class="h5">@(filtrando ? "No encontramos cursos con ese nombre" : "Todavía no hay cursos disponibles")</h2>
-                @if (filtrando)
-                {
-                    <p class="mb-2">Prueba con otra palabra o revisa la ortografía.</p>
-                    <a asp-action="Index" class="btn btn-outline-primary btn-sm">Ver todos los cursos</a>
-                }
+            <div class="catalogo-vacio">
+                <h2 class="h5 mb-0">@(filtrando ? "No hay cursos con ese nombre" : "Pronto habrá nuevos cursos")</h2>
             </div>
         }
         else
         {
-            <div class="card-grid three">
+            <div class="curso-grid">
                 @foreach (var item in Model)
                 {
-                    <article class="card p-4 curso-card">
-                        <h3>@item.Nombre</h3>
-                        <p class="text-muted">@item.Descripcion</p>
-
-                        <div class="course-meta">
-                            <span>Duración</span>
-                            <strong>@item.Duracion_Semanas @(item.Duracion_Semanas == 1 ? "semana" : "semanas")</strong>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="curso-tarjeta">
+                        <partial name="_CursoPortada" model="item" />
+                        <div class="curso-tarjeta__cuerpo">
+                            <h2 class="curso-tarjeta__nombre">@item.Nombre</h2>
+                            <span class="curso-tarjeta__precio">@(item.Precio_Base > 0 ? Formato.Colones(item.Precio_Base) : "Gratis")</span>
                         </div>
-                        <div class="course-meta">
-                            <span>Inicio</span>
-                            <strong>@item.Fecha_Inicio.ToString("dd/MM/yyyy")</strong>
-                        </div>
-
-                        <div class="curso-card__pie">
-                            <strong class="producto-card__precio">@Formato.Colones(item.Precio_Base)</strong>
-                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-primary btn-sm">Ver curso</a>
-                        </div>
-                    </article>
+                    </a>
                 }
             </div>
         }
