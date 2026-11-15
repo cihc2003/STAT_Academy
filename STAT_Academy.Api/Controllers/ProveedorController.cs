@@ -49,7 +49,7 @@ namespace STAT_Academy.Api.Controllers
                 var result = _service.Desactivar(id);
 
                 if (result == null)
-                    return NotFound($"Proveedor con id {id} no existe");
+                    return NotFound("El proveedor no existe.");
 
                 return Ok(result);
             }

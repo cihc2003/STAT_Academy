@@ -204,3 +204,27 @@
         });
     });
 })();
+
+// Avisos de resultado (toast): los de éxito se ocultan solos; los de error quedan hasta cerrarlos.
+(function () {
+    "use strict";
+
+    if (!window.bootstrap || !window.bootstrap.Toast) return;
+
+    document.querySelectorAll(".aviso-toast").forEach(function (el) {
+        var toast = window.bootstrap.Toast.getOrCreateInstance(el);
+        toast.show();
+        el.addEventListener("hidden.bs.toast", function () { el.remove(); });
+    });
+})();
+
+// Filtros del panel: los selectores con data-autoenviar aplican el filtro al cambiar.
+(function () {
+    "use strict";
+
+    document.addEventListener("change", function (e) {
+        var campo = e.target;
+        if (!campo.matches || !campo.matches("select[data-autoenviar]") || !campo.form) return;
+        campo.form.requestSubmit();
+    });
+})();

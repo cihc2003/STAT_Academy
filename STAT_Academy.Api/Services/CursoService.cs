@@ -73,13 +73,13 @@ namespace STAT_Academy.Api.Services
                 .FirstOrDefault();
 
             if (tutor == null)
-                return $"No existe un usuario con id {fkTutor}.";
+                return "El tutor seleccionado no existe. Elija otro tutor.";
 
             if (tutor.fk_Tipo_Usuario != 2)
-                return $"El usuario {fkTutor} no tiene rol de tutor.";
+                return "La persona seleccionada no tiene rol de tutor. Elija otro tutor.";
 
             if (!tutor.estado)
-                return $"El tutor {fkTutor} está inactivo.";
+                return "El tutor seleccionado está inactivo. Elija otro tutor.";
 
             return null;
         }

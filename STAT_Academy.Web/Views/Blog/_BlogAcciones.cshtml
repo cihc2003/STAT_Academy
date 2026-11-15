@@ -16,9 +16,10 @@
 {
     if (Model.Estado)
     {
-        <form asp-action="Desactivar" asp-route-id="@Model.Id" method="post" class="d-inline">
-            <button type="submit" class="btn btn-outline-danger btn-sm"
-                    onclick="return confirm('¿Desactivar esta entrada? Dejará de verse para los clientes.');">
+        <form asp-action="Desactivar" asp-route-id="@Model.Id" method="post" class="d-inline"
+              data-confirmar="¿Desactivar esta entrada? Dejará de verse para los clientes."
+              data-confirmar-boton="Desactivar" data-confirmar-peligro>
+            <button type="submit" class="btn btn-outline-danger btn-sm">
                 Desactivar
             </button>
         </form>

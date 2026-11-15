@@ -23,7 +23,7 @@
         }
         else
         {
-            <div class="table-card mb-5">
+            <div class="table-card panel-tabla mb-5">
                 <table class="table align-middle mb-0">
                     <thead>
                         <tr>
@@ -31,7 +31,7 @@
                             <th>Fecha límite</th>
                             <th>Entregas</th>
                             <th>Calificadas</th>
-                            <th class="text-end">Acciones</th>
+                            <th><span class="visually-hidden">Acciones</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,7 +40,7 @@
                             var porCalificar = t.Entregas - t.Calificadas;
 
                             <tr class="@(t.Estado ? "" : "tutor-fila--oculta")">
-                                <td>
+                                <td class="panel-tabla__principal">
                                     <strong>@t.Titulo</strong>
                                     @if (!t.Estado)
                                     {
@@ -51,22 +51,22 @@
                                         <div class="text-muted small">@t.Descripcion</div>
                                     }
                                 </td>
-                                <td>
+                                <td data-label="Fecha límite">
                                     @(t.FechaLimite?.ToString("dd/MM/yyyy HH:mm") ?? "—")
                                     @if (t.Vencida)
                                     {
                                         <div class="small text-muted">Cerrada</div>
                                     }
                                 </td>
-                                <td>@t.Entregas / @t.Estudiantes</td>
-                                <td>
+                                <td data-label="Entregas">@t.Entregas / @t.Estudiantes</td>
+                                <td data-label="Calificadas">
                                     @t.Calificadas
                                     @if (porCalificar > 0)
                                     {
                                         <span class="status-pill tutor-pill--alerta ms-1">@porCalificar pendientes</span>
                                     }
                                 </td>
-                                <td class="text-end text-nowrap">
+                                <td class="panel-tabla__acciones">
                                     <a class="btn btn-sm btn-outline-primary" asp-action="Entregas" asp-route-id="@t.Id">Ver entregas</a>
                                     <a class="btn btn-sm btn-link" asp-action="EditarTarea" asp-route-id="@t.Id">Editar</a>
                                     <form asp-action="EstadoTarea" method="post" class="d-inline">
@@ -109,11 +109,11 @@
                                 {
                                     <a asp-action="Material" asp-route-id="@m.Id" data-sin-carga>@m.Titulo</a>
                                 }
-                                <form asp-action="QuitarMaterial" method="post" class="ms-auto">
+                                <form asp-action="QuitarMaterial" method="post" class="ms-auto"
+                                      data-confirmar="¿Quitar «@m.Titulo» del material del curso?" data-confirmar-boton="Quitar" data-confirmar-peligro>
                                     <input type="hidden" name="id" value="@m.Id" />
                                     <input type="hidden" name="cursoId" value="@Model.Curso.Id" />
-                                    <button type="submit" class="btn btn-link btn-sm p-0 text-danger"
-                                            onclick="return confirm('¿Quitar este material del curso?');">Quitar</button>
+                                    <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Quitar</button>
                                 </form>
                             </li>
                         }

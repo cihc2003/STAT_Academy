@@ -1,121 +1,161 @@
-﻿@model IEnumerable<STAT_Academy.Web.Models.Admin.CursoAdminResponse>
+@model IEnumerable<STAT_Academy.Web.Models.Admin.CursoAdminResponse>
 
 @{
     ViewData["Title"] = "Cursos";
+    var q = Context.Request.Query;
+    var buscar = FiltrosPanel.Valor(q, "search");
+    var estado = FiltrosPanel.Valor(q, "estado");
+    var periodo = FiltrosPanel.Valor(q, "periodo");
+    var periodos = new[] { ("proximos", "Próximos"), ("en-curso", "En curso"), ("finalizados", "Finalizados") };
+    var periodoTexto = periodos.FirstOrDefault(p => p.Item1 == periodo).Item2;
+    var totalCursos = (int)(ViewBag.TotalCursos ?? 0);
+    var hayFiltros = buscar != null || estado != null || periodoTexto != null;
+    var cantidad = ((Paginacion)ViewBag.Paginacion).Total;
 }
 
 <div class="container admin-shell">
     <partial name="_AdminNav" />
 
     <section>
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="panel-encabezado">
             <div>
                 <span class="eyebrow">Administración</span>
                 <h1>Cursos</h1>
+                <p>Oferta académica: precios, fechas, tutores y portadas.</p>
             </div>
-
-            <a class="btn btn-primary" asp-action="CourseForm">
-                Agregar curso
-            </a>
+            <div class="panel-encabezado__acciones">
+                <a class="btn btn-primary" asp-action="CourseForm">+ Agregar curso</a>
+            </div>
         </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success">@TempData["Success"]</div>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger">@TempData["Error"]</div>
-        }
-
-        <form class="row g-2 mb-3" method="get" asp-action="Courses">
-            <div class="col-md-10">
-                <input class="form-control"
-                       name="search"
-                       value="@Context.Request.Query["search"]"
-                       placeholder="Buscar por nombre o descripción" />
+        <form class="panel-filtros" method="get" asp-action="Courses" role="search">
+            <div class="panel-filtros__buscar">
+                <label class="panel-filtros__etiqueta" for="search">Buscar</label>
+                <svg class="panel-filtros__lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                <input class="form-control" id="search" name="search" type="search" value="@buscar"
+                       placeholder="Nombre o descripción del curso" maxlength="100" />
             </div>
-
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100" type="submit">Filtrar</button>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="periodo">Periodo</label>
+                <select class="form-select @FiltrosPanel.Activo(periodoTexto)" id="periodo" name="periodo" data-autoenviar>
+                    <option value="">Todos</option>
+                    @foreach (var (valor, texto) in periodos)
+                    {
+                        <option value="@valor" selected="@(periodo == valor)">@texto</option>
+                    }
+                </select>
+            </div>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="estado">Estado</label>
+                <select class="form-select @FiltrosPanel.Activo(estado)" id="estado" name="estado" data-autoenviar>
+                    <option value="">Todos</option>
+                    <option value="true" selected="@(estado == "true")">Activos</option>
+                    <option value="false" selected="@(estado == "false")">Inactivos</option>
+                </select>
+            </div>
+            @if (FiltrosPanel.Valor(q, "tamano") is string tamano)
+            {
+                <input type="hidden" name="tamano" value="@tamano" />
+            }
+            <div class="panel-filtros__acciones">
+                <button class="btn btn-primary" type="submit">Buscar</button>
             </div>
         </form>
 
-        <div class="table-card">
+        <div class="panel-resultados" aria-live="polite">
+            <span><strong>@cantidad</strong> de @totalCursos @(totalCursos == 1 ? "curso" : "cursos")</span>
+            @if (buscar != null)
+            {
+                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "search")" title="Quitar filtro">«@buscar» <span aria-hidden="true">×</span></a>
+            }
+            @if (periodoTexto != null)
+            {
+                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "periodo")" title="Quitar filtro">@periodoTexto <span aria-hidden="true">×</span></a>
+            }
+            @if (estado != null)
+            {
+                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "estado")" title="Quitar filtro">@(estado == "true" ? "Activos" : "Inactivos") <span aria-hidden="true">×</span></a>
+            }
+            @if (hayFiltros)
+            {
+                <a class="panel-resultados__limpiar" asp-action="Courses">Limpiar filtros</a>
+            }
+        </div>
+
+        <div class="table-card panel-tabla">
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Id</th>
-                        <th>Nombre</th>
-                        <th>Precio</th>
-                        <th>Duración</th>
-                        <th>Estado</th>
-                        <th>Inicio</th>
-                        <th>Fin</th>
-                        <th></th>
+                        <th scope="col">Curso</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Fechas</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col"><span class="visually-hidden">Acciones</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                No se encontraron cursos.
+                            <td colspan="5" class="panel-tabla__vacio">
+                                <strong>No se encontraron cursos.</strong>
+                                @(!hayFiltros ? "Agregue el primero con el botón «Agregar curso»." : "Pruebe con otros filtros.")
                             </td>
                         </tr>
                     }
-                    else
-                    {
-                        foreach (var curso in Model)
-                        {
-                            <tr>
-                                <td>@curso.id</td>
-                                <td>
-                                    <strong>@curso.nombre</strong>
-                                    <div class="text-muted small">@curso.descripcion</div>
-                                </td>
-                                <td>@Formato.Colones(curso.precio)</td>
-                                <td>@curso.duracionSemanas semanas</td>
-                                <td>
-                                    <span class="status-pill">
-                                        @(curso.estado ? "Activo" : "Inactivo")
-                                    </span>
-                                </td>
-                                <td>@curso.fechaInicio.ToString("dd/MM/yyyy")</td>
-                                <td>@curso.fechaFin.ToString("dd/MM/yyyy")</td>
-                                <td class="text-end">
-                                    <a class="btn btn-sm btn-outline-primary"
-                                       asp-action="CourseForm"
-                                       asp-route-id="@curso.id">
-                                        Editar
-                                    </a>
 
-                                    <form asp-action="ToggleCourse"
-                                          asp-route-id="@curso.id"
-                                          method="post"
-                                          class="d-inline"
-                                          onsubmit="return confirm('¿Deseas cambiar el estado de este curso?');">
-                                        @Html.AntiForgeryToken()
-                                        @if (curso.estado)
-                                        {
-                                            <button class="btn btn-sm btn-outline-danger" type="submit">
-                                                Desactivar
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn btn-sm btn-outline-success" type="submit">
-                                                Activar
-                                            </button>
-                                        }
-                                    </form>
-                                </td>
-                            </tr>
-                        }
+                    @foreach (var curso in Model)
+                    {
+                        <tr class="@(curso.estado ? "" : "usuarios-fila--inactiva")">
+                            <td class="panel-tabla__principal">
+                                <div class="panel-celda">
+                                    <span class="panel-celda__icono" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2 9 2 12 0v-5" /></svg>
+                                    </span>
+                                    <div class="panel-celda__texto">
+                                        <a class="panel-celda__nombre" asp-action="CourseForm" asp-route-id="@curso.id">@curso.nombre</a>
+                                        <span class="panel-celda__sub">@curso.descripcion</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Precio"><span class="panel-dato">@Formato.Colones(curso.precio)</span></td>
+                            <td data-label="Fechas">
+                                <span>
+                                    <span class="panel-dato">@curso.fechaInicio.ToString("dd/MM/yyyy") – @curso.fechaFin.ToString("dd/MM/yyyy")</span>
+                                    <span class="panel-dato__sub">@curso.duracionSemanas @(curso.duracionSemanas == 1 ? "semana" : "semanas")</span>
+                                </span>
+                            </td>
+                            <td data-label="Estado">
+                                <span class="usuario-estado @(curso.estado ? "usuario-estado--activo" : "usuario-estado--inactivo")">
+                                    @(curso.estado ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td class="panel-tabla__acciones">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="CourseForm" asp-route-id="@curso.id"
+                                   aria-label="Editar @curso.nombre">Editar</a>
+                                <form asp-action="ToggleCourse" asp-route-id="@curso.id" method="post" class="d-inline"
+                                      data-confirmar="@(curso.estado
+                                          ? $"¿Desactivar el curso «{curso.nombre}»? Dejará de mostrarse en el catálogo."
+                                          : $"¿Activar el curso «{curso.nombre}»? Volverá a mostrarse en el catálogo.")"
+                                      data-confirmar-boton="@(curso.estado ? "Desactivar" : "Activar")"
+                                      data-confirmar-peligro="@(curso.estado ? "" : null)">
+                                    @Html.AntiForgeryToken()
+                                    @if (curso.estado)
+                                    {
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Desactivar</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" type="submit">Activar</button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
         </div>
+        <partial name="_PanelPaginacion" model="(Paginacion)ViewBag.Paginacion" />
     </section>
 </div>
+

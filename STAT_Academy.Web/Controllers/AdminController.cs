@@ -52,7 +52,10 @@ namespace STAT_Academy.Web.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Courses(string? search)
+        /// <param name="search">Nombre o descripción.</param>
+        /// <param name="estado">true: activos; false: inactivos.</param>
+        /// <param name="periodo">"proximos", "en-curso" o "finalizados" (según las fechas, en hora de Costa Rica).</param>
+        public async Task<IActionResult> Courses(string? search, bool? estado, string? periodo, int pagina = 1, int tamano = 10)
         {
             var cursos = await _apiCursos.GetCursosAsync() ?? [];
 
@@ -70,14 +73,30 @@ namespace STAT_Academy.Web.Controllers
                 fechaFin = c.fechaFin
             }).ToList();
 
+            ViewBag.TotalCursos = rows.Count;
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 rows = rows.Where(c =>
-                    c.nombre.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    c.descripcion.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+                    Busqueda.Coincide(c.nombre, search) ||
+                    Busqueda.Coincide(c.descripcion, search)).ToList();
             }
 
-            return View(rows);
+            if (estado != null)
+                rows = rows.Where(c => c.estado == estado).ToList();
+
+            var hoy = Formato.HoraCostaRica(DateTime.UtcNow).Date;
+            rows = periodo switch
+            {
+                "proximos" => rows.Where(c => c.fechaInicio.Date > hoy).ToList(),
+                "en-curso" => rows.Where(c => c.fechaInicio.Date <= hoy && c.fechaFin.Date >= hoy).ToList(),
+                "finalizados" => rows.Where(c => c.fechaFin.Date < hoy).ToList(),
+                _ => rows
+            };
+
+            var (paginaActual, paginacion) = Paginacion.Aplicar(rows, pagina, tamano, "cursos");
+            ViewBag.Paginacion = paginacion;
+            return View(paginaActual);
         }
 
         /// <summary>
@@ -102,7 +121,7 @@ namespace STAT_Academy.Web.Controllers
                 tutores.Insert(0, new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                 {
                     Value = tutorActual.ToString(),
-                    Text = $"⚠ Usuario #{tutorActual}: no es un tutor activo, elija otro",
+                    Text = "⚠ El tutor asignado ya no está activo: elija otro",
                     Selected = true
                 });
             }
@@ -167,7 +186,7 @@ namespace STAT_Academy.Web.Controllers
                 var (ok, message, id) = await _apiCursos.CrearCursoAsync(model);
                 if (!ok || id == null)
                 {
-                    // Mensaje real de la API (p. ej. "El usuario 3 no tiene rol de tutor.").
+                    // Mensaje real de la API (p. ej. "El tutor seleccionado está inactivo...").
                     ModelState.AddModelError("", message);
                     return await VolverAlFormularioCurso(model);
                 }
@@ -252,8 +271,17 @@ namespace STAT_Academy.Web.Controllers
         }
     
 
-     public async Task<IActionResult> Products(string? search, bool stockBajo = false)
+        /// <param name="search">Nombre, categoría o descripción.</param>
+        /// <param name="stockBajo">Atajo del panel de control: equivale a existencias = "bajo".</param>
+        /// <param name="existencias">"bajo" (en el mínimo o por debajo) o "agotado" (sin unidades).</param>
+        /// <param name="categoria">Categoría exacta.</param>
+        /// <param name="estado">true: en la tienda; false: eliminados de la tienda.</param>
+        public async Task<IActionResult> Products(string? search, bool stockBajo = false, string? existencias = null,
+            string? categoria = null, bool? estado = null, int pagina = 1, int tamano = 10)
         {
+            if (stockBajo && string.IsNullOrEmpty(existencias))
+                existencias = "bajo";
+
             var productosApi = await _apiProductos.GetProductos() ?? [];
 
             var rows = productosApi.Select(p => new ProductoViewModel
@@ -271,23 +299,42 @@ namespace STAT_Academy.Web.Controllers
                 imagen_principal = p.imagen_principal
             }).ToList();
 
+            ViewBag.TotalProductos = rows.Count;
+            ViewBag.TotalStockBajo = rows.Count(p => p.estado && p.stock_bajo);
+            ViewBag.Categorias = rows.Select(p => p.categoria)
+                .Where(c => !string.IsNullOrWhiteSpace(c))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(c => c)
+                .ToList();
+            ViewBag.Existencias = existencias;
+
             if (!string.IsNullOrWhiteSpace(search))
             {
                 rows = rows.Where(p =>
-                    p.nombre.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    p.categoria.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+                    Busqueda.Coincide(p.nombre, search) ||
+                    Busqueda.Coincide(p.categoria, search) ||
+                    Busqueda.Coincide(p.descripcion, search)).ToList();
             }
 
-            ViewBag.TotalStockBajo = rows.Count(p => p.estado && p.stock_bajo);
-            ViewBag.FiltroStockBajo = stockBajo;
+            if (!string.IsNullOrWhiteSpace(categoria))
+                rows = rows.Where(p => string.Equals(p.categoria, categoria, StringComparison.OrdinalIgnoreCase)).ToList();
 
-            if (stockBajo)
-                rows = rows.Where(p => p.estado && p.stock_bajo).ToList();
+            if (estado != null)
+                rows = rows.Where(p => p.estado == estado).ToList();
+
+            rows = existencias switch
+            {
+                "bajo" => rows.Where(p => p.estado && p.stock_bajo).ToList(),
+                "agotado" => rows.Where(p => p.estado && p.stock <= 0).ToList(),
+                _ => rows
+            };
 
             // Lo que hay que reponer primero.
             rows = rows.OrderByDescending(p => p.estado && p.stock_bajo).ThenBy(p => p.nombre).ToList();
 
-            return View(rows);
+            var (paginaActual, paginacion) = Paginacion.Aplicar(rows, pagina, tamano, "productos");
+            ViewBag.Paginacion = paginacion;
+            return View(paginaActual);
         }
 
         public async Task<IActionResult> ProductForm(int? id)
@@ -470,7 +517,7 @@ namespace STAT_Academy.Web.Controllers
         /// <param name="vista">"pagos" (comprobantes, por defecto) o "facturas".</param>
         /// <param name="estado">Comprobantes: PENDIENTE (por defecto), APROBADO, RECHAZADO o TODOS. Facturas: estado de la factura.</param>
         /// <param name="buscar">Nombre o correo del usuario, o número de compra.</param>
-        public async Task<IActionResult> Invoices(string? vista, string? estado, string? buscar)
+        public async Task<IActionResult> Invoices(string? vista, string? estado, string? buscar, int pagina = 1, int tamano = 10)
         {
             var model = new FacturasAdminViewModel
             {
@@ -492,18 +539,22 @@ namespace STAT_Academy.Web.Controllers
                 var filtrados = pagos.Where(p => Coincide(p.facturaId ?? 0, p.usuarioNombre, p.usuarioEmail));
 
                 // Lo pendiente, por orden de llegada (el más antiguo primero); lo revisado, lo último primero.
-                model.Pagos = filtrados.Where(p => p.estado == "PENDIENTE").OrderBy(p => p.fechaEnvio)
-                    .Concat(filtrados.Where(p => p.estado != "PENDIENTE").OrderByDescending(p => p.fechaRevision ?? p.fechaEnvio))
-                    .ToList();
+                var ordenados = filtrados.Where(p => p.estado == "PENDIENTE").OrderBy(p => p.fechaEnvio)
+                    .Concat(filtrados.Where(p => p.estado != "PENDIENTE").OrderByDescending(p => p.fechaRevision ?? p.fechaEnvio));
+
+                (model.Pagos, var paginacion) = Paginacion.Aplicar(ordenados, pagina, tamano, "comprobantes");
+                ViewBag.Paginacion = paginacion;
             }
             else
             {
                 model.Estado = string.IsNullOrWhiteSpace(estado) ? null : estado.ToUpperInvariant();
                 var facturas = await _apiFacturas.TodasLasFacturas() ?? [];
-                model.Facturas = facturas
+                var filtradas = facturas
                     .Where(f => model.Estado == null || f.estado == model.Estado)
-                    .Where(f => Coincide(f.id, f.usuarioNombre, f.usuarioEmail))
-                    .ToList();
+                    .Where(f => Coincide(f.id, f.usuarioNombre, f.usuarioEmail));
+
+                (model.Facturas, var paginacion) = Paginacion.Aplicar(filtradas, pagina, tamano, "facturas");
+                ViewBag.Paginacion = paginacion;
             }
 
             return View(model);

@@ -1,49 +1,56 @@
-﻿@model STAT_Academy.Web.Models.Proveedor.ProveedorCreateRequest
+@model STAT_Academy.Web.Models.Proveedor.ProveedorCreateRequest
 
 @{
-    ViewData["Title"] = "Proveedor";
-    var isEdit = Context.Request.Query.ContainsKey("id");
+    var isEdit = Context.Request.Query.ContainsKey("id") || ViewContext.RouteData.Values.ContainsKey("id");
+    ViewData["Title"] = isEdit ? "Editar proveedor" : "Nuevo proveedor";
 }
 
 <div class="container admin-shell">
     <partial name="_AdminNav" />
 
-    <section class="card p-4">
-        <span class="eyebrow">Administración</span>
-        <h1>@(isEdit ? "Editar proveedor" : "Nuevo proveedor")</h1>
+    <section>
+        <a class="panel-volver" asp-action="Index">&larr; Proveedores</a>
 
-        <form asp-action="SupplierForm" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>@ViewData["Title"]</h1>
+                <p>Datos de la empresa y de la persona de contacto.</p>
+            </div>
+        </div>
+
+        <form asp-action="SupplierForm" method="post" class="form-card panel-form">
+            <div asp-validation-summary="ModelOnly"></div>
 
             <div class="row g-3">
                 <div class="col-md-6 form-group">
                     <label asp-for="nombre"></label>
                     <input asp-for="nombre" class="form-control" />
-                    <span asp-validation-for="nombre" class="text-danger"></span>
+                    <span asp-validation-for="nombre" class="text-danger small"></span>
                 </div>
 
                 <div class="col-md-6 form-group">
                     <label asp-for="contacto"></label>
                     <input asp-for="contacto" class="form-control" />
-                    <span asp-validation-for="contacto" class="text-danger"></span>
+                    <span asp-validation-for="contacto" class="text-danger small"></span>
                 </div>
 
                 <div class="col-md-6 form-group">
                     <label asp-for="telefono"></label>
-                    <input asp-for="telefono" class="form-control" />
-                    <span asp-validation-for="telefono" class="text-danger"></span>
+                    <input asp-for="telefono" class="form-control" type="tel" />
+                    <span asp-validation-for="telefono" class="text-danger small"></span>
                 </div>
 
                 <div class="col-md-6 form-group">
                     <label asp-for="email"></label>
-                    <input asp-for="email" class="form-control" />
-                    <span asp-validation-for="email" class="text-danger"></span>
+                    <input asp-for="email" class="form-control" type="email" />
+                    <span asp-validation-for="email" class="text-danger small"></span>
                 </div>
             </div>
 
-            <div class="d-flex gap-2 mt-4">
-                <button class="btn btn-primary" type="submit">Guardar</button>
+            <div class="panel-form__acciones">
                 <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+                <button class="btn btn-primary" type="submit">Guardar</button>
             </div>
         </form>
     </section>

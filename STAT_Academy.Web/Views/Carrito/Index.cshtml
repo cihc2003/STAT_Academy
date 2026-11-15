@@ -47,7 +47,8 @@
                                 <td>@Formato.Colones(item.subtotal)</td>
                                 <td class="text-end">
                                     <form asp-action="Eliminar" method="post"
-                                          onsubmit="return confirm('¿Quitar este producto del carrito?');">
+                                          data-confirmar="¿Quitar «@item.nombre» del carrito?"
+                                          data-confirmar-boton="Quitar" data-confirmar-peligro>
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="detalleId" value="@item.detalleId" />
                                         <button class="btn btn-sm btn-outline-danger" type="submit">Quitar</button>

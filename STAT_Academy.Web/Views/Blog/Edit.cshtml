@@ -86,10 +86,10 @@
                                     </form>
                                 }
 
-                                <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post">
+                                <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post"
+                                      data-confirmar="¿Quitar esta imagen de la entrada?" data-confirmar-boton="Quitar" data-confirmar-peligro>
                                     <input type="hidden" name="archivoId" value="@imagen.Id" />
-                                    <button type="submit" class="btn btn-link btn-sm p-0 text-danger"
-                                            onclick="return confirm('¿Quitar esta imagen?');">Quitar</button>
+                                    <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Quitar</button>
                                 </form>
                             </figcaption>
                         </figure>
@@ -111,10 +111,10 @@
                         <li>
                             <span class="blog-documentos__ext">@documento.Extension</span>
                             <a asp-action="Documento" data-sin-carga asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
-                            <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post" class="ms-auto">
+                            <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post" class="ms-auto"
+                                  data-confirmar="¿Quitar el documento «@documento.Nombre»?" data-confirmar-boton="Quitar" data-confirmar-peligro>
                                 <input type="hidden" name="archivoId" value="@documento.Id" />
-                                <button type="submit" class="btn btn-link btn-sm p-0 text-danger"
-                                        onclick="return confirm('¿Quitar este documento?');">Quitar</button>
+                                <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Quitar</button>
                             </form>
                         </li>
                     }

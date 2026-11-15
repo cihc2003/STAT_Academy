@@ -136,7 +136,7 @@ namespace STAT_Academy.Api.Services
                 {
                     matriculaId = x.m.IdMatricula,
                     estudianteId = x.m.EstudianteId,
-                    nombre = x.nombre ?? x.email ?? $"Estudiante #{x.m.EstudianteId}",
+                    nombre = x.nombre ?? x.email ?? "Estudiante sin nombre",
                     email = x.email ?? "",
                     fechaMatricula = x.m.Fecha_Matricula,
                     estadoMatricula = x.m.Estado ?? "",
@@ -175,7 +175,7 @@ namespace STAT_Academy.Api.Services
                 tareas = tareas.Select(t => new TutorTareaColumna
                 {
                     id = t.ID,
-                    titulo = t.Titulo ?? $"Tarea #{t.ID}",
+                    titulo = t.Titulo ?? "Tarea sin título",
                     fechaLimite = t.Fecha_Limite
                 }).ToList(),
 
@@ -198,7 +198,7 @@ namespace STAT_Academy.Api.Services
                     return new TutorFilaCalificaciones
                     {
                         estudianteId = est.id,
-                        nombre = est.nombre ?? est.email ?? $"Estudiante #{est.id}",
+                        nombre = est.nombre ?? est.email ?? "Estudiante sin nombre",
                         email = est.email ?? "",
                         notas = celdas,
                         promedio = notas.Count > 0 ? Math.Round(notas.Average(), 2) : null
@@ -330,7 +330,7 @@ namespace STAT_Academy.Api.Services
                 {
                     entregaId = e?.id,
                     estudianteId = id,
-                    estudiante = u?.nombre ?? u?.email ?? $"Estudiante #{id}",
+                    estudiante = u?.nombre ?? u?.email ?? "Estudiante sin nombre",
                     email = u?.email ?? "",
                     fechaEntrega = e?.fecha_Entrega,
                     tarde = e?.fecha_Entrega != null && tarea.Fecha_Limite != null && e.fecha_Entrega > tarea.Fecha_Limite,

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using STAT_Academy.Web.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Web.Models.Proveedor;
 using STAT_Academy.Web.Services;
@@ -15,16 +16,18 @@ public class ProveedorController : Controller
         _apiProveedorService = apiProveedorService;
     }
 
-    public async Task<IActionResult> Index(string? search, bool? active)
+    public async Task<IActionResult> Index(string? search, bool? active, int pagina = 1, int tamano = 10)
     {
         var proveedores = await _apiProveedorService.GetAllAsync() ?? [];
+        ViewBag.Total = proveedores.Count;
 
         if (!string.IsNullOrWhiteSpace(search))
         {
             proveedores = proveedores.Where(p =>
-                p.nombre.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                p.contacto.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                p.email.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+                Busqueda.Coincide(p.nombre, search) ||
+                Busqueda.Coincide(p.contacto, search) ||
+                Busqueda.Coincide(p.email, search) ||
+                Busqueda.Coincide(p.telefono, search)).ToList();
         }
 
         if (active.HasValue)
@@ -35,7 +38,9 @@ public class ProveedorController : Controller
         ViewBag.Search = search;
         ViewBag.Active = active;
 
-        return View(proveedores);
+        var (paginaActual, paginacion) = Paginacion.Aplicar(proveedores, pagina, tamano, "proveedores");
+        ViewBag.Paginacion = paginacion;
+        return View(paginaActual);
     }
 
     public async Task<IActionResult> Details(int id)

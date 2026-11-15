@@ -63,16 +63,17 @@
         </nav>
 
         @* ------------------------------ Filtros ------------------------------ *@
-        <form class="usuarios-filtros" method="get" asp-action="Index" role="search">
-            <div class="usuarios-filtros__buscar">
-                <label class="form-label" for="buscar">Buscar</label>
+        <form class="panel-filtros" method="get" asp-action="Index" role="search">
+            <div class="panel-filtros__buscar">
+                <label class="panel-filtros__etiqueta" for="buscar">Buscar</label>
+                <svg class="panel-filtros__lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
                 <input class="form-control" id="buscar" name="buscar" type="search" value="@f.Buscar"
                        placeholder="Nombre o correo electrónico" maxlength="150" />
             </div>
 
-            <div>
-                <label class="form-label" for="tipo">Tipo</label>
-                <select class="form-select" id="tipo" name="tipo">
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="tipo">Tipo</label>
+                <select class="form-select @(f.Tipo != null ? "panel-filtros__activo" : "")" id="tipo" name="tipo" data-autoenviar>
                     <option value="">Todos</option>
                     @foreach (var (valor, nombre) in TiposUsuario.Todos)
                     {
@@ -81,9 +82,9 @@
                 </select>
             </div>
 
-            <div>
-                <label class="form-label" for="activo">Estado</label>
-                <select class="form-select" id="activo" name="activo">
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="activo">Estado</label>
+                <select class="form-select @(f.Activo != null ? "panel-filtros__activo" : "")" id="activo" name="activo" data-autoenviar>
                     <option value="">Todos</option>
                     <option value="true" selected="@(f.Activo == true)">Activos</option>
                     <option value="false" selected="@(f.Activo == false)">Inactivos</option>
@@ -99,14 +100,30 @@
                 <input type="hidden" name="tamano" value="@f.Tamano" />
             }
 
-            <div class="usuarios-filtros__acciones">
-                <button class="btn btn-primary" type="submit">Filtrar</button>
-                @if (f.HayFiltros)
-                {
-                    <a class="btn btn-outline-secondary" asp-action="Index">Limpiar</a>
-                }
+            <div class="panel-filtros__acciones">
+                <button class="btn btn-primary" type="submit">Buscar</button>
             </div>
         </form>
+
+        <div class="panel-resultados" aria-live="polite">
+            <span><strong>@p.total</strong> @(p.total == 1 ? "usuario" : "usuarios")@(f.HayFiltros ? " con estos filtros" : "")</span>
+            @if (!string.IsNullOrWhiteSpace(f.Buscar))
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(Context.Request.Query, "buscar", "pagina")" title="Quitar filtro">«@f.Buscar» <span aria-hidden="true">×</span></a>
+            }
+            @if (f.Tipo != null)
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(Context.Request.Query, "tipo", "pagina")" title="Quitar filtro">@TiposUsuario.Nombre(f.Tipo.Value) <span aria-hidden="true">×</span></a>
+            }
+            @if (f.Activo != null)
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(Context.Request.Query, "activo", "pagina")" title="Quitar filtro">@(f.Activo == true ? "Activos" : "Inactivos") <span aria-hidden="true">×</span></a>
+            }
+            @if (f.HayFiltros)
+            {
+                <a class="panel-resultados__limpiar" asp-action="Index">Limpiar filtros</a>
+            }
+        </div>
 
         @* ------------------------------- Tabla ------------------------------- *@
         <div class="table-card usuarios-tabla">
@@ -267,4 +284,3 @@
     </section>
 </div>
 
-<partial name="_ConfirmarModal" />
