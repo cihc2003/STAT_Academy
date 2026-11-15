@@ -21,13 +21,22 @@ Rama `auditoria-seguridad` (desde `origin/master` en `a1463bd`). Sin cambios de 
 - Con varias instancias de la API, la revocación tarda como máximo 60 s en las demás instancias, y cada instancia lleva sus propios contadores de intentos.
 - En Azure, Swagger deja de verse salvo que se configure `Swagger__Habilitado=true`.
 
+## Segunda ronda
+
+| Id | Cambio | Archivos principales |
+|----|--------|----------------------|
+| M5 | El login verifica contra un hash ficticio cuando el correo no existe (mismo tiempo de respuesta). | `Api/Services/LoginService.cs` |
+| Bloqueo | Tras 5 fallos seguidos la cuenta se bloquea 15 minutos (responde 429 con el mismo mensaje que el límite). Tabla nueva `USUARIO_BLOQUEO`; restablecer la contraseña quita el bloqueo. **Script `Database/Scripts/2026-11-16_usuario_bloqueo.sql` sin aplicar**: mientras no exista la tabla, la API atrapa el error 208 y solo rige el límite en memoria. | `LoginService.cs`, `Models/UsuarioBloqueoModel.cs`, `ContrasenaService.cs` |
+| B3 | Async en las rutas más usadas: `CursoService` completo, aula del estudiante y permisos de matrícula (material y tareas). | `CursoService.cs`, `AulaService.cs`, `TutorService.cs`, controladores de Curso, Aula, MaterialCurso y Tarea |
+| CSP | Sin JavaScript inline (todo en `site.js` con `data-un-solo-envio`, `data-enviar-al-cambiar`, `data-imprimir`); `Content-Security-Policy` en páginas HTML. | `Web/Program.cs`, `wwwroot/js/site.js`, vistas de Blog, Carrito, Curso, Facturas, Products, Usuario y Error |
+| B2 | Sin advertencias de compilación (nulabilidad). | DTOs y modelos |
+| B4 | Proyecto `STAT_Academy.Tests` (xUnit) con 17 pruebas. | `STAT_Academy.Tests/*` |
+| B5 | README con arquitectura, configuración, ejecución local y convenciones. Título de la pestaña del carrito. | `README.md`, `Views/Carrito/Index.cshtml` |
+
 ## Pendiente
 
 - **C1 (crítica, a cargo del responsable de Azure):** el historial público del repositorio contiene la contraseña del usuario SQL de Azure y dos claves de Supabase. Hay que rotar la contraseña (user-secrets y App Settings), revisar el firewall de Azure SQL y revocar las claves de Supabase. Reescribir el historial es opcional.
-- M5: el login revela por tiempo de respuesta si un correo existe (no aprobado en esta ronda).
-- B2: advertencias de nulabilidad (unas 15).
-- B3: el acceso a datos es mayormente síncrono; migrarlo a async solo si la carga lo justifica.
-- B4: no hay proyecto de pruebas automatizadas.
-- B5: el README está vacío.
-- Política CSP completa en la Web (hoy hay scripts y estilos inline).
-- Bloqueo de cuenta persistente por `intentos_login`: requiere una columna nueva (por ejemplo, la fecha hasta la que queda bloqueada).
+- Aplicar `Database/Scripts/2026-11-16_usuario_bloqueo.sql` en Azure para activar el bloqueo persistente.
+- B3: el resto de servicios (tutor, blog, productos, carrito, facturas en parte, usuarios) sigue con consultas síncronas.
+- CSP: `style-src` permite `'unsafe-inline'` (atributos `style=` de las vistas y colores del contenido del blog).
+- Ampliar las pruebas a servicios con base de datos (requiere una base de pruebas o el proveedor en memoria de EF).
