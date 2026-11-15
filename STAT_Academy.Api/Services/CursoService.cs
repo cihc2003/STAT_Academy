@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
@@ -88,12 +88,13 @@ namespace STAT_Academy.Api.Services
         // Altas y cambios
         // ==================================================================
 
-        public CursoResponse Crear(CursoCreateRequest request)
+        /// <param name="creadorId">Admin que crea el curso (sale del token, no del cuerpo).</param>
+        public CursoResponse Crear(CursoCreateRequest request, int creadorId)
         {
             CursoModel curso = new CursoModel();
 
             curso.fk_tutor = request.fk_tutor;
-            curso.fk_creador = request.fk_creador;
+            curso.fk_creador = creadorId;
             curso.nombre = request.nombre;
             curso.descripcion = request.descripcion;
             curso.precio = request.precio;
@@ -114,8 +115,8 @@ namespace STAT_Academy.Api.Services
             if (curso == null)
                 return null;
 
+            // El creador no cambia al editar.
             curso.fk_tutor = request.fk_tutor;
-            curso.fk_creador = request.fk_creador;
             curso.nombre = request.nombre;
             curso.descripcion = request.descripcion;
             curso.precio = request.precio;

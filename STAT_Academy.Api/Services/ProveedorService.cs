@@ -25,9 +25,9 @@ namespace STAT_Academy.Api.Services
             var proveedor = new ProveedorModel
             {
                 nombre = request.nombre,
-                contacto = request.contacto,
-                telefono = request.telefono,
-                email = request.email,
+                contacto = request.contacto!,
+                telefono = request.telefono!,
+                email = request.email!,
 
                 estado = true,
             };
@@ -53,9 +53,9 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             proveedor.nombre = request.nombre;
-            proveedor.contacto = request.contacto;
-            proveedor.telefono = request.telefono;
-            proveedor.email = request.email;
+            proveedor.contacto = request.contacto!;
+            proveedor.telefono = request.telefono!;
+            proveedor.email = request.email!;
 
             _context.SaveChanges();
 
@@ -79,7 +79,7 @@ namespace STAT_Academy.Api.Services
                 .Any(p => p.fk_proveedor == id && p.estado == true);
 
             if (tieneProductosActivos)
-                throw new Exception("No se puede desactivar el proveedor porque tiene productos activos");
+                throw new InvalidOperationException("No se puede desactivar el proveedor porque tiene productos activos");
 
             proveedor.estado = false;
 

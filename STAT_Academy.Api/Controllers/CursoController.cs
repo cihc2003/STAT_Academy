@@ -54,7 +54,7 @@ namespace STAT_Academy.Api.Controllers
             if (_service.ValidarTutor(request.fk_tutor) is string errorTutor)
                 return BadRequest(new { message = errorTutor });
 
-            return Ok(_service.Crear(request));
+            return Ok(_service.Crear(request, UsuarioActualId));
         }
 
         [HttpPut("{id}")]

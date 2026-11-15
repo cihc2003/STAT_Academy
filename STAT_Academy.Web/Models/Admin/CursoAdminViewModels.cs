@@ -27,9 +27,11 @@ namespace STAT_Academy.Web.Models.Admin
         public int fk_creador { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(100, ErrorMessage = "El nombre admite como máximo 100 caracteres.")]
         public string nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La descripción es obligatoria.")]
+        [StringLength(255, ErrorMessage = "La descripción admite como máximo 255 caracteres.")]
         public string descripcion { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El precio es obligatorio.")]
