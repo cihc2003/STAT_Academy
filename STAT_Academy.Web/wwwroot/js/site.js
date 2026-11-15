@@ -228,3 +228,21 @@
         campo.form.requestSubmit();
     });
 })();
+
+// Filtros del panel: los campos vacíos no se envían, así la dirección queda limpia (?estado=true en vez de ?search=&estado=true).
+(function () {
+    "use strict";
+
+    document.addEventListener("submit", function (e) {
+        var form = e.target;
+        if (!form.classList || !form.classList.contains("panel-filtros")) return;
+        form.querySelectorAll("input[name], select[name]").forEach(function (campo) {
+            if (campo.value === "") campo.disabled = true;
+        });
+    });
+
+    // Al volver con el botón Atrás, el formulario puede quedar con campos deshabilitados.
+    window.addEventListener("pageshow", function () {
+        document.querySelectorAll(".panel-filtros [disabled]").forEach(function (campo) { campo.disabled = false; });
+    });
+})();

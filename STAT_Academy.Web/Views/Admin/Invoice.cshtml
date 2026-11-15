@@ -123,15 +123,12 @@
                         else
                         {
                             <div class="small text-muted mt-3">
-                                @(p.estado == "APROBADO" ? "Aprobado" : "Rechazado")
-                                @if (p.fechaRevision is DateTime revision)
-                                {
-                                    <text>el @EstadoPago.Fecha(revision)</text>
+                                @{
+                                    var revisado = p.estado == "APROBADO" ? "Aprobado" : "Rechazado";
+                                    if (p.fechaRevision is DateTime revision) revisado += " el " + EstadoPago.Fecha(revision);
+                                    if (!string.IsNullOrWhiteSpace(p.revisadoPor)) revisado += " por " + p.revisadoPor;
                                 }
-                                @if (!string.IsNullOrWhiteSpace(p.revisadoPor))
-                                {
-                                    <text>por @p.revisadoPor</text>
-                                }
+                                @revisado
                                 @if (!string.IsNullOrWhiteSpace(p.observacion))
                                 {
                                     <div>Motivo: @p.observacion</div>

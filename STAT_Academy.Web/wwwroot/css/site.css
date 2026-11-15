@@ -3889,7 +3889,7 @@ body:has(.admin-shell) .site-footer {
 
 .panel-filtros__buscar {
     position: relative;
-    flex: 1 1 280px;
+    flex: 1 1 220px;
     min-width: 0;
 }
 
@@ -3930,8 +3930,8 @@ body:has(.admin-shell) .site-footer {
 }
 
 .panel-filtros__campo {
-    flex: 0 1 190px;
-    min-width: 150px;
+    flex: 0 1 170px;
+    min-width: 130px;
 }
 
 .panel-filtros__etiqueta {
@@ -4850,5 +4850,122 @@ a.panel-metrica:hover {
         left: 16px;
         right: 16px;
         width: auto;
+    }
+}
+
+/* Escritorio angosto (menú lateral + poco ancho): la tabla se ajusta sin desplazarse;
+   se oculta el ícono decorativo y las acciones se apilan en una columna. */
+@media (min-width: 821px) and (max-width: 1280px) {
+    .panel-tabla table {
+        min-width: 0;
+    }
+
+    .panel-tabla .panel-tabla__principal {
+        min-width: 180px;
+    }
+
+    .panel-tabla .panel-celda__icono {
+        display: none;
+    }
+
+    .panel-tabla td.panel-tabla__acciones > form {
+        display: block !important;
+    }
+
+    .panel-tabla td.panel-tabla__acciones > a.btn {
+        display: flex !important;
+    }
+
+    .panel-tabla td.panel-tabla__acciones > * {
+        margin: 0 !important;
+    }
+
+        .panel-tabla td.panel-tabla__acciones > * + * {
+            margin-top: 6px !important;
+        }
+
+        .panel-tabla td.panel-tabla__acciones .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+}
+
+/* Escritorio angosto: filtros con muchos campos (buscador arriba, selectores en una fila)
+   y celdas que pueden partirse para que la tabla no se desborde. */
+@media (min-width: 821px) and (max-width: 1280px) {
+    .panel-filtros--amplio .panel-filtros__buscar {
+        flex-basis: 100%;
+    }
+
+    .panel-filtros--amplio .panel-filtros__campo {
+        flex: 1 1 0;
+    }
+
+    .panel-tabla td:not(.panel-tabla__acciones) {
+        white-space: normal;
+    }
+}
+
+@media (min-width: 821px) and (max-width: 1280px) {
+    .panel-tabla .panel-celda > .usuario-avatar {
+        display: none;
+    }
+
+    .panel-tabla .panel-dato {
+        white-space: nowrap;
+    }
+
+    .panel-tabla .panel-tabla__principal {
+        min-width: 150px;
+    }
+}
+
+/* Usuarios en escritorio angosto: misma solución que .panel-tabla */
+@media (min-width: 821px) and (max-width: 1280px) {
+    .usuarios-tabla table {
+        min-width: 0;
+    }
+
+    .usuarios-tabla .usuario-celda > .usuario-avatar {
+        display: none;
+    }
+
+    .usuarios-tabla .usuarios-acciones > * {
+        display: block !important;
+        margin: 0 !important;
+    }
+
+        .usuarios-tabla .usuarios-acciones > * + * {
+            margin-top: 6px !important;
+        }
+
+    .usuarios-tabla .usuarios-acciones > a.btn {
+        display: flex !important;
+    }
+
+    .usuarios-tabla .usuarios-acciones .btn {
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 820px) {
+    .panel-tabla td.panel-tabla__principal {
+        display: block;
+        text-align: left;
+    }
+
+    .panel-tabla td[data-label]::before {
+        align-self: start;
+        padding-top: 2px;
+    }
+}
+
+@media (max-width: 820px) {
+    .panel-tabla td[data-label] {
+        row-gap: 2px;
     }
 }
