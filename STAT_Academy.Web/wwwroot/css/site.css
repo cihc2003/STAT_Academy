@@ -3117,10 +3117,10 @@ main .auth-brand__titulo {
     /* Columna de contenido (la sección que sigue al menú, sea simple o tarjeta) */
     .container.admin-shell > :not(.admin-sidebar) {
         width: auto;
-        max-width: 1320px;
+        max-width: none;
         min-width: 0;
         align-self: start;
-        margin: 32px clamp(16px, 3vw, 44px) 64px;
+        margin: 28px clamp(16px, 2.2vw, 32px) 48px;
     }
 
         .container.admin-shell > :not(.admin-sidebar).card {
@@ -3381,4 +3381,23 @@ body:has(.admin-shell) .site-footer {
         .container.admin-shell > :not(.admin-sidebar).card {
             padding: 20px !important;
         }
+}
+
+/* ----------------------------------------------------------------------
+   Panel del tutor dentro de Administración (Admin): las páginas del tutor
+   traen su propio .section/.container; aquí se adaptan al área de contenido.
+   ---------------------------------------------------------------------- */
+
+.admin-contenido > .section {
+    padding: 0;
+}
+
+.admin-contenido > .section > .container {
+    width: 100%;
+    margin: 0;
+}
+
+/* Formularios del panel: usan el ancho disponible en lugar de una columna estrecha */
+.admin-shell .usuario-form {
+    max-width: none;
 }

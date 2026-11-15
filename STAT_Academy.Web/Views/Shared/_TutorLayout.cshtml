@@ -1,0 +1,29 @@
+@{
+    // Layout de las páginas del panel del tutor.
+    // - Admin: se cargan dentro del panel de administración (menú lateral incluido).
+    // - Tutor: se ven como siempre, a pantalla completa del sitio.
+    Layout = "_Layout";
+    var dentroDeAdministracion = User.IsInRole("Admin");
+}
+
+@if (dentroDeAdministracion)
+{
+    <div class="container admin-shell admin-shell--tutor">
+        <partial name="_AdminNav" />
+        <div class="admin-contenido">
+            @RenderBody()
+        </div>
+    </div>
+}
+else
+{
+    @RenderBody()
+}
+
+@section Styles {
+    @await RenderSectionAsync("Styles", required: false)
+}
+
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}
