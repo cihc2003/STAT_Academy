@@ -291,3 +291,95 @@
         });
     });
 })();
+
+// ---------------------------------------------------------------------------
+// Comportamientos que antes estaban en scripts y atributos on* dentro de las vistas.
+// Viven aquí para que la política CSP pueda prohibir el JavaScript inline.
+// ---------------------------------------------------------------------------
+(function () {
+    // Formularios de pago/compra: el botón se desactiva al enviar para no duplicar la operación.
+    document.querySelectorAll("form[data-un-solo-envio]").forEach(function (form) {
+        form.addEventListener("submit", function () {
+            var boton = form.querySelector("button[type=submit]") || form.querySelector("button");
+            if (boton) boton.disabled = true;
+        });
+    });
+
+    // Filtros que se aplican al cambiar la opción (sin botón "Filtrar").
+    document.querySelectorAll("select[data-enviar-al-cambiar]").forEach(function (select) {
+        select.addEventListener("change", function () {
+            if (select.form) select.form.requestSubmit();
+        });
+    });
+
+    document.querySelectorAll("[data-imprimir]").forEach(function (boton) {
+        boton.addEventListener("click", function () { window.print(); });
+    });
+
+    // Blog: copiar el enlace de la entrada.
+    document.querySelectorAll("[data-copiar-enlace]").forEach(function (boton) {
+        boton.addEventListener("click", function () {
+            navigator.clipboard.writeText(window.location.href).then(function () {
+                var original = boton.textContent;
+                boton.textContent = "¡Enlace copiado!";
+                setTimeout(function () { boton.textContent = original; }, 2000);
+            });
+        });
+    });
+
+    // Página de error: "Volver atrás" solo si hay una página anterior en el historial.
+    var volver = document.querySelector("[data-volver]");
+    if (volver && window.history.length > 1) {
+        volver.hidden = false;
+        volver.addEventListener("click", function () { window.history.back(); });
+    }
+})();
+
+// Vista previa de los archivos elegidos: avisa antes de enviar si alguno no se aceptará.
+// La validación definitiva la hace la API (extensión, tamaño y contenido real).
+(function () {
+    const imagenes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const documentos = ['pdf', 'doc', 'docx', 'xlsx', 'pptx', 'txt', 'csv'];
+    const MB = 1024 * 1024;
+
+    document.querySelectorAll('[data-blog-archivos]').forEach(function (input) {
+        const lista = input.parentElement.querySelector('[data-blog-seleccion]');
+        if (!lista) return;
+
+        input.addEventListener('change', function () {
+            lista.replaceChildren();
+            const archivos = Array.from(input.files);
+            lista.hidden = archivos.length === 0;
+
+            if (archivos.length > 10) {
+                const aviso = document.createElement('li');
+                aviso.className = 'text-danger';
+                aviso.textContent = 'Puede subir como máximo 10 archivos a la vez.';
+                lista.appendChild(aviso);
+            }
+
+            archivos.forEach(function (archivo) {
+                const extension = (archivo.name.split('.').pop() || '').toLowerCase();
+                const esImagen = imagenes.includes(extension);
+                const permitido = esImagen || documentos.includes(extension);
+                const maximo = esImagen ? 5 * MB : 10 * MB;
+
+                const item = document.createElement('li');
+                let detalle = (archivo.size / MB).toFixed(1) + ' MB';
+
+                if (!permitido) {
+                    item.className = 'text-danger';
+                    detalle += ' · tipo no permitido';
+                } else if (archivo.size > maximo) {
+                    item.className = 'text-danger';
+                    detalle += ' · supera ' + (maximo / MB) + ' MB';
+                } else {
+                    detalle += esImagen ? ' · imagen' : ' · documento';
+                }
+
+                item.textContent = archivo.name + ' (' + detalle + ')';
+                lista.appendChild(item);
+            });
+        });
+    });
+})();

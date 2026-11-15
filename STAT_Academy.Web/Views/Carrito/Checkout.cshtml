@@ -1,4 +1,4 @@
-﻿@model STAT_Academy.Web.Models.Carrito.CarritoResponse
+@model STAT_Academy.Web.Models.Carrito.CarritoResponse
 
 @{
     ViewData["Title"] = "Finalizar compra";
@@ -44,7 +44,7 @@
             </div>
 
             <form asp-action="Confirmar" method="post" class="d-flex flex-wrap gap-2 mt-4"
-                  onsubmit="this.querySelector('button[type=submit]').disabled = true;">
+                  data-un-solo-envio>
                 <button class="btn btn-primary" type="submit">Confirmar compra · @Formato.Colones(Model.total)</button>
                 <a class="btn btn-outline-secondary" asp-action="Index">Volver al carrito</a>
             </form>

@@ -1,4 +1,4 @@
-﻿@model STAT_Academy.Web.Models.Productos.TiendaViewModel
+@model STAT_Academy.Web.Models.Productos.TiendaViewModel
 
 <section class="section">
     <div class="container">
@@ -18,7 +18,7 @@
             <div class="filtros__campo">
                 <label for="categoria" class="form-label">Categoría</label>
                 @* Al cambiar la categoría se filtra al instante; el botón queda para teclado y sin JavaScript. *@
-                <select id="categoria" name="categoria" class="form-select" onchange="this.form.requestSubmit()">
+                <select id="categoria" name="categoria" class="form-select" data-enviar-al-cambiar>
                     <option value="">Todas las categorías</option>
                     @foreach (var c in Model.Categorias)
                     {

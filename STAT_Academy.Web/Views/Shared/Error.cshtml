@@ -1,4 +1,4 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
 @{
     ViewData["Title"] = Model.Titulo;
     var autenticado = User.Identity?.IsAuthenticated == true;
@@ -60,14 +60,3 @@
         </div>
     </div>
 </section>
-
-<script>
-    // "Volver atrás" solo si hay una página anterior en el historial.
-    (function () {
-        var boton = document.querySelector("[data-volver]");
-        if (boton && window.history.length > 1) {
-            boton.hidden = false;
-            boton.addEventListener("click", function () { window.history.back(); });
-        }
-    })();
-</script>

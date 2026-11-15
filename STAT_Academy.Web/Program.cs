@@ -134,6 +134,19 @@ app.Use(async (context, next) =>
     // Ningún otro sitio puede mostrar estas páginas en un marco (clickjacking).
     encabezados.XFrameOptions = "SAMEORIGIN";
     encabezados["Referrer-Policy"] = "strict-origin-when-cross-origin";
+
+    // CSP solo en páginas HTML (no en PDF ni descargas) y sin pisar la de una acción
+    // (p. ej. el comprobante de pago, que fija la suya con "sandbox").
+    context.Response.OnStarting(() =>
+    {
+        if (context.Response.ContentType?.StartsWith("text/html", StringComparison.OrdinalIgnoreCase) == true
+            && !encabezados.ContainsKey("Content-Security-Policy"))
+        {
+            encabezados["Content-Security-Policy"] = PoliticaContenido;
+        }
+        return Task.CompletedTask;
+    });
+
     await next();
 });
 
@@ -154,3 +167,25 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+public partial class Program
+{
+    /// <summary>
+    /// Content-Security-Policy de las páginas. Sin JavaScript inline: los comportamientos van en site.js
+    /// con atributos data-*. Los estilos inline se permiten (atributos style= de las vistas y colores del
+    /// contenido del blog, ya saneado en la API). Externos: Quill (jsDelivr), imágenes de Azure Blob
+    /// Storage y el mapa de Google en Contacto.
+    /// </summary>
+    private const string PoliticaContenido =
+        "default-src 'self'; " +
+        "script-src 'self' https://cdn.jsdelivr.net; " +
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "img-src 'self' data: blob: https://*.blob.core.windows.net; " +
+        "font-src 'self' data:; " +
+        "connect-src 'self'; " +
+        "frame-src https://www.google.com https://maps.google.com; " +
+        "frame-ancestors 'self'; " +
+        "form-action 'self'; " +
+        "base-uri 'self'; " +
+        "object-src 'none'";
+}
