@@ -17,6 +17,24 @@ public class ApiUsuarioService
         return await _httpClient.GetFromJsonAsync<List<UsuarioResponse>>("api/Usuario");
     }
 
+    /// <summary>Página de usuarios filtrada y ordenada en la API.</summary>
+    public async Task<UsuarioPaginaResponse> BuscarAsync(UsuarioFiltros f)
+    {
+        var query = new List<string>
+        {
+            $"pagina={f.Pagina}",
+            $"tamano={f.Tamano}"
+        };
+
+        if (!string.IsNullOrWhiteSpace(f.Buscar)) query.Add("texto=" + Uri.EscapeDataString(f.Buscar.Trim()));
+        if (f.Tipo != null) query.Add($"tipo={f.Tipo}");
+        if (f.Activo != null) query.Add($"estado={(f.Activo.Value ? "true" : "false")}");
+        if (!string.IsNullOrWhiteSpace(f.Orden)) query.Add("orden=" + Uri.EscapeDataString(f.Orden));
+
+        return await _httpClient.GetFromJsonAsync<UsuarioPaginaResponse>("api/Usuario/buscar?" + string.Join("&", query))
+               ?? new UsuarioPaginaResponse();
+    }
+
     public async Task<UsuarioResponse?> GetUsuarioByIdAsync(int id)
     {
         return await _httpClient.GetFromJsonAsync<UsuarioResponse>($"api/Usuario/{id}");
@@ -32,16 +50,14 @@ public class ApiUsuarioService
         return await _httpClient.GetFromJsonAsync<List<UsuarioResponse>>("api/Usuario/activos");
     }
 
-    public async Task<UsuarioResponse?> CrearUsuarioAsync(CreateUsuarioRequest request)
+    /// <summary>Alta desde el panel (solo Admin): respeta el tipo elegido.</summary>
+    public async Task<(bool exitoso, string mensaje)> CrearUsuarioAsync(CreateUsuarioRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/Usuario", request);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
+        using var response = await _httpClient.PostAsJsonAsync("api/Usuario", request);
+        return await ApiRespuesta.Leer(response);
     }
 
+    /// <summary>Registro público (siempre crea un Cliente y envía el correo de bienvenida).</summary>
     public async Task<UsuarioResponse?> RegistrarUsuarioAsync(RegisterUsuarioRequest request)
     {
         var response = await _httpClient.PostAsJsonAsync("api/Usuario/Registrar", request);
@@ -52,31 +68,15 @@ public class ApiUsuarioService
         return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
     }
 
-    public async Task<UsuarioResponse?> ActualizarUsuarioAsync(int id, UpdateUsuarioRequest request)
+    public async Task<(bool exitoso, string mensaje)> ActualizarUsuarioAsync(int id, UpdateUsuarioRequest request)
     {
-        var response = await _httpClient.PutAsJsonAsync($"api/Usuario/{id}", request);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
+        using var response = await _httpClient.PutAsJsonAsync($"api/Usuario/{id}", request);
+        return await ApiRespuesta.Leer(response);
     }
 
-    public async Task<UsuarioResponse?> DesactivarUsuarioAsync(int id)
+    public async Task<(bool exitoso, string mensaje)> CambiarEstadoAsync(int id, bool activo)
     {
-        var response = await _httpClient.PatchAsync($"api/Usuario/{id}/desactivar", null);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
-    }
-
-    public async Task<UsuarioResponse?> ActivarUsuarioAsync(int id)
-    {
-        var response = await _httpClient.PatchAsync($"api/Usuario/{id}/activar", null);
-        if (!response.IsSuccessStatusCode)
-            return null;
-        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
+        using var response = await _httpClient.PatchAsync($"api/Usuario/{id}/{(activo ? "activar" : "desactivar")}", null);
+        return await ApiRespuesta.Leer(response);
     }
 }
