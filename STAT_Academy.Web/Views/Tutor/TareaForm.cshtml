@@ -3,6 +3,7 @@
 @{
     var nueva = Model.Id == null;
     ViewData["Title"] = nueva ? "Nueva tarea" : "Editar tarea";
+    ViewData["CursoActivo"] = (int?)Model.CursoId; // marca el curso en el menú lateral
 }
 
 <section class="section">

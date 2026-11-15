@@ -4,6 +4,7 @@
 @{
     var t = Model.Tarea;
     ViewData["Title"] = "Entregas: " + t.Titulo;
+    ViewData["CursoActivo"] = (int?)t.CursoId; // marca el curso en el menú lateral
     var porCalificar = Model.Entregas.Count(e => e.Estado == "Entregada");
     var sinEntregar = Model.Entregas.Count(e => e.EntregaId == null || e.FechaEntrega == null);
 }

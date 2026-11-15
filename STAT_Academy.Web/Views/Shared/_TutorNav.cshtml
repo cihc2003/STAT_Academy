@@ -1,0 +1,68 @@
+@inject STAT_Academy.Web.Services.ApiTutorService ApiTutor
+@{
+    // Menú lateral del panel del tutor (mismo diseño que el de Administración):
+    // "Mis cursos" y acceso directo a cada curso asignado, con sus entregas por calificar.
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    var enInicio = accion == "Index";
+
+    // Curso actual: lo indica la vista (páginas de una tarea) o la ruta (páginas de un curso).
+    var cursoActivo = ViewData["CursoActivo"] as int?;
+    if (cursoActivo == null
+        && accion is "Curso" or "Estudiantes" or "Calificaciones" or "NuevaTarea"
+        && int.TryParse(ViewContext.RouteData.Values["id"]?.ToString(), out var idRuta))
+    {
+        cursoActivo = idRuta;
+    }
+
+    var cursos = await ApiTutor.Cursos() ?? [];
+
+    const string IconoCursos = "<path d=\"M22 10 12 5 2 10l10 5 10-5z\"/><path d=\"M6 12v5c3 2 9 2 12 0v-5\"/>";
+    const string IconoCurso = "<path d=\"M2 4h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h8z\"/>";
+}
+
+<aside class="admin-sidebar" aria-label="Panel del tutor">
+    <div class="admin-sidebar__marca">
+        <span class="admin-sidebar__logo" aria-hidden="true">T</span>
+        <div>
+            <strong>Panel del tutor</strong>
+            <small>STAT Academy</small>
+        </div>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+        <p class="admin-sidebar__grupo">General</p>
+        <a asp-controller="Tutor" asp-action="Index"
+           class="admin-sidebar__link @(enInicio ? "admin-sidebar__link--activo" : "")"
+           aria-current="@(enInicio ? "page" : null)">
+            <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoCursos)</svg>
+            <span>Mis cursos</span>
+        </a>
+
+        @if (cursos.Count > 0)
+        {
+            <p class="admin-sidebar__grupo">Cursos asignados</p>
+            @foreach (var c in cursos)
+            {
+                var activo = c.Id == cursoActivo;
+                <a asp-controller="Tutor" asp-action="Curso" asp-route-id="@c.Id"
+                   class="admin-sidebar__link @(activo ? "admin-sidebar__link--activo" : "") @(c.Estado ? "" : "admin-sidebar__link--apagado")"
+                   aria-current="@(activo ? "page" : null)" title="@c.Nombre">
+                    <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoCurso)</svg>
+                    <span class="admin-sidebar__texto">@c.Nombre</span>
+                    @if (c.EntregasPorCalificar > 0)
+                    {
+                        <span class="admin-sidebar__badge" title="Entregas por calificar">@c.EntregasPorCalificar</span>
+                    }
+                </a>
+            }
+        }
+    </nav>
+
+    <a class="admin-sidebar__sitio" asp-controller="Home" asp-action="Index">
+        <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        <span>Volver al sitio</span>
+    </a>
+</aside>

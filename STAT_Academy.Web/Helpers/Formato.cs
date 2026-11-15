@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace STAT_Academy.Web.Helpers
 {
@@ -27,6 +27,42 @@ namespace STAT_Academy.Web.Helpers
                 .ToArray();
 
             return palabras.Length > 0 ? new string(palabras) : "C";
+        }
+
+        /// <summary>Convierte una fecha UTC de la API a hora de Costa Rica (UTC-6 todo el año).</summary>
+        public static DateTime HoraCostaRica(DateTime utc) =>
+            (utc.Kind == DateTimeKind.Local ? utc.ToUniversalTime() : utc).AddHours(-6);
+
+        /// <summary>Fecha y hora en Costa Rica: 14/11/2026 09:30. Sin dato: el texto indicado.</summary>
+        public static string FechaHora(DateTime? utc, string sinDato = "Sin registro") =>
+            utc == null ? sinDato : HoraCostaRica(utc.Value).ToString("dd/MM/yyyy HH:mm", CostaRica);
+
+        /// <summary>Fecha en Costa Rica: 14 nov 2026.</summary>
+        public static string Fecha(DateTime? utc, string sinDato = "Sin registro") =>
+            utc == null ? sinDato : HoraCostaRica(utc.Value).ToString("dd MMM yyyy", CostaRica).Replace(".", "");
+
+        /// <summary>Tiempo transcurrido en palabras: "hace 3 días", "hace 2 h", "hoy".</summary>
+        public static string Hace(DateTime? utc, string sinDato = "Nunca")
+        {
+            if (utc == null)
+                return sinDato;
+
+            var valor = utc.Value.Kind == DateTimeKind.Local ? utc.Value.ToUniversalTime() : utc.Value;
+            var lapso = DateTime.UtcNow - valor;
+
+            if (lapso.TotalMinutes < 1) return "hace un momento";
+            if (lapso.TotalMinutes < 60) return $"hace {(int)lapso.TotalMinutes} min";
+            if (lapso.TotalHours < 24) return $"hace {(int)lapso.TotalHours} h";
+            if (lapso.TotalDays < 2) return "ayer";
+            if (lapso.TotalDays < 30) return $"hace {(int)lapso.TotalDays} días";
+            if (lapso.TotalDays < 365)
+            {
+                var meses = (int)(lapso.TotalDays / 30);
+                return meses == 1 ? "hace 1 mes" : $"hace {meses} meses";
+            }
+
+            var anios = (int)(lapso.TotalDays / 365);
+            return anios == 1 ? "hace 1 año" : $"hace {anios} años";
         }
     }
 }

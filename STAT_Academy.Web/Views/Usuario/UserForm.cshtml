@@ -1,57 +1,119 @@
-﻿@model STAT_Academy.Web.Models.Usuarios.UpdateUsuarioRequest
+﻿@using STAT_Academy.Web.Helpers
+@using STAT_Academy.Web.Models.Usuarios
+@model UsuarioFormViewModel
 
 @{
-    ViewData["Title"] = "Usuario";
-    var isEdit = Context.Request.RouteValues.ContainsKey("id");
+    ViewData["Title"] = Model.EsEdicion ? "Editar usuario" : "Nuevo usuario";
 }
 
 <div class="container admin-shell">
     <partial name="_AdminNav" />
 
-    <section class="card p-4">
-        <span class="eyebrow">Administración</span>
-        <h1>@(isEdit ? "Editar usuario" : "Nuevo usuario")</h1>
+    <section class="usuarios">
+        @if (Model.EsEdicion)
+        {
+            <a class="text-link" asp-action="Details" asp-route-id="@Model.Id">← Volver al usuario</a>
+        }
+        else
+        {
+            <a class="text-link" asp-action="Index">← Volver a usuarios</a>
+        }
 
-        <form asp-action="UserForm" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-card usuario-form mt-3">
+            <span class="eyebrow">Administración</span>
+            <h1 class="mb-1">@ViewData["Title"]</h1>
+            <p class="text-muted">
+                @(Model.EsEdicion
+                    ? "Puede cambiar el nombre y el tipo de usuario. El correo identifica la cuenta y no se puede modificar."
+                    : "La persona podrá iniciar sesión con este correo y la contraseña temporal.")
+            </p>
 
-            <div class="row g-3">
-                <div class="col-md-6 form-group">
-                    <label asp-for="nombre"></label>
-                    <input asp-for="nombre" class="form-control" />
-                    <span asp-validation-for="nombre" class="text-danger"></span>
-                </div>
+            <form asp-action="UserForm" asp-route-id="@Model.Id" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
-                <div class="col-md-6 form-group">
-                    <label asp-for="email"></label>
-                    <input asp-for="email" class="form-control" />
-                    <span asp-validation-for="email" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6 form-group">
-                    <label asp-for="fk_Tipo_Usuario"></label>
-                    <select asp-for="fk_Tipo_Usuario" asp-items="ViewBag.Tipos" class="form-select"></select>
-                    <span asp-validation-for="fk_Tipo_Usuario" class="text-danger"></span>
-                </div>
-
-                @if (!isEdit)
-                {
-                    <div class="col-md-6 form-group">
-                        <label asp-for="password"></label>
-                        <input asp-for="password" type="password" class="form-control" />
-                        <span asp-validation-for="password" class="text-danger"></span>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="Nombre" class="form-label"></label>
+                        <input asp-for="Nombre" class="form-control" autocomplete="name" maxlength="150" />
+                        <span asp-validation-for="Nombre" class="text-danger small"></span>
                     </div>
-                }
-            </div>
 
-            <div class="d-flex gap-2 mt-4">
-                <button class="btn btn-primary" type="submit">Guardar</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
-            </div>
-        </form>
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label"></label>
+                        @if (Model.EsEdicion)
+                        {
+                            <input class="form-control" id="Email" value="@Model.Email" readonly aria-describedby="email-ayuda" />
+                            <div id="email-ayuda" class="form-text">El correo no se puede cambiar.</div>
+                        }
+                        else
+                        {
+                            <input asp-for="Email" type="email" class="form-control" autocomplete="off" maxlength="150" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Tipo" class="form-label"></label>
+                        @if (Model.EsUsuarioActual)
+                        {
+                            <input class="form-control" id="Tipo" value="@TiposUsuario.Nombre(Model.Tipo)" readonly aria-describedby="tipo-ayuda" />
+                            <input type="hidden" asp-for="Tipo" />
+                            <div id="tipo-ayuda" class="form-text">No puede quitarse el rol de administrador a sí mismo.</div>
+                        }
+                        else
+                        {
+                            <select asp-for="Tipo" class="form-select" aria-describedby="tipo-ayuda">
+                                @foreach (var (valor, nombre) in TiposUsuario.Todos)
+                                {
+                                    <option value="@valor">@nombre</option>
+                                }
+                            </select>
+                            <div id="tipo-ayuda" class="form-text">Define a qué secciones tiene acceso.</div>
+                            <span asp-validation-for="Tipo" class="text-danger small"></span>
+                        }
+                    </div>
+
+                    @if (!Model.EsEdicion)
+                    {
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control" autocomplete="new-password" minlength="8" />
+                            <div class="form-text">Mínimo 8 caracteres. Compártala de forma segura.</div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.EsEdicion)
+                {
+                    <dl class="usuario-datos usuario-datos--compacto mt-4">
+                        <div>
+                            <dt>Estado</dt>
+                            <dd>@(Model.Activo ? "Activo" : "Inactivo")</dd>
+                        </div>
+                        <div>
+                            <dt>Registro</dt>
+                            <dd>@Formato.FechaHora(Model.FechaRegistro, "Sin dato")</dd>
+                        </div>
+                        <div>
+                            <dt>Último acceso</dt>
+                            <dd>@Formato.FechaHora(Model.UltimoLogin, "Nunca")</dd>
+                        </div>
+                    </dl>
+                }
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <button class="btn btn-primary" type="submit">@(Model.EsEdicion ? "Guardar cambios" : "Crear usuario")</button>
+                    @if (Model.EsEdicion)
+                    {
+                        <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">Cancelar</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+                    }
+                </div>
+            </form>
+        </div>
     </section>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
