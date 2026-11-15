@@ -1,4 +1,4 @@
-﻿namespace STAT_Academy.Web.Models
+namespace STAT_Academy.Web.Models
 {
     public class TareaModel
     {
@@ -6,9 +6,9 @@
 
         public int FK_Curso { get; set; }
 
-        public string Titulo { get; set; }
+        public string Titulo { get; set; } = string.Empty;
 
-        public string Descripcion { get; set; }
+        public string Descripcion { get; set; } = string.Empty;
 
         public DateTime Fecha_Inicio { get; set; }
 

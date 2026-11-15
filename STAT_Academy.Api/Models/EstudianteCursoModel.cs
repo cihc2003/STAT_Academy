@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,7 +19,7 @@ namespace STAT_Academy.Api.Models
 
         public DateTime Fecha_Matricula { get; set; }
 
-        public string Estado { get; set; }
+        public string Estado { get; set; } = string.Empty;
 
         public int Progreso { get; set; }
     }

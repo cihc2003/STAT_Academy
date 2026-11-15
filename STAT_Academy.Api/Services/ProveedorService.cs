@@ -1,4 +1,4 @@
-﻿using STAT_Academy.Api.Data;
+using STAT_Academy.Api.Data;
 using STAT_Academy.DTOs.Proveedor;
 using STAT_Academy.Api.Models;
 
@@ -25,9 +25,9 @@ namespace STAT_Academy.Api.Services
             var proveedor = new ProveedorModel
             {
                 nombre = request.nombre,
-                contacto = request.contacto!,
-                telefono = request.telefono!,
-                email = request.email!,
+                contacto = request.contacto,
+                telefono = request.telefono,
+                email = request.email,
 
                 estado = true,
             };
@@ -53,9 +53,9 @@ namespace STAT_Academy.Api.Services
                 return null;
 
             proveedor.nombre = request.nombre;
-            proveedor.contacto = request.contacto!;
-            proveedor.telefono = request.telefono!;
-            proveedor.email = request.email!;
+            proveedor.contacto = request.contacto;
+            proveedor.telefono = request.telefono;
+            proveedor.email = request.email;
 
             _context.SaveChanges();
 
@@ -68,7 +68,7 @@ namespace STAT_Academy.Api.Services
 
             return proveedor;
         }
-        public ProveedorModel Desactivar(int id)
+        public ProveedorModel? Desactivar(int id)
         {
             var proveedor = _context.Proveedor.FirstOrDefault(p => p.id == id);
 
