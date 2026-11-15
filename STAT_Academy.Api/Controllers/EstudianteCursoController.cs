@@ -37,7 +37,7 @@ namespace STAT_Academy.Api.Controllers
                 {
                     mensaje =
                         "No se pudo realizar la matrícula. " +
-                        "El curso no existe, está inactivo, " +
+                        "El curso no existe, está inactivo, ya inició, " +
                         "es de pago (debe comprarse) " +
                         "o ya está matriculado."
                 });

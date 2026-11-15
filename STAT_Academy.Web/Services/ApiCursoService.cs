@@ -1,5 +1,6 @@
-﻿using STAT_Academy.Web.Models.Admin;
+using STAT_Academy.Web.Models.Admin;
 using STAT_Academy.Web.Models.Cursos;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -80,23 +81,6 @@ namespace STAT_Academy.Web.Services
                 });
         }
 
-        public async Task<(bool ok, string message)> CrearCursoAsync(CursoFormViewModel model)
-        {
-            var request = new CursoCreateRequest
-            {
-                fk_tutor = model.fk_tutor,
-                fk_creador = model.fk_creador,
-                nombre = model.nombre,
-                descripcion = model.descripcion,
-                precio = model.precio,
-                fechaInicio = model.fechaInicio,
-                fechaFin = model.fechaFin
-            };
-
-            var response = await _httpClient.PostAsJsonAsync("api/Curso", request);
-            return await ProcesarRespuesta(response);
-        }
-
         public async Task<(bool ok, string message)> EditarCursoAsync(int id, CursoFormViewModel model)
         {
             var request = new CursoCreateRequest
@@ -113,6 +97,56 @@ namespace STAT_Academy.Web.Services
             var response = await _httpClient.PutAsJsonAsync($"api/Curso/{id}", request);
             return await ProcesarRespuesta(response);
         }
+
+        /// <summary>Crea el curso y devuelve su id (necesario para subir la portada después).</summary>
+        public async Task<(bool ok, string message, int? id)> CrearCursoAsync(CursoFormViewModel model)
+        {
+            var request = new CursoCreateRequest
+            {
+                fk_tutor = model.fk_tutor,
+                fk_creador = model.fk_creador,
+                nombre = model.nombre,
+                descripcion = model.descripcion,
+                precio = model.precio,
+                fechaInicio = model.fechaInicio,
+                fechaFin = model.fechaFin
+            };
+
+            using var response = await _httpClient.PostAsJsonAsync("api/Curso", request);
+            if (!response.IsSuccessStatusCode)
+            {
+                var (ok, message) = await ProcesarRespuesta(response);
+                return (ok, message, null);
+            }
+
+            var creado = await response.Content.ReadFromJsonAsync<CursoAdminResponse>();
+            return (true, "Curso creado correctamente.", creado?.id);
+        }
+
+        // --- Portada -----------------------------------------------------------
+
+        public async Task<(bool ok, string message)> SubirPortadaAsync(int cursoId, IFormFile archivo)
+        {
+            using var contenido = new MultipartFormDataContent();
+
+            var parte = new StreamContent(archivo.OpenReadStream());
+            parte.Headers.ContentType = MediaTypeHeaderValue.TryParse(archivo.ContentType, out var tipo)
+                ? tipo
+                : new MediaTypeHeaderValue("application/octet-stream");
+            contenido.Add(parte, "imagen", Path.GetFileName(archivo.FileName));
+
+            using var response = await _httpClient.PostAsync($"api/Curso/{cursoId}/portada", contenido);
+            var (ok, mensaje) = await ApiRespuesta.Leer(response);
+            return (ok, ok ? "Portada actualizada." : mensaje);
+        }
+
+        public async Task<(bool ok, string message)> QuitarPortadaAsync(int cursoId)
+        {
+            using var response = await _httpClient.DeleteAsync($"api/Curso/{cursoId}/portada");
+            return await ApiRespuesta.Leer(response);
+        }
+
+        // -----------------------------------------------------------------------
 
         public async Task<(bool ok, string message)> ActivarCursoAsync(int id)
         {

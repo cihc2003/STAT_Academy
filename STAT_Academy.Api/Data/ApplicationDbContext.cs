@@ -24,6 +24,7 @@ namespace STAT_Academy.Api.Data
         public DbSet<EntregaTareaModel> EntregaTarea { get; set; }
         public DbSet<EntregaTareaArchivoModel> EntregaTareaArchivo { get; set; }
         public DbSet<ProductoImagenModel> ProductoImagen { get; set; }
+        public DbSet<CursoImagenModel> CursoImagen { get; set; }
         public DbSet<PagoModel> Pago { get; set; }
         public DbSet<FacturaModel> Factura { get; set; }
         public DbSet<DetalleFacturaModel> DetalleFactura { get; set; }

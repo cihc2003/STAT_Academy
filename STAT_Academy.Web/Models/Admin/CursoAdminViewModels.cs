@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace STAT_Academy.Web.Models.Admin
 {
@@ -14,6 +14,7 @@ namespace STAT_Academy.Web.Models.Admin
         public bool estado { get; set; }
         public DateTime fechaInicio { get; set; }
         public DateTime fechaFin { get; set; }
+        public string? imagenPortada { get; set; }
     }
 
     public class CursoFormViewModel
@@ -45,5 +46,17 @@ namespace STAT_Academy.Web.Models.Admin
         public DateTime fechaFin { get; set; }
 
         public bool estado { get; set; } = true;
+
+        /// <summary>Nueva portada (opcional): al guardar reemplaza la actual.</summary>
+        [Display(Name = "Imagen de portada")]
+        public IFormFile? Portada { get; set; }
+
+        /// <summary>URL pública de la portada actual (solo lectura).</summary>
+        public string? ImagenPortadaActual { get; set; }
+
+        public const string AcceptImagenes = ProductoFormViewModel.AcceptImagenes;
+
+        /// <summary>Una imagen de hasta 5 MB más el resto del formulario.</summary>
+        public const long MaxBytesPeticion = 6L * 1024 * 1024;
     }
 }

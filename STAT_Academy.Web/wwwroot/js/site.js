@@ -170,3 +170,37 @@
 
     menu.scrollLeft = activo.offsetLeft - (menu.clientWidth - activo.offsetWidth) / 2;
 })();
+
+// Formulario de curso (Admin): vista previa de la portada elegida antes de guardar.
+(function () {
+    "use strict";
+
+    document.querySelectorAll("[data-portada-input]").forEach(function (input) {
+        var campo = input.closest(".portada-campo");
+        var vista = campo && campo.querySelector("[data-portada-vista]");
+        if (!vista || !window.URL) return;
+
+        var original = vista.innerHTML;
+        var urlActual = null;
+
+        input.addEventListener("change", function () {
+            if (urlActual) {
+                URL.revokeObjectURL(urlActual);
+                urlActual = null;
+            }
+
+            var archivo = input.files && input.files[0];
+            if (!archivo || archivo.type.indexOf("image/") !== 0) {
+                vista.innerHTML = original;
+                return;
+            }
+
+            urlActual = URL.createObjectURL(archivo);
+            var img = document.createElement("img");
+            img.src = urlActual;
+            img.alt = "Vista previa de la nueva portada";
+            vista.innerHTML = "";
+            vista.appendChild(img);
+        });
+    });
+})();

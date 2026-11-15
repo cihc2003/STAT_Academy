@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace STAT_Academy.Web.Models
@@ -36,5 +36,16 @@ namespace STAT_Academy.Web.Models
         [Required]
         [JsonPropertyName("fechaFin")]
         public DateTime Fecha_Fin { get; set; }
+
+        [JsonPropertyName("tutorNombre")]
+        public string? TutorNombre { get; set; }
+
+        /// <summary>URL pública de la portada; null si el curso no tiene.</summary>
+        [JsonPropertyName("imagenPortada")]
+        public string? ImagenPortada { get; set; }
+
+        /// <summary>False si el curso ya inició o está inactivo (no se puede comprar ni inscribir).</summary>
+        [JsonPropertyName("inscripcionAbierta")]
+        public bool InscripcionAbierta { get; set; }
     }
 }

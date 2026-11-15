@@ -1,4 +1,4 @@
-﻿@model STAT_Academy.Web.Models.Admin.CursoFormViewModel
+@model STAT_Academy.Web.Models.Admin.CursoFormViewModel
 
 @{
     ViewData["Title"] = Model.id == null ? "Crear Curso" : "Editar Curso";
@@ -11,10 +11,10 @@
         <div class="section-heading">
             <span class="eyebrow">Administración</span>
             <h1>@ViewData["Title"]</h1>
-            <p>Administra nombre, tutor, precio, fechas y estado del curso.</p>
+            <p>Administra nombre, tutor, precio, fechas, portada y estado del curso.</p>
         </div>
 
-        <form asp-action="CourseForm" method="post" class="card-card form-card">
+        <form asp-action="CourseForm" method="post" enctype="multipart/form-data" class="card-card form-card">
             @Html.AntiForgeryToken()
             <input asp-for="id" type="hidden" />
 
@@ -84,6 +84,39 @@
                     <input asp-for="fechaFin" class="form-control" type="date" />
                     <span asp-validation-for="fechaFin" class="text-danger"></span>
                 </div>
+
+                <div class="col-12">
+                    <label asp-for="Portada" class="form-label"></label>
+                    <div class="portada-campo">
+                        <div class="portada-campo__vista" data-portada-vista>
+                            @if (!string.IsNullOrEmpty(Model.ImagenPortadaActual))
+                            {
+                                <img src="@Model.ImagenPortadaActual" alt="Portada actual del curso" />
+                            }
+                            else
+                            {
+                                <span class="portada-campo__vacio">Sin portada</span>
+                            }
+                        </div>
+                        <div class="portada-campo__controles">
+                            <input asp-for="Portada" type="file" class="form-control" accept="@STAT_Academy.Web.Models.Admin.CursoFormViewModel.AcceptImagenes" data-portada-input />
+                            <div class="form-text">
+                                JPG, PNG, GIF o WEBP de hasta 5 MB. Se ve mejor en formato horizontal (16:9).
+                                @if (!string.IsNullOrEmpty(Model.ImagenPortadaActual))
+                                {
+                                    <text>Si elige otra, reemplaza la actual.</text>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ImagenPortadaActual))
+                            {
+                                <button type="submit" form="quitar-portada" class="btn btn-outline-danger btn-sm mt-2"
+                                        onclick="return confirm('¿Quitar la portada de este curso?');">
+                                    Quitar portada
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="d-flex gap-2 mt-4">
@@ -93,6 +126,13 @@
                 <a asp-action="Courses" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
+
+        @if (Model.id != null && !string.IsNullOrEmpty(Model.ImagenPortadaActual))
+        {
+            <form id="quitar-portada" asp-action="QuitarPortadaCurso" asp-route-id="@Model.id" method="post" class="d-none">
+                @Html.AntiForgeryToken()
+            </form>
+        }
     </section>
 </div>
 
