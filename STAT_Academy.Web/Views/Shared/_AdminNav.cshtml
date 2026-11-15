@@ -1,12 +1,67 @@
-﻿<aside class="admin-sidebar">
-    <a asp-controller="Admin" asp-action="Dashboard">Panel de control</a>
-    <a asp-controller="Usuario" asp-action="Index">Usuarios</a>
-    <a asp-controller="Admin" asp-action="Products">Productos</a>
-    <a asp-controller="Proveedor" asp-action="Index">Proveedores</a>
-    <a asp-controller="Admin" asp-action="Courses">Cursos</a>
-    <a asp-controller="Admin" asp-action="Invoices">Facturas y pagos</a>
-    <a asp-controller="Tutor" asp-action="Index">Panel del tutor</a>
-    @* <a asp-controller="Admin" asp-action="Enrollments">Matrículas</a> *@
-    @*<a asp-controller="Admin" asp-action="Blog">Blog</a>*@
-    @* <a asp-controller="Admin" asp-action="Orders">Pedidos</a> *@
+﻿@{
+    // Menú lateral de Administración: ocupa toda la altura a la izquierda en escritorio
+    // y pasa a ser una tira horizontal desplazable en tabletas y teléfonos.
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+
+    bool Es(string c, params string[] acciones) =>
+        controlador == c && (acciones.Length == 0 || acciones.Contains(accion));
+
+    var secciones = new[]
+    {
+        new { Grupo = "General", Texto = "Panel de control", Controlador = "Admin", Accion = "Dashboard",
+              Activo = Es("Admin", "Dashboard"),
+              Icono = "<rect x=\"3\" y=\"3\" width=\"7\" height=\"9\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"5\" rx=\"1.5\"/><rect x=\"14\" y=\"12\" width=\"7\" height=\"9\" rx=\"1.5\"/><rect x=\"3\" y=\"16\" width=\"7\" height=\"5\" rx=\"1.5\"/>" },
+        new { Grupo = "Gestión", Texto = "Usuarios", Controlador = "Usuario", Accion = "Index",
+              Activo = Es("Usuario"),
+              Icono = "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>" },
+        new { Grupo = "Gestión", Texto = "Cursos", Controlador = "Admin", Accion = "Courses",
+              Activo = Es("Admin", "Courses", "CourseForm"),
+              Icono = "<path d=\"M22 10 12 5 2 10l10 5 10-5z\"/><path d=\"M6 12v5c3 2 9 2 12 0v-5\"/>" },
+        new { Grupo = "Gestión", Texto = "Productos", Controlador = "Admin", Accion = "Products",
+              Activo = Es("Admin", "Products", "ProductForm"),
+              Icono = "<path d=\"M21 8 12 3 3 8v8l9 5 9-5V8z\"/><path d=\"m3 8 9 5 9-5\"/><path d=\"M12 13v8\"/>" },
+        new { Grupo = "Gestión", Texto = "Proveedores", Controlador = "Proveedor", Accion = "Index",
+              Activo = Es("Proveedor"),
+              Icono = "<path d=\"M1 3h15v13H1z\"/><path d=\"M16 8h4l3 3v5h-7V8z\"/><circle cx=\"5.5\" cy=\"18.5\" r=\"2.5\"/><circle cx=\"18.5\" cy=\"18.5\" r=\"2.5\"/>" },
+        new { Grupo = "Gestión", Texto = "Facturas y pagos", Controlador = "Admin", Accion = "Invoices",
+              Activo = Es("Admin", "Invoices", "Invoice"),
+              Icono = "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13h8\"/><path d=\"M8 17h5\"/>" },
+        new { Grupo = "Enseñanza", Texto = "Panel del tutor", Controlador = "Tutor", Accion = "Index",
+              Activo = Es("Tutor"),
+              Icono = "<path d=\"M2 4h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h8z\"/>" }
+    };
+}
+
+<aside class="admin-sidebar" aria-label="Administración">
+    <div class="admin-sidebar__marca">
+        <span class="admin-sidebar__logo" aria-hidden="true">S</span>
+        <div>
+            <strong>Administración</strong>
+            <small>STAT Academy</small>
+        </div>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+        @foreach (var grupo in secciones.GroupBy(s => s.Grupo))
+        {
+            <p class="admin-sidebar__grupo">@grupo.Key</p>
+            @foreach (var s in grupo)
+            {
+                <a asp-controller="@s.Controlador" asp-action="@s.Accion"
+                   class="admin-sidebar__link @(s.Activo ? "admin-sidebar__link--activo" : "")"
+                   aria-current="@(s.Activo ? "page" : null)">
+                    <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(s.Icono)</svg>
+                    <span>@s.Texto</span>
+                </a>
+            }
+        }
+    </nav>
+
+    <a class="admin-sidebar__sitio" asp-controller="Home" asp-action="Index">
+        <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        <span>Volver al sitio</span>
+    </a>
 </aside>

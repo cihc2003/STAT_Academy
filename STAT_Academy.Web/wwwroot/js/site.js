@@ -159,3 +159,14 @@
         });
     }
 })();
+
+// Menú de Administración en tabletas y teléfonos (barra horizontal): deja visible la sección actual.
+(function () {
+    "use strict";
+
+    var menu = document.querySelector(".admin-sidebar");
+    var activo = menu && menu.querySelector(".admin-sidebar__link--activo");
+    if (!activo || menu.scrollWidth <= menu.clientWidth) return;
+
+    menu.scrollLeft = activo.offsetLeft - (menu.clientWidth - activo.offsetWidth) / 2;
+})();
