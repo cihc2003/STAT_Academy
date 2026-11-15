@@ -26,27 +26,31 @@ namespace STAT_Academy.Api.Controllers
 
         /// <summary>Tareas del curso con el estado de la entrega propia, progreso y nota final.</summary>
         [HttpGet("cursos/{cursoId}")]
-        public IActionResult Curso(int cursoId) =>
-            ConCurso(cursoId, () => Ok(_service.Curso(cursoId, UsuarioActualId)));
+        public async Task<IActionResult> Curso(int cursoId) =>
+            await Verificar(cursoId)
+            ?? Ok(await _service.CursoAsync(cursoId, UsuarioActualId));
 
         [HttpGet("tareas/{tareaId}")]
-        public IActionResult Tarea(int tareaId) =>
-            ConCurso(_service.CursoDeTareaActiva(tareaId), () =>
-            {
-                var tarea = _service.Tarea(tareaId, UsuarioActualId);
-                if (tarea == null)
-                    return NotFound(new { message = "La tarea no existe." });
+        public async Task<IActionResult> Tarea(int tareaId)
+        {
+            var error = await Verificar(await _service.CursoDeTareaActivaAsync(tareaId), "La tarea no existe.");
+            if (error != null)
+                return error;
 
-                tarea.adjuntos = _adjuntos.Listar(tareaId);
-                return Ok(tarea);
-            }, "La tarea no existe.");
+            var tarea = await _service.TareaAsync(tareaId, UsuarioActualId);
+            if (tarea == null)
+                return NotFound(new { message = "La tarea no existe." });
+
+            tarea.adjuntos = _adjuntos.Listar(tareaId);
+            return Ok(tarea);
+        }
 
         /// <summary>Descarga un documento que el tutor adjuntó a una tarea visible.</summary>
         [HttpGet("adjuntos/{adjuntoId}/descargar")]
         public async Task<IActionResult> DescargarAdjunto(int adjuntoId, CancellationToken ct)
         {
             var cursoId = _adjuntos.TareaActiva(adjuntoId) ? _adjuntos.CursoDeAdjunto(adjuntoId) : null;
-            var error = Verificar(cursoId, "El documento no existe.");
+            var error = await Verificar(cursoId, "El documento no existe.");
             if (error != null)
                 return error;
 
@@ -72,7 +76,7 @@ namespace STAT_Academy.Api.Controllers
             [FromForm] bool quitarEnlace,
             CancellationToken ct)
         {
-            var error = Verificar(_service.CursoDeTareaActiva(tareaId), "La tarea no existe.");
+            var error = await Verificar(await _service.CursoDeTareaActivaAsync(tareaId), "La tarea no existe.");
             if (error != null)
                 return error;
 
@@ -85,7 +89,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpDelete("entregas/archivos/{archivoId}")]
         public async Task<IActionResult> QuitarArchivo(int archivoId)
         {
-            var error = Verificar(_service.CursoDeArchivoPropio(archivoId, UsuarioActualId), "El archivo no existe.");
+            var error = await Verificar(await _service.CursoDeArchivoPropioAsync(archivoId, UsuarioActualId), "El archivo no existe.");
             if (error != null)
                 return error;
 
@@ -96,7 +100,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpGet("entregas/archivos/{archivoId}/descargar")]
         public async Task<IActionResult> DescargarArchivo(int archivoId, CancellationToken ct)
         {
-            var error = Verificar(_service.CursoDeArchivoPropio(archivoId, UsuarioActualId), "El archivo no existe.");
+            var error = await Verificar(await _service.CursoDeArchivoPropioAsync(archivoId, UsuarioActualId), "El archivo no existe.");
             if (error != null)
                 return error;
 
@@ -113,19 +117,16 @@ namespace STAT_Academy.Api.Controllers
         // ---------------------------------------------------------------
 
         /// <summary>null si el estudiante puede usar el curso; si no, la respuesta de error.</summary>
-        private IActionResult? Verificar(int? cursoId, string noExiste = "El curso no existe.")
+        private async Task<IActionResult?> Verificar(int? cursoId, string noExiste = "El curso no existe.")
         {
             if (cursoId == null)
                 return NotFound(new { message = noExiste });
 
-            if (!_tutor.PuedeVerComoEstudiante(cursoId.Value, UsuarioActualId))
+            if (!await _tutor.PuedeVerComoEstudianteAsync(cursoId.Value, UsuarioActualId))
                 return StatusCode(StatusCodes.Status403Forbidden,
                     new { message = "No tiene una matrícula activa en este curso." });
 
             return null;
         }
-
-        private IActionResult ConCurso(int? cursoId, Func<IActionResult> accion, string noExiste = "El curso no existe.") =>
-            Verificar(cursoId, noExiste) ?? accion();
     }
 }

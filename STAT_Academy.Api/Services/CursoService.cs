@@ -37,40 +37,38 @@ namespace STAT_Academy.Api.Services
         /// Admin ve todos los cursos. El catálogo público solo muestra los activos
         /// que todavía no han iniciado.
         /// </param>
-        public List<CursoResponse> GetAll(bool esAdmin)
+        public async Task<List<CursoResponse>> GetAllAsync(bool esAdmin)
         {
             var hoy = CursoModel.HoyCostaRica;
 
-            var cursos = _context.Curso
+            var cursos = await _context.Curso
                 .AsNoTracking()
                 .Where(x => esAdmin || (x.estado && x.fechaInicio >= hoy))
                 .OrderBy(x => x.nombre)
-                .ToList();
+                .ToListAsync();
 
-            return MapLista(cursos);
+            return await MapListaAsync(cursos);
         }
 
-        public CursoModel? GetById(int id)
-        {
-            return _context.Curso.FirstOrDefault(x => x.id == id);
-        }
+        public Task<CursoModel?> GetByIdAsync(int id) =>
+            _context.Curso.AsNoTracking().FirstOrDefaultAsync(x => x.id == id);
 
-        public CursoResponse? GetResponse(int id)
+        public async Task<CursoResponse?> GetResponseAsync(int id)
         {
-            var curso = _context.Curso.AsNoTracking().FirstOrDefault(x => x.id == id);
-            return curso == null ? null : MapLista([curso]).First();
+            var curso = await _context.Curso.AsNoTracking().FirstOrDefaultAsync(x => x.id == id);
+            return curso == null ? null : (await MapListaAsync([curso])).First();
         }
 
         /// <summary>
         /// El tutor asignado debe ser un usuario activo con rol Tutor (FK_Tipo_Usuario = 2);
         /// si no, el curso no aparecería en ningún panel de tutor.
         /// </summary>
-        public string? ValidarTutor(int fkTutor)
+        public async Task<string?> ValidarTutorAsync(int fkTutor)
         {
-            var tutor = _context.Usuario
+            var tutor = await _context.Usuario
                 .Where(u => u.id == fkTutor)
                 .Select(u => new { u.fk_Tipo_Usuario, u.estado })
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (tutor == null)
                 return "El tutor seleccionado no existe. Elija otro tutor.";
@@ -89,7 +87,7 @@ namespace STAT_Academy.Api.Services
         // ==================================================================
 
         /// <param name="creadorId">Admin que crea el curso (sale del token, no del cuerpo).</param>
-        public CursoResponse Crear(CursoCreateRequest request, int creadorId)
+        public async Task<CursoResponse> CrearAsync(CursoCreateRequest request, int creadorId)
         {
             CursoModel curso = new CursoModel();
 
@@ -103,14 +101,14 @@ namespace STAT_Academy.Api.Services
             curso.estado = true;
 
             _context.Curso.Add(curso);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return GetResponse(curso.id)!;
+            return (await GetResponseAsync(curso.id))!;
         }
 
-        public CursoResponse? Editar(int id, CursoCreateRequest request)
+        public async Task<CursoResponse?> EditarAsync(int id, CursoCreateRequest request)
         {
-            var curso = _context.Curso.FirstOrDefault(x => x.id == id);
+            var curso = await _context.Curso.FirstOrDefaultAsync(x => x.id == id);
 
             if (curso == null)
                 return null;
@@ -123,27 +121,27 @@ namespace STAT_Academy.Api.Services
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return GetResponse(id);
+            return await GetResponseAsync(id);
         }
 
-        public CursoResponse? Activar(int id) => CambiarEstado(id, true);
+        public Task<CursoResponse?> ActivarAsync(int id) => CambiarEstadoAsync(id, true);
 
-        public CursoResponse? Desactivar(int id) => CambiarEstado(id, false);
+        public Task<CursoResponse?> DesactivarAsync(int id) => CambiarEstadoAsync(id, false);
 
-        private CursoResponse? CambiarEstado(int id, bool estado)
+        private async Task<CursoResponse?> CambiarEstadoAsync(int id, bool estado)
         {
-            var curso = _context.Curso.FirstOrDefault(x => x.id == id);
+            var curso = await _context.Curso.FirstOrDefaultAsync(x => x.id == id);
 
             if (curso == null)
                 return null;
 
             curso.estado = estado;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return GetResponse(id);
+            return await GetResponseAsync(id);
         }
 
         // ==================================================================
@@ -157,7 +155,7 @@ namespace STAT_Academy.Api.Services
         public async Task<(CursoResponse? curso, string? error)> CambiarPortada(
             int cursoId, IFormFile? archivo, string usuarioEmail, CancellationToken ct)
         {
-            if (!_context.Curso.Any(c => c.id == cursoId))
+            if (!await _context.Curso.AnyAsync(c => c.id == cursoId, ct))
                 return (null, "El curso no existe.");
 
             if (archivo == null || archivo.Length == 0)
@@ -184,7 +182,7 @@ namespace STAT_Academy.Api.Services
                 return (null, "No se pudo guardar la portada. Intente nuevamente.");
             }
 
-            var anteriores = _context.CursoImagen.Where(i => i.fk_curso == cursoId && i.estado).ToList();
+            var anteriores = await _context.CursoImagen.Where(i => i.fk_curso == cursoId && i.estado).ToListAsync(ct);
 
             try
             {
@@ -204,7 +202,7 @@ namespace STAT_Academy.Api.Services
                     fecha_creacion = DateTime.UtcNow
                 });
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync(ct);
             }
             catch (Exception ex)
             {
@@ -216,13 +214,13 @@ namespace STAT_Academy.Api.Services
             await BorrarBlobs(anteriores.Select(a => a.imagen_url));
             _auditoria.Registrar("CURSO", "UPLOAD", $"Portada: {subido.NombreOriginal}", usuarioEmail, cursoId);
 
-            return (GetResponse(cursoId), null);
+            return (await GetResponseAsync(cursoId), null);
         }
 
         /// <returns>False si el curso no tenía portada.</returns>
         public async Task<bool> QuitarPortada(int cursoId, string usuarioEmail)
         {
-            var imagenes = _context.CursoImagen.Where(i => i.fk_curso == cursoId && i.estado).ToList();
+            var imagenes = await _context.CursoImagen.Where(i => i.fk_curso == cursoId && i.estado).ToListAsync();
             if (imagenes.Count == 0)
                 return false;
 
@@ -232,7 +230,7 @@ namespace STAT_Academy.Api.Services
                 imagen.es_principal = false;
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             await BorrarBlobs(imagenes.Select(i => i.imagen_url));
 
             _auditoria.Registrar("CURSO", "REMOVE_IMAGE", "Portada quitada", usuarioEmail, cursoId);
@@ -243,18 +241,18 @@ namespace STAT_Academy.Api.Services
         // Ayudantes
         // ==================================================================
 
-        private List<CursoResponse> MapLista(List<CursoModel> cursos)
+        private async Task<List<CursoResponse>> MapListaAsync(List<CursoModel> cursos)
         {
             var ids = cursos.Select(c => c.id).ToList();
             var tutorIds = cursos.Select(c => c.fk_tutor).Distinct().ToList();
 
-            var tutores = _context.Usuario
+            var tutores = await _context.Usuario
                 .AsNoTracking()
                 .Where(u => tutorIds.Contains(u.id))
                 .Select(u => new { u.id, u.nombre })
-                .ToDictionary(u => u.id, u => u.nombre);
+                .ToDictionaryAsync(u => u.id, u => u.nombre);
 
-            var portadas = Portadas(ids);
+            var portadas = await PortadasAsync(ids);
 
             return cursos.Select(c => new CursoResponse
             {
@@ -275,19 +273,21 @@ namespace STAT_Academy.Api.Services
         }
 
         /// <summary>Blob de la portada de cada curso (id → nombre del blob).</summary>
-        private Dictionary<int, string> Portadas(List<int> cursoIds)
+        private async Task<Dictionary<int, string>> PortadasAsync(List<int> cursoIds)
         {
             if (cursoIds.Count == 0)
                 return [];
 
             try
             {
-                return _context.CursoImagen
+                var filas = await _context.CursoImagen
                     .AsNoTracking()
                     .Where(i => cursoIds.Contains(i.fk_curso) && i.estado && i.es_principal)
                     .OrderByDescending(i => i.id)
                     .Select(i => new { i.fk_curso, i.imagen_url })
-                    .AsEnumerable()
+                    .ToListAsync();
+
+                return filas
                     .DistinctBy(i => i.fk_curso)
                     .ToDictionary(i => i.fk_curso, i => i.imagen_url);
             }

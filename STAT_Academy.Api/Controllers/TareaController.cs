@@ -19,12 +19,12 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("curso/{cursoId}")]
-        public IActionResult ObtenerCurso(int cursoId)
+        public async Task<IActionResult> ObtenerCurso(int cursoId)
         {
             if (!EsAdmin)
             {
                 var (existe, tutorId) = _tutor.TutorDelCurso(cursoId);
-                if (!existe || (!EsTutor(tutorId) && !_tutor.PuedeVerComoEstudiante(cursoId, UsuarioActualId)))
+                if (!existe || (!EsTutor(tutorId) && !await _tutor.PuedeVerComoEstudianteAsync(cursoId, UsuarioActualId)))
                     return Forbid();
             }
 

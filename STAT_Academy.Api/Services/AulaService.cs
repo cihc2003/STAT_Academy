@@ -50,20 +50,20 @@ namespace STAT_Academy.Api.Services
         // Lecturas
         // ==================================================================
 
-        public AulaCursoResponse? Curso(int cursoId, int estudianteId)
+        public async Task<AulaCursoResponse?> CursoAsync(int cursoId, int estudianteId)
         {
-            var curso = _context.Curso.AsNoTracking().FirstOrDefault(c => c.id == cursoId);
+            var curso = await _context.Curso.AsNoTracking().FirstOrDefaultAsync(c => c.id == cursoId);
             if (curso == null)
                 return null;
 
-            var tareas = TareasActivas(cursoId);
-            var entregas = Entregas(tareas.Select(t => t.ID).ToList(), estudianteId);
+            var tareas = await TareasActivasAsync(cursoId);
+            var entregas = await EntregasAsync(tareas.Select(t => t.ID).ToList(), estudianteId);
 
-            var matriculaId = _context.EstudianteCurso
+            var matriculaId = await _context.EstudianteCurso
                 .Where(m => m.CursoId == cursoId && m.EstudianteId == estudianteId)
                 .OrderByDescending(m => m.IdMatricula)
                 .Select(m => (int?)m.IdMatricula)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             var ajuste = matriculaId == null ? null : _notaFinal.Ajuste(matriculaId.Value);
 
@@ -79,29 +79,29 @@ namespace STAT_Academy.Api.Services
             };
         }
 
-        public AulaTareaResponse? Tarea(int tareaId, int estudianteId)
+        public async Task<AulaTareaResponse?> TareaAsync(int tareaId, int estudianteId)
         {
-            var tarea = _context.Tarea.AsNoTracking().FirstOrDefault(t => t.ID == tareaId && t.Estado != false);
+            var tarea = await _context.Tarea.AsNoTracking().FirstOrDefaultAsync(t => t.ID == tareaId && t.Estado != false);
             if (tarea?.CursoId == null)
                 return null;
 
-            var curso = _context.Curso.AsNoTracking().First(c => c.id == tarea.CursoId.Value);
-            var entrega = Entregas([tareaId], estudianteId).GetValueOrDefault(tareaId);
+            var curso = await _context.Curso.AsNoTracking().FirstAsync(c => c.id == tarea.CursoId.Value);
+            var entrega = (await EntregasAsync([tareaId], estudianteId)).GetValueOrDefault(tareaId);
 
             return Map(tarea, curso, entrega);
         }
 
         /// <summary>Curso de una tarea visible para estudiantes (activa), o null.</summary>
-        public int? CursoDeTareaActiva(int tareaId) =>
-            _context.Tarea.Where(t => t.ID == tareaId && t.Estado != false).Select(t => t.CursoId).FirstOrDefault();
+        public Task<int?> CursoDeTareaActivaAsync(int tareaId) =>
+            _context.Tarea.Where(t => t.ID == tareaId && t.Estado != false).Select(t => t.CursoId).FirstOrDefaultAsync();
 
         /// <summary>Curso del archivo, solo si la entrega es del estudiante indicado.</summary>
-        public int? CursoDeArchivoPropio(int archivoId, int estudianteId) =>
+        public Task<int?> CursoDeArchivoPropioAsync(int archivoId, int estudianteId) =>
             (from a in _context.EntregaTareaArchivo
              join e in _context.EntregaTarea on a.fk_Entrega_Tarea equals e.id
              join t in _context.Tarea on e.fk_Tarea equals t.ID
              where a.id == archivoId && a.estado && e.fk_Estudiante == estudianteId
-             select t.CursoId).FirstOrDefault();
+             select t.CursoId).FirstOrDefaultAsync();
 
         public async Task<(ArchivoDescarga contenido, string nombre)?> AbrirArchivo(int archivoId, CancellationToken ct)
         {
@@ -181,7 +181,7 @@ namespace STAT_Academy.Api.Services
                 _auditoria.Registrar("ENTREGA_TAREA", "DISABLE",
                     $"Entrega retirada de la tarea {Recortar(tarea.Titulo ?? "")}", estudianteEmail, entrega.id);
 
-                return (Tarea(tareaId, estudianteId), null);
+                return (await TareaAsync(tareaId, estudianteId), null);
             }
 
             if (nuevos.Count == 0 && !TutorService.EsEnlace(enlaceNuevo) && actuales == 0)
@@ -257,7 +257,7 @@ namespace STAT_Academy.Api.Services
 
             AvisarTutor(tarea, estudianteId, primeraVez);
 
-            return (Tarea(tareaId, estudianteId), null);
+            return (await TareaAsync(tareaId, estudianteId), null);
         }
 
         /// <summary>Quita un archivo de la entrega propia (si no está calificada).</summary>
@@ -300,22 +300,26 @@ namespace STAT_Academy.Api.Services
         // Ayudantes
         // ==================================================================
 
-        private List<TareaModel> TareasActivas(int cursoId) =>
+        private Task<List<TareaModel>> TareasActivasAsync(int cursoId) =>
             _context.Tarea
                 .AsNoTracking()
                 .Where(t => t.CursoId == cursoId && t.Estado != false)
                 .OrderBy(t => t.Fecha_Limite)
-                .ToList();
+                .ToListAsync();
 
         /// <summary>La entrega más reciente del estudiante por tarea, con sus archivos activos.</summary>
-        private Dictionary<int, EntregaTareaModel> Entregas(List<int> tareaIds, int estudianteId) =>
-            _context.EntregaTarea
+        private async Task<Dictionary<int, EntregaTareaModel>> EntregasAsync(List<int> tareaIds, int estudianteId)
+        {
+            var entregas = await _context.EntregaTarea
                 .AsNoTracking()
                 .Include(e => e.Archivos.Where(a => a.estado))
                 .Where(e => e.fk_Estudiante == estudianteId && e.fk_Tarea != null && tareaIds.Contains(e.fk_Tarea.Value))
-                .ToList()
+                .ToListAsync();
+
+            return entregas
                 .GroupBy(e => e.fk_Tarea!.Value)
                 .ToDictionary(g => g.Key, g => g.OrderByDescending(e => e.id).First());
+        }
 
         private static AulaTareaResponse Map(TareaModel t, CursoModel curso, EntregaTareaModel? e)
         {

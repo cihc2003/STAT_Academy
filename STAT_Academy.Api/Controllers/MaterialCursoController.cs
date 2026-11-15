@@ -19,9 +19,9 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("curso/{cursoId}")]
-        public IActionResult ObtenerPorCurso(int cursoId)
+        public async Task<IActionResult> ObtenerPorCurso(int cursoId)
         {
-            if (!PuedeVerCurso(cursoId))
+            if (!await PuedeVerCurso(cursoId))
                 return Forbid();
 
             return Ok(_service.ObtenerPorCurso(cursoId));
@@ -34,7 +34,7 @@ namespace STAT_Academy.Api.Controllers
             if (cursoId == null)
                 return NotFound(new { message = "El material no existe." });
 
-            if (!PuedeVerCurso(cursoId.Value))
+            if (!await PuedeVerCurso(cursoId.Value))
                 return Forbid();
 
             var archivo = await _tutor.AbrirMaterial(id, ct);
@@ -45,11 +45,11 @@ namespace STAT_Academy.Api.Controllers
             return File(contenido.Contenido, contenido.ContentType ?? "application/octet-stream", nombre);
         }
 
-        private bool PuedeVerCurso(int cursoId)
+        private async Task<bool> PuedeVerCurso(int cursoId)
         {
             if (EsAdmin) return true;
             var (existe, tutorId) = _tutor.TutorDelCurso(cursoId);
-            return existe && (EsTutor(tutorId) || _tutor.PuedeVerComoEstudiante(cursoId, UsuarioActualId));
+            return existe && (EsTutor(tutorId) || await _tutor.PuedeVerComoEstudianteAsync(cursoId, UsuarioActualId));
         }
     }
 }

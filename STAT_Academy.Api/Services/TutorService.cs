@@ -535,12 +535,13 @@ namespace STAT_Academy.Api.Services
         /// True si un estudiante puede ver el contenido del curso: matrícula activa
         /// y curso activo (un curso inactivo no está disponible para los estudiantes).
         /// </summary>
-        public bool PuedeVerComoEstudiante(int cursoId, int usuarioId) =>
-            _context.Curso.Any(c => c.id == cursoId && c.estado) && EstaMatriculado(cursoId, usuarioId);
+        public async Task<bool> PuedeVerComoEstudianteAsync(int cursoId, int usuarioId) =>
+            await _context.Curso.AnyAsync(c => c.id == cursoId && c.estado)
+            && await EstaMatriculadoAsync(cursoId, usuarioId);
 
         /// <summary>True si el usuario tiene una matrícula activa en el curso.</summary>
-        public bool EstaMatriculado(int cursoId, int usuarioId) =>
-            _context.EstudianteCurso.Any(m => m.CursoId == cursoId && m.EstudianteId == usuarioId && m.Estado == MatriculaActiva);
+        public Task<bool> EstaMatriculadoAsync(int cursoId, int usuarioId) =>
+            _context.EstudianteCurso.AnyAsync(m => m.CursoId == cursoId && m.EstudianteId == usuarioId && m.Estado == MatriculaActiva);
 
         public async Task<bool> QuitarMaterial(int materialId, string usuarioEmail)
         {
