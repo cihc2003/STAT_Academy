@@ -3401,3 +3401,45 @@ body:has(.admin-shell) .site-footer {
 .admin-shell .usuario-form {
     max-width: none;
 }
+
+/* Menú lateral del tutor: cursos asignados con nombre largo y entregas por calificar */
+.admin-sidebar__texto {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-sidebar__badge {
+    flex: 0 0 auto;
+    min-width: 22px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: var(--navy);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-align: center;
+}
+
+.container.admin-shell .admin-sidebar a.admin-sidebar__link--apagado {
+    opacity: 0.55;
+}
+
+@media (max-width: 960px) {
+    .admin-sidebar__texto {
+        max-width: 180px;
+    }
+}
+
+/* Panel del tutor a página completa: las tarjetas de cursos llenan el ancho disponible */
+.admin-contenido .card-grid.three {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.admin-contenido .tutor-cifras dt {
+    overflow-wrap: normal;
+    word-break: normal;
+    font-size: 0.74rem;
+}

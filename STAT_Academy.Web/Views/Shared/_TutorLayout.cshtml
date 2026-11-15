@@ -1,24 +1,24 @@
 @{
-    // Layout de las páginas del panel del tutor.
-    // - Admin: se cargan dentro del panel de administración (menú lateral incluido).
-    // - Tutor: se ven como siempre, a pantalla completa del sitio.
+    // Layout de las páginas del panel del tutor: estructura de panel a página completa
+    // (menú lateral de altura completa + contenido a todo el ancho).
+    // - Admin: con el menú de Administración (el panel del tutor es una sección más).
+    // - Tutor: con su propio menú (Mis cursos y sus cursos asignados).
     Layout = "_Layout";
-    var dentroDeAdministracion = User.IsInRole("Admin");
 }
 
-@if (dentroDeAdministracion)
-{
-    <div class="container admin-shell admin-shell--tutor">
+<div class="container admin-shell admin-shell--tutor">
+    @if (User.IsInRole("Admin"))
+    {
         <partial name="_AdminNav" />
-        <div class="admin-contenido">
-            @RenderBody()
-        </div>
+    }
+    else
+    {
+        <partial name="_TutorNav" />
+    }
+    <div class="admin-contenido">
+        @RenderBody()
     </div>
-}
-else
-{
-    @RenderBody()
-}
+</div>
 
 @section Styles {
     @await RenderSectionAsync("Styles", required: false)
