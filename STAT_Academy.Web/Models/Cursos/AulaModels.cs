@@ -34,6 +34,7 @@ namespace STAT_Academy.Web.Models.Cursos
         public string? Feedback { get; set; }
         public string? Enlace { get; set; }
         public List<AulaArchivo> Archivos { get; set; } = [];
+        public List<TareaAdjunto> Adjuntos { get; set; } = [];
         public bool PuedeModificar { get; set; }
         public bool CuentaComoCero { get; set; }
 
@@ -59,6 +60,16 @@ namespace STAT_Academy.Web.Models.Cursos
             : Vencida ? "aula-pill--vencida"
             : VencePronto ? "tutor-pill--alerta"
             : "tutor-pill--gris";
+    }
+
+    /// <summary>Documento o enlace que el tutor adjuntó a una tarea (guía, plantilla…).</summary>
+    public class TareaAdjunto
+    {
+        public int Id { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Tipo { get; set; } = string.Empty;
+        public bool EsEnlace { get; set; }
+        public string? Url { get; set; }
     }
 
     public class AulaArchivo

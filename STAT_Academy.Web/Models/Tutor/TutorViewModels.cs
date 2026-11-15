@@ -90,6 +90,8 @@ namespace STAT_Academy.Web.Models.Tutor
     {
         public TutorTarea Tarea { get; set; } = new();
         public string Curso { get; set; } = string.Empty;
+        public List<TareaAdjunto> Adjuntos { get; set; } = [];
+        public bool AdjuntosDisponible { get; set; } = true;
         public List<TutorEntrega> Entregas { get; set; } = [];
     }
 
@@ -171,6 +173,29 @@ namespace STAT_Academy.Web.Models.Tutor
         [Required(ErrorMessage = "La fecha límite es obligatoria.")]
         [Display(Name = "Fecha límite de entrega")]
         public DateTime FechaLimite { get; set; } = DateTime.Today.AddDays(7).AddHours(23).AddMinutes(59);
+
+        // Documentos de la tarea (solo al editar; se gestionan con formularios aparte).
+        public List<TareaAdjunto> Adjuntos { get; set; } = [];
+        public bool AdjuntosDisponible { get; set; } = true;
+    }
+
+    /// <summary>Documento o enlace para adjuntar a una tarea (guía, plantilla para llenar…).</summary>
+    public class AdjuntoTareaFormViewModel
+    {
+        public int TareaId { get; set; }
+
+        [StringLength(255, ErrorMessage = "El título admite como máximo 255 caracteres.")]
+        [Display(Name = "Título (opcional)")]
+        public string? Titulo { get; set; }
+
+        [Display(Name = "Archivo")]
+        public IFormFile? Archivo { get; set; }
+
+        [Url(ErrorMessage = "Escriba una dirección web completa (https://…).")]
+        [Display(Name = "o enlace")]
+        public string? Enlace { get; set; }
+
+        public const int MaxAdjuntos = 5;
     }
 
     public class CalificarViewModel

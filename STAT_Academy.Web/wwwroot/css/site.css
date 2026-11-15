@@ -5237,3 +5237,42 @@ a.panel-metrica:hover {
         gap: 12px;
     }
 }
+
+/* ===================== Documentos adjuntos a una tarea ===================== */
+
+.tarea-adjuntos__nombre {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.tarea-adjuntos__form {
+    display: grid;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.tarea-adjuntos .blog-documentos li {
+    flex-wrap: wrap;
+}
+
+/* El .btn global quita el borde: el botón Quitar lo recupera */
+.tarea-adjuntos .btn[class*="btn-outline-"] {
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid currentColor;
+    border-radius: 10px;
+    background: var(--white);
+    font-size: 0.85rem;
+}
+
+    .tarea-adjuntos .btn-outline-danger:hover {
+        background: #fdecec;
+        color: #b42318;
+    }
+
+@media (max-width: 576px) {
+    .tarea-adjuntos__form .btn {
+        width: 100%;
+    }
+}

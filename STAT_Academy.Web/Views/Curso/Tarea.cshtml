@@ -33,6 +33,35 @@
             </div>
         </dl>
 
+        @* ---------------------- Documentos del tutor ---------------------- *@
+        @if (t.Adjuntos.Count > 0)
+        {
+            <div class="panel-tarjeta mb-4">
+                <div class="panel-tarjeta__titulo">
+                    <span>Documentos de la tarea</span>
+                    <small>Guías y plantillas de tu tutor</small>
+                </div>
+                <ul class="blog-documentos mb-0">
+                    @foreach (var a in t.Adjuntos)
+                    {
+                        <li>
+                            <span class="blog-documentos__ext">@a.Tipo</span>
+                            @if (a.EsEnlace)
+                            {
+                                <a href="@a.Url" target="_blank" rel="noopener noreferrer" class="tarea-adjuntos__nombre">@a.Titulo</a>
+                                <span class="ms-auto small text-muted">Enlace</span>
+                            }
+                            else
+                            {
+                                <a asp-action="AdjuntoTarea" asp-route-id="@a.Id" data-sin-carga class="tarea-adjuntos__nombre">@a.Titulo</a>
+                                <span class="ms-auto small text-muted">Descargar</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
         @* ---------------------------- Calificación ---------------------------- *@
         @if (t.Calificada)
         {

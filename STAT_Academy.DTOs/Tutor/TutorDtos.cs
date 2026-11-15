@@ -130,6 +130,10 @@ namespace STAT_Academy.DTOs.Tutor
     {
         public TutorTareaResponse tarea { get; set; } = new();
         public string curso { get; set; } = "";
+        /// <summary>Documentos y enlaces que el tutor adjuntó a la tarea.</summary>
+        public List<TareaAdjuntoResponse> adjuntos { get; set; } = new();
+        /// <summary>False si la tabla TAREA_ARCHIVO todavía no existe.</summary>
+        public bool adjuntosDisponible { get; set; } = true;
         /// <summary>Todos los estudiantes matriculados, hayan entregado o no.</summary>
         public List<TutorEntregaResponse> entregas { get; set; } = new();
     }

@@ -39,10 +39,25 @@ namespace STAT_Academy.DTOs.Aula
         public string? enlace { get; set; }
         public List<AulaArchivoResponse> archivos { get; set; } = new();
 
+        /// <summary>Documentos del tutor (solo en el detalle de la tarea, no en la lista del curso).</summary>
+        public List<TareaAdjuntoResponse> adjuntos { get; set; } = new();
+
         /// <summary>Se puede entregar o cambiar la entrega mientras no esté calificada.</summary>
         public bool puedeModificar { get; set; }
         /// <summary>Vencida y sin entregar: cuenta como 0 en la nota final.</summary>
         public bool cuentaComoCero { get; set; }
+    }
+
+    /// <summary>Documento o enlace que el tutor adjuntó a la tarea (guía, plantilla…).</summary>
+    public class TareaAdjuntoResponse
+    {
+        public int id { get; set; }
+        public string titulo { get; set; } = "";
+        /// <summary>PDF, Word, Excel, PowerPoint, Texto, Imagen o Enlace.</summary>
+        public string tipo { get; set; } = "";
+        public bool esEnlace { get; set; }
+        /// <summary>Solo para enlaces; los archivos se descargan por la API.</summary>
+        public string? url { get; set; }
     }
 
     public class AulaArchivoResponse

@@ -188,6 +188,24 @@ namespace STAT_Academy.Web.Controllers
             return File(await respuesta.Content.ReadAsStreamAsync(ct), tipo, nombre);
         }
 
+        /// <summary>Descarga un documento que el tutor adjuntó a la tarea (lo valida la API).</summary>
+        [Authorize(Roles = "Cliente")]
+        public async Task<IActionResult> AdjuntoTarea(int id, CancellationToken ct)
+        {
+            var respuesta = await _apiCursos.DescargarAdjuntoTarea(id, ct);
+            if (respuesta == null)
+                return NotFound();
+
+            HttpContext.Response.RegisterForDispose(respuesta);
+
+            var tipo = respuesta.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+            var nombre = respuesta.Content.Headers.ContentDisposition?.FileNameStar
+                         ?? respuesta.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                         ?? "documento";
+
+            return File(await respuesta.Content.ReadAsStreamAsync(ct), tipo, nombre);
+        }
+
         /// <summary>Descarga un material del curso (solo matriculados, tutor o Admin; lo valida la API).</summary>
         [Authorize]
         public async Task<IActionResult> Material(int id, CancellationToken ct)

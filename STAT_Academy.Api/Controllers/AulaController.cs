@@ -15,11 +15,13 @@ namespace STAT_Academy.Api.Controllers
     {
         private readonly AulaService _service;
         private readonly TutorService _tutor;
+        private readonly TareaAdjuntoService _adjuntos;
 
-        public AulaController(AulaService service, TutorService tutor)
+        public AulaController(AulaService service, TutorService tutor, TareaAdjuntoService adjuntos)
         {
             _service = service;
             _tutor = tutor;
+            _adjuntos = adjuntos;
         }
 
         /// <summary>Tareas del curso con el estado de la entrega propia, progreso y nota final.</summary>
@@ -29,7 +31,32 @@ namespace STAT_Academy.Api.Controllers
 
         [HttpGet("tareas/{tareaId}")]
         public IActionResult Tarea(int tareaId) =>
-            ConCurso(_service.CursoDeTareaActiva(tareaId), () => Ok(_service.Tarea(tareaId, UsuarioActualId)), "La tarea no existe.");
+            ConCurso(_service.CursoDeTareaActiva(tareaId), () =>
+            {
+                var tarea = _service.Tarea(tareaId, UsuarioActualId);
+                if (tarea == null)
+                    return NotFound(new { message = "La tarea no existe." });
+
+                tarea.adjuntos = _adjuntos.Listar(tareaId);
+                return Ok(tarea);
+            }, "La tarea no existe.");
+
+        /// <summary>Descarga un documento que el tutor adjuntó a una tarea visible.</summary>
+        [HttpGet("adjuntos/{adjuntoId}/descargar")]
+        public async Task<IActionResult> DescargarAdjunto(int adjuntoId, CancellationToken ct)
+        {
+            var cursoId = _adjuntos.TareaActiva(adjuntoId) ? _adjuntos.CursoDeAdjunto(adjuntoId) : null;
+            var error = Verificar(cursoId, "El documento no existe.");
+            if (error != null)
+                return error;
+
+            var archivo = await _adjuntos.Abrir(adjuntoId, ct);
+            if (archivo == null)
+                return NotFound(new { message = "El documento no está disponible." });
+
+            var (contenido, nombre) = archivo.Value;
+            return File(contenido.Contenido, contenido.ContentType ?? "application/octet-stream", nombre);
+        }
 
         /// <summary>
         /// Entrega o modifica la entrega: archivos nuevos (campo "archivos", se suman a los que ya hay),

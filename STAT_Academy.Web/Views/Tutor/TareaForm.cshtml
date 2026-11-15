@@ -1,4 +1,5 @@
 @model STAT_Academy.Web.Models.Tutor.TareaFormViewModel
+@using STAT_Academy.Web.Models.Tutor
 
 @{
     var nueva = Model.Id == null;
@@ -53,6 +54,86 @@
                 <a asp-action="Curso" asp-route-id="@Model.CursoId" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
+
+        @* ---------------------- Documentos de la tarea ---------------------- *@
+        <section class="card card-body tarea-adjuntos mt-4" aria-labelledby="titulo-adjuntos">
+            <h2 class="h5 mb-1" id="titulo-adjuntos">Documentos de la tarea</h2>
+            <p class="text-muted small">Guías, plantillas para llenar o enlaces. Los estudiantes los descargan desde la tarea.</p>
+
+            @if (nueva)
+            {
+                <p class="mb-0 small">Primero cree la tarea; después podrá adjuntarle documentos desde <strong>Editar tarea</strong>.</p>
+            }
+            else if (!Model.AdjuntosDisponible)
+            {
+                <div class="alert alert-info small mb-0">
+                    Los documentos de las tareas todavía no están habilitados en la base de datos.
+                </div>
+            }
+            else
+            {
+                @if (Model.Adjuntos.Count == 0)
+                {
+                    <p class="text-muted small">La tarea todavía no tiene documentos.</p>
+                }
+                else
+                {
+                    <ul class="blog-documentos mb-3">
+                        @foreach (var a in Model.Adjuntos)
+                        {
+                            <li>
+                                <span class="blog-documentos__ext">@a.Tipo</span>
+                                @if (a.EsEnlace)
+                                {
+                                    <a href="@a.Url" target="_blank" rel="noopener noreferrer" class="tarea-adjuntos__nombre">@a.Titulo</a>
+                                }
+                                else
+                                {
+                                    <a asp-action="Adjunto" asp-route-id="@a.Id" data-sin-carga class="tarea-adjuntos__nombre">@a.Titulo</a>
+                                }
+                                <form asp-action="QuitarAdjunto" method="post" class="ms-auto"
+                                      data-confirmar="¿Quitar «@a.Titulo» de la tarea? Los estudiantes dejarán de verlo." data-confirmar-boton="Quitar documento" data-confirmar-peligro>
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <input type="hidden" name="tareaId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (Model.Adjuntos.Count < AdjuntoTareaFormViewModel.MaxAdjuntos)
+                {
+                    <form asp-action="AgregarAdjunto" method="post" enctype="multipart/form-data" class="tarea-adjuntos__form">
+                        <input type="hidden" name="TareaId" value="@Model.Id" />
+
+                        <div>
+                            <label class="form-label" for="adjunto-titulo">Título (opcional)</label>
+                            <input id="adjunto-titulo" name="Titulo" class="form-control" maxlength="255" placeholder="Si lo deja vacío, se usa el nombre del archivo" />
+                        </div>
+                        <div>
+                            <label class="form-label" for="adjunto-archivo">Archivo</label>
+                            <input id="adjunto-archivo" name="Archivo" type="file" class="form-control" accept="@MaterialFormViewModel.Accept" />
+                        </div>
+                        <div>
+                            <label class="form-label" for="adjunto-enlace">o enlace</label>
+                            <input id="adjunto-enlace" name="Enlace" type="url" class="form-control" placeholder="https://…" inputmode="url" />
+                            <div class="form-text">
+                                PDF, Word, Excel, PowerPoint, TXT o CSV (máx. 10 MB) o imágenes (máx. 5 MB).
+                                Hasta @AdjuntoTareaFormViewModel.MaxAdjuntos documentos por tarea.
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">Agregar documento</button>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <p class="small text-muted mb-0">La tarea ya tiene el máximo de @AdjuntoTareaFormViewModel.MaxAdjuntos documentos.</p>
+                }
+            }
+        </section>
     </div>
 </section>
 

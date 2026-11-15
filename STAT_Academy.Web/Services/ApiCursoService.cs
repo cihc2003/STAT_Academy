@@ -106,6 +106,17 @@ namespace STAT_Academy.Web.Services
             return null;
         }
 
+        /// <summary>Documento que el tutor adjuntó a una tarea (la API valida la matrícula).</summary>
+        public async Task<HttpResponseMessage?> DescargarAdjuntoTarea(int adjuntoId, CancellationToken ct)
+        {
+            var response = await _httpClient.GetAsync($"api/Aula/adjuntos/{adjuntoId}/descargar", HttpCompletionOption.ResponseHeadersRead, ct);
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            response.Dispose();
+            return null;
+        }
+
         private static readonly JsonSerializerOptions JsonWeb = new() { PropertyNameCaseInsensitive = true };
 
         public async Task<List<CursoAdminResponse>> GetCursosAsync()
