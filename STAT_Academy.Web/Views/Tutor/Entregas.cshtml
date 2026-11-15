@@ -28,6 +28,26 @@
             <a class="btn btn-outline-primary" asp-action="EditarTarea" asp-route-id="@t.Id">Editar tarea</a>
         </div>
 
+        @if (Model.Adjuntos.Count > 0)
+        {
+            <ul class="blog-documentos mb-4" aria-label="Documentos de la tarea">
+                @foreach (var a in Model.Adjuntos)
+                {
+                    <li>
+                        <span class="blog-documentos__ext">@a.Tipo</span>
+                        @if (a.EsEnlace)
+                        {
+                            <a href="@a.Url" target="_blank" rel="noopener noreferrer" class="tarea-adjuntos__nombre">@a.Titulo</a>
+                        }
+                        else
+                        {
+                            <a asp-action="Adjunto" asp-route-id="@a.Id" data-sin-carga class="tarea-adjuntos__nombre">@a.Titulo</a>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
         <dl class="tutor-cifras tutor-cifras--fila mb-4">
             <div><dt>Entregadas</dt><dd>@t.Entregas / @t.Estudiantes</dd></div>
             <div><dt>Por calificar</dt><dd>@porCalificar</dd></div>

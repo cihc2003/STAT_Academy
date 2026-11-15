@@ -1,9 +1,12 @@
 @model STAT_Academy.Web.Models.Tutor.TutorCalificacionesPagina
+@using STAT_Academy.Web.Helpers
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Calificaciones · " + Model.Curso.Nombre;
     var tareas = Model.Calificaciones.Tareas;
     var filas = Model.Calificaciones.Estudiantes;
+    var ajusteDisponible = Model.Calificaciones.AjusteDisponible;
 }
 
 <section class="section">
@@ -22,6 +25,14 @@
         }
         else
         {
+            @if (!ajusteDisponible)
+            {
+                <div class="alert alert-info small">
+                    El ajuste manual de la nota final todavía no está habilitado en la base de datos;
+                    se muestra la nota calculada a partir de las tareas.
+                </div>
+            }
+
             <div class="table-card">
                 <table class="table align-middle mb-0 tutor-notas">
                     <thead>
@@ -34,12 +45,14 @@
                                     <div class="text-muted small fw-normal">@(t.FechaLimite?.ToString("dd/MM") ?? "")</div>
                                 </th>
                             }
-                            <th scope="col" class="text-center">Promedio</th>
+                            <th scope="col" class="text-center tutor-notas__final">Nota final</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var f in filas)
                         {
+                            var nf = f.NotaFinal;
+
                             <tr>
                                 <th scope="row" class="tutor-notas__fijo">
                                     @f.Nombre
@@ -50,11 +63,15 @@
                                     <td class="text-center">
                                         @if (c.Calificacion is decimal nota)
                                         {
-                                            <strong class="@(nota < 70 ? "text-danger" : "")">@nota.ToString("0.##")</strong>
+                                            <strong class="@(nota < 70 ? "text-danger" : "")">@Formato.Nota(nota)</strong>
                                         }
                                         else if (c.Estado == "Entregada")
                                         {
                                             <a asp-action="Entregas" asp-route-id="@c.TareaId" class="status-pill tutor-pill--alerta">Por calificar</a>
+                                        }
+                                        else if (c.CuentaComoCero)
+                                        {
+                                            <span class="text-danger" title="Vencida sin entregar: cuenta como 0">0</span>
                                         }
                                         else
                                         {
@@ -62,14 +79,29 @@
                                         }
                                     </td>
                                 }
-                                <td class="text-center">
-                                    @if (f.Promedio is decimal p)
+                                <td class="text-center tutor-notas__final">
+                                    <div class="tutor-nota-final">
+                                        <strong class="@(nf.Final < 70 ? "text-danger" : "")">@Formato.Nota(nf.Final)</strong>
+                                        @if (nf.EsAjustada)
+                                        {
+                                            <span class="status-pill tutor-pill--gris" title="Calculada: @Formato.Nota(nf.Calculada)">Ajustada</span>
+                                        }
+                                        @if (ajusteDisponible)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-nota-final"
+                                                    data-nota-final
+                                                    data-estudiante-id="@f.EstudianteId"
+                                                    data-nombre="@f.Nombre"
+                                                    data-calculada="@Formato.Nota(nf.Calculada, "sin datos")"
+                                                    data-ajustada="@(nf.Ajustada?.ToString("0.##", CultureInfo.InvariantCulture))"
+                                                    data-comentario="@nf.Comentario">
+                                                Ajustar
+                                            </button>
+                                        }
+                                    </div>
+                                    @if (nf.PorCalificar > 0)
                                     {
-                                        <strong class="@(p < 70 ? "text-danger" : "")">@p.ToString("0.##")</strong>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
+                                        <div class="text-muted small">@nf.PorCalificar por calificar</div>
                                     }
                                 </td>
                             </tr>
@@ -78,8 +110,48 @@
                 </table>
             </div>
             <p class="text-muted small mt-2">
-                Notas sobre 100. En rojo, por debajo de 70. El promedio considera solo las tareas calificadas.
+                Notas sobre 100. En rojo, por debajo de 70. La nota final se calcula con las tareas calificadas y las vencidas
+                sin entregar (cuentan 0); las tareas abiertas o por calificar todavía no cuentan. Si la ajusta, el estudiante ve la nota ajustada.
             </p>
         }
     </div>
 </section>
+
+@if (ajusteDisponible && filas.Count > 0 && tareas.Count > 0)
+{
+    <div class="modal fade" id="modal-nota-final" tabindex="-1" aria-labelledby="modal-nota-final-titulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form asp-action="NotaFinal" method="post" class="modal-content confirmar-modal">
+                <input type="hidden" name="CursoId" value="@Model.Curso.Id" />
+                <input type="hidden" name="EstudianteId" data-campo="estudiante" />
+
+                <div class="modal-header">
+                    <h2 class="modal-title h5" id="modal-nota-final-titulo">Ajustar nota final</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        <strong data-campo="nombre"></strong><br />
+                        <span class="text-muted small">Nota calculada a partir de las tareas: <span data-campo="calculada"></span></span>
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label" for="nota-final-valor">Nota final (0–100)</label>
+                        <input id="nota-final-valor" name="Nota" type="number" min="0" max="100" step="0.01" class="form-control" required />
+                    </div>
+                    <div>
+                        <label class="form-label" for="nota-final-comentario">Comentario para el estudiante</label>
+                        <textarea id="nota-final-comentario" name="Comentario" class="form-control" rows="2" maxlength="255"
+                                  placeholder="Opcional: explique el ajuste"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" name="UsarCalculada" value="true" formnovalidate class="btn btn-outline-secondary me-auto" data-campo="quitar">
+                        Usar la calculada
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

@@ -55,6 +55,44 @@ namespace STAT_Academy.Web.Services
                 feedback = m.Feedback
             }));
 
+        public Task<(bool exitoso, string mensaje)> AjustarNotaFinal(NotaFinalFormViewModel m) =>
+            Enviar(_http.PutAsJsonAsync($"api/Tutor/cursos/{m.CursoId}/estudiantes/{m.EstudianteId}/nota-final", new
+            {
+                nota = m.UsarCalculada ? null : m.NotaNumero,
+                comentario = m.UsarCalculada ? null : m.Comentario
+            }));
+
+        // --- Documentos de la tarea -----------------------------------------
+
+        public async Task<(bool exitoso, string mensaje)> AgregarAdjunto(AdjuntoTareaFormViewModel m)
+        {
+            using var contenido = new MultipartFormDataContent();
+
+            if (!string.IsNullOrWhiteSpace(m.Titulo))
+                contenido.Add(new StringContent(m.Titulo.Trim()), "titulo");
+
+            if (!string.IsNullOrWhiteSpace(m.Enlace))
+                contenido.Add(new StringContent(m.Enlace.Trim()), "enlace");
+
+            if (m.Archivo is { Length: > 0 } archivo)
+            {
+                var parte = new StreamContent(archivo.OpenReadStream());
+                parte.Headers.ContentType = MediaTypeHeaderValue.TryParse(archivo.ContentType, out var tipo)
+                    ? tipo
+                    : new MediaTypeHeaderValue("application/octet-stream");
+                contenido.Add(parte, "archivo", Path.GetFileName(archivo.FileName));
+            }
+
+            var (exitoso, mensaje) = await Enviar(_http.PostAsync($"api/Tutor/tareas/{m.TareaId}/adjuntos", contenido));
+            return (exitoso, exitoso ? "Documento agregado a la tarea." : mensaje);
+        }
+
+        public Task<(bool exitoso, string mensaje)> QuitarAdjunto(int adjuntoId) =>
+            Enviar(_http.DeleteAsync($"api/Tutor/adjuntos/{adjuntoId}"));
+
+        public Task<HttpResponseMessage?> DescargarAdjunto(int adjuntoId, CancellationToken ct) =>
+            Descargar($"api/Tutor/adjuntos/{adjuntoId}/descargar", ct);
+
         // --- Material ------------------------------------------------------
 
         public async Task<(bool exitoso, string mensaje)> AgregarMaterial(MaterialFormViewModel m)

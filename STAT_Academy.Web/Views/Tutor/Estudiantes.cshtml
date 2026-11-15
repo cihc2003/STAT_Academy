@@ -1,4 +1,5 @@
 @model STAT_Academy.Web.Models.Tutor.TutorEstudiantesPagina
+@using STAT_Academy.Web.Helpers
 
 @{
     ViewData["Title"] = "Estudiantes · " + Model.Curso.Nombre;
@@ -25,7 +26,7 @@
                             <th>Estudiante</th>
                             <th>Matrícula</th>
                             <th>Tareas entregadas</th>
-                            <th>Promedio</th>
+                            <th>Nota final</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,10 +44,14 @@
                                     <div class="text-muted small">desde @(e.FechaMatricula?.ToString("dd/MM/yyyy") ?? "—")</div>
                                 </td>
                                 <td data-label="Tareas entregadas">@e.TareasEntregadas / @e.TareasTotales</td>
-                                <td data-label="Promedio">
-                                    @if (e.Promedio is decimal p)
+                                <td data-label="Nota final">
+                                    @if (e.NotaFinal.Final is decimal p)
                                     {
-                                        <strong class="@(p < 70 ? "text-danger" : "")">@p.ToString("0.##")</strong>
+                                        <strong class="@(p < 70 ? "text-danger" : "")">@Formato.Nota(p)</strong>
+                                        @if (e.NotaFinal.EsAjustada)
+                                        {
+                                            <span class="status-pill tutor-pill--gris ms-1">Ajustada</span>
+                                        }
                                     }
                                     else
                                     {
@@ -58,7 +63,10 @@
                     </tbody>
                 </table>
             </div>
-            <p class="text-muted small mt-2">El promedio considera solo las tareas ya calificadas.</p>
+            <p class="text-muted small mt-2">
+                La nota final promedia las tareas calificadas y las vencidas sin entregar (cuentan 0).
+                Puede ajustarla en <a asp-action="Calificaciones" asp-route-id="@Model.Curso.Id">Calificaciones</a>.
+            </p>
         }
     </div>
 </section>

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using STAT_Academy.Web.Models.Cursos;
 
 namespace STAT_Academy.Web.Models.Tutor
 {
@@ -31,12 +32,15 @@ namespace STAT_Academy.Web.Models.Tutor
         public int TareasEntregadas { get; set; }
         public int TareasTotales { get; set; }
         public decimal? Promedio { get; set; }
+        public NotaFinal NotaFinal { get; set; } = new();
     }
 
     public class TutorCalificaciones
     {
         public List<TutorTareaColumna> Tareas { get; set; } = [];
         public List<TutorFilaCalificaciones> Estudiantes { get; set; } = [];
+        /// <summary>False si la base todavía no tiene la tabla NOTA_FINAL.</summary>
+        public bool AjusteDisponible { get; set; } = true;
     }
 
     public class TutorTareaColumna
@@ -53,6 +57,7 @@ namespace STAT_Academy.Web.Models.Tutor
         public string Email { get; set; } = string.Empty;
         public List<TutorCeldaCalificacion> Notas { get; set; } = [];
         public decimal? Promedio { get; set; }
+        public NotaFinal NotaFinal { get; set; } = new();
     }
 
     public class TutorCeldaCalificacion
@@ -61,6 +66,7 @@ namespace STAT_Academy.Web.Models.Tutor
         public int? EntregaId { get; set; }
         public string Estado { get; set; } = string.Empty;
         public decimal? Calificacion { get; set; }
+        public bool CuentaComoCero { get; set; }
     }
 
     public class TutorTarea
@@ -84,6 +90,8 @@ namespace STAT_Academy.Web.Models.Tutor
     {
         public TutorTarea Tarea { get; set; } = new();
         public string Curso { get; set; } = string.Empty;
+        public List<TareaAdjunto> Adjuntos { get; set; } = [];
+        public bool AdjuntosDisponible { get; set; } = true;
         public List<TutorEntrega> Entregas { get; set; } = [];
     }
 
@@ -165,6 +173,29 @@ namespace STAT_Academy.Web.Models.Tutor
         [Required(ErrorMessage = "La fecha límite es obligatoria.")]
         [Display(Name = "Fecha límite de entrega")]
         public DateTime FechaLimite { get; set; } = DateTime.Today.AddDays(7).AddHours(23).AddMinutes(59);
+
+        // Documentos de la tarea (solo al editar; se gestionan con formularios aparte).
+        public List<TareaAdjunto> Adjuntos { get; set; } = [];
+        public bool AdjuntosDisponible { get; set; } = true;
+    }
+
+    /// <summary>Documento o enlace para adjuntar a una tarea (guía, plantilla para llenar…).</summary>
+    public class AdjuntoTareaFormViewModel
+    {
+        public int TareaId { get; set; }
+
+        [StringLength(255, ErrorMessage = "El título admite como máximo 255 caracteres.")]
+        [Display(Name = "Título (opcional)")]
+        public string? Titulo { get; set; }
+
+        [Display(Name = "Archivo")]
+        public IFormFile? Archivo { get; set; }
+
+        [Url(ErrorMessage = "Escriba una dirección web completa (https://…).")]
+        [Display(Name = "o enlace")]
+        public string? Enlace { get; set; }
+
+        public const int MaxAdjuntos = 5;
     }
 
     public class CalificarViewModel
@@ -189,6 +220,29 @@ namespace STAT_Academy.Web.Models.Tutor
 
         [StringLength(255, ErrorMessage = "La retroalimentación admite como máximo 255 caracteres.")]
         public string? Feedback { get; set; }
+    }
+
+    /// <summary>Ajuste de la nota final. Nota vacía (o "Usar la calculada") vuelve a la calculada.</summary>
+    public class NotaFinalFormViewModel
+    {
+        public int CursoId { get; set; }
+        public int EstudianteId { get; set; }
+
+        /// <summary>Texto del formulario: "85.5" y "85,5" valen lo mismo.</summary>
+        public string? Nota { get; set; }
+
+        public bool UsarCalculada { get; set; }
+
+        [StringLength(255, ErrorMessage = "El comentario admite como máximo 255 caracteres.")]
+        public string? Comentario { get; set; }
+
+        public decimal? NotaNumero =>
+            decimal.TryParse(Nota?.Trim().Replace(',', '.'),
+                System.Globalization.NumberStyles.Number,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var valor)
+                ? valor
+                : null;
     }
 
     public class MaterialFormViewModel

@@ -25,6 +25,8 @@ namespace STAT_Academy.Api.Data
         public DbSet<EntregaTareaArchivoModel> EntregaTareaArchivo { get; set; }
         public DbSet<ProductoImagenModel> ProductoImagen { get; set; }
         public DbSet<CursoImagenModel> CursoImagen { get; set; }
+        public DbSet<NotaFinalModel> NotaFinal { get; set; }
+        public DbSet<TareaArchivoModel> TareaArchivo { get; set; }
         public DbSet<PagoModel> Pago { get; set; }
         public DbSet<FacturaModel> Factura { get; set; }
         public DbSet<DetalleFacturaModel> DetalleFactura { get; set; }
@@ -92,6 +94,10 @@ namespace STAT_Academy.Api.Data
             // Calificación decimal(5,2): nota de 0 a 100.
             modelBuilder.Entity<EntregaTareaModel>()
                 .Property(e => e.calificacion)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<NotaFinalModel>()
+                .Property(n => n.nota)
                 .HasPrecision(5, 2);
 
             modelBuilder.Entity<EntregaTareaModel>()

@@ -29,6 +29,20 @@ namespace STAT_Academy.Web.Helpers
             return palabras.Length > 0 ? new string(palabras) : "C";
         }
 
+        /// <summary>
+        /// Fecha y hora actual en Costa Rica. Las fechas de las tareas y entregas ya vienen en
+        /// hora de Costa Rica desde la API, así que se comparan contra este valor (no contra DateTime.Now).
+        /// </summary>
+        public static DateTime AhoraCostaRica => DateTime.UtcNow.AddHours(-6);
+
+        /// <summary>Fecha y hora local (sin conversión): 14/11/2026 09:30.</summary>
+        public static string FechaHoraLocal(DateTime? fecha, string sinDato = "—") =>
+            fecha == null ? sinDato : fecha.Value.ToString("dd/MM/yyyy HH:mm", CostaRica);
+
+        /// <summary>Nota sobre 100 sin ceros de sobra: 85, 92,5.</summary>
+        public static string Nota(decimal? nota, string sinDato = "—") =>
+            nota == null ? sinDato : nota.Value.ToString("0.##", CostaRica);
+
         /// <summary>Convierte una fecha UTC de la API a hora de Costa Rica (UTC-6 todo el año).</summary>
         public static DateTime HoraCostaRica(DateTime utc) =>
             (utc.Kind == DateTimeKind.Local ? utc.ToUniversalTime() : utc).AddHours(-6);

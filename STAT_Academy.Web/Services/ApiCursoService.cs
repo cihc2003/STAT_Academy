@@ -47,6 +47,78 @@ namespace STAT_Academy.Web.Services
             return null;
         }
 
+        // --- Aula del estudiante (api/Aula) ---------------------------------
+
+        public async Task<AulaCurso?> GetAula(int cursoId)
+        {
+            using var response = await _httpClient.GetAsync($"api/Aula/cursos/{cursoId}");
+            return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<AulaCurso>(JsonWeb) : null;
+        }
+
+        public async Task<AulaTarea?> GetAulaTarea(int tareaId)
+        {
+            using var response = await _httpClient.GetAsync($"api/Aula/tareas/{tareaId}");
+            return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<AulaTarea>(JsonWeb) : null;
+        }
+
+        /// <summary>Entrega o modifica la entrega: archivos nuevos (se suman), enlace o quitar el enlace.</summary>
+        public async Task<(bool exitoso, string mensaje)> Entregar(EntregaFormViewModel m)
+        {
+            using var contenido = new MultipartFormDataContent();
+
+            if (!string.IsNullOrWhiteSpace(m.Enlace))
+                contenido.Add(new StringContent(m.Enlace.Trim()), "enlace");
+
+            if (m.QuitarEnlace)
+                contenido.Add(new StringContent("true"), "quitarEnlace");
+
+            foreach (var archivo in m.Archivos.Where(a => a is { Length: > 0 }))
+            {
+                var parte = new StreamContent(archivo.OpenReadStream());
+                parte.Headers.ContentType = MediaTypeHeaderValue.TryParse(archivo.ContentType, out var tipo)
+                    ? tipo
+                    : new MediaTypeHeaderValue("application/octet-stream");
+                contenido.Add(parte, "archivos", Path.GetFileName(archivo.FileName));
+            }
+
+            using var response = await _httpClient.PostAsync($"api/Aula/tareas/{m.TareaId}/entrega", contenido);
+            var (exitoso, mensaje) = await ApiRespuesta.Leer(response);
+            if (!exitoso)
+                return (false, mensaje);
+
+            var soloQuitaEnlace = m.QuitarEnlace && string.IsNullOrWhiteSpace(m.Enlace) && !m.Archivos.Any(a => a is { Length: > 0 });
+            return (true, soloQuitaEnlace ? "Enlace quitado de la entrega." : "Entrega guardada. Tu tutor ya puede revisarla.");
+        }
+
+        public async Task<(bool exitoso, string mensaje)> QuitarArchivoEntrega(int archivoId)
+        {
+            using var response = await _httpClient.DeleteAsync($"api/Aula/entregas/archivos/{archivoId}");
+            return await ApiRespuesta.Leer(response);
+        }
+
+        public async Task<HttpResponseMessage?> DescargarArchivoEntrega(int archivoId, CancellationToken ct)
+        {
+            var response = await _httpClient.GetAsync($"api/Aula/entregas/archivos/{archivoId}/descargar", HttpCompletionOption.ResponseHeadersRead, ct);
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            response.Dispose();
+            return null;
+        }
+
+        /// <summary>Documento que el tutor adjuntó a una tarea (la API valida la matrícula).</summary>
+        public async Task<HttpResponseMessage?> DescargarAdjuntoTarea(int adjuntoId, CancellationToken ct)
+        {
+            var response = await _httpClient.GetAsync($"api/Aula/adjuntos/{adjuntoId}/descargar", HttpCompletionOption.ResponseHeadersRead, ct);
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            response.Dispose();
+            return null;
+        }
+
+        private static readonly JsonSerializerOptions JsonWeb = new() { PropertyNameCaseInsensitive = true };
+
         public async Task<List<CursoAdminResponse>> GetCursosAsync()
         {
             var response = await _httpClient.GetAsync("api/Curso");

@@ -4969,3 +4969,310 @@ a.panel-metrica:hover {
         row-gap: 2px;
     }
 }
+
+/* ===================== Aula: entregas, calificaciones y nota final ===================== */
+
+.aula-resumen {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) auto;
+    gap: 16px 24px;
+    align-items: center;
+    padding: 20px 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--white);
+}
+
+.aula-resumen__etiqueta {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.aula-progreso {
+    height: 10px;
+    margin: 6px 0 4px;
+    border-radius: 999px;
+    background: var(--light);
+}
+
+    .aula-progreso .progress-bar {
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--electric), var(--sky));
+    }
+
+.aula-resumen__cifras {
+    margin: 0;
+}
+
+.aula-item {
+    position: relative;
+}
+
+.aula-item--enlace {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .aula-item--enlace:hover,
+    .aula-item--enlace:focus-within {
+        border-color: var(--electric);
+        box-shadow: 0 6px 18px rgba(23, 107, 255, 0.1);
+    }
+
+.aula-item__titulo {
+    color: var(--navy);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+    .aula-item__titulo:hover {
+        color: var(--electric);
+    }
+
+.aula-pill--vencida {
+    background: #fdecec;
+    color: #b42318;
+}
+
+/* Tarea del estudiante */
+.aula-tarea {
+    max-width: 880px;
+}
+
+.aula-tarea__cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.aula-tarea__instrucciones {
+    color: var(--muted);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.aula-tarea__fechas dd {
+    font-size: 1rem;
+}
+
+.aula-nota {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.aula-nota__valor {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    background: #e8f7ef;
+    color: #137a44;
+    line-height: 1;
+}
+
+    .aula-nota__valor strong {
+        font-size: 1.7rem;
+        font-weight: 900;
+    }
+
+    .aula-nota__valor span {
+        margin-top: -18px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        opacity: 0.8;
+    }
+
+.aula-nota__valor--baja {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.aula-nota--final .aula-nota__valor {
+    background: #edf3ff;
+    color: var(--electric);
+}
+
+.aula-nota--final .aula-nota__valor--baja {
+    background: #fdecec;
+    color: #b42318;
+}
+
+.aula-nota__feedback,
+.aula-calif__feedback {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.aula-nota__feedback {
+    padding: 10px 14px;
+    border-left: 3px solid var(--sky);
+    border-radius: 8px;
+    background: var(--light);
+}
+
+.aula-calif__feedback {
+    white-space: normal;
+    max-width: 40ch;
+}
+
+.aula-entrega__archivos li {
+    flex-wrap: wrap;
+}
+
+.aula-entrega__enlace {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.aula-entrega__form {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+
+.aula-entrega__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.mis-cursos__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: auto;
+}
+
+/* Calificaciones del tutor: columna de nota final */
+.tutor-notas__final {
+    background: var(--light);
+}
+
+.tutor-nota-final {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* El .btn global quita el borde: los botones secundarios del aula y de la nota final lo recuperan */
+.aula-resumen .btn[class*="btn-outline-"],
+.aula-tarea .btn[class*="btn-outline-"],
+.tutor-nota-final .btn[class*="btn-outline-"] {
+    border: 1px solid currentColor;
+    background: var(--white);
+    box-shadow: none;
+}
+
+    .aula-tarea .btn-outline-danger:hover {
+        background: #fdecec;
+        color: #b42318;
+    }
+
+    .aula-resumen .btn-outline-primary:hover,
+    .tutor-nota-final .btn-outline-primary:hover {
+        background: #edf3ff;
+        color: var(--electric);
+    }
+
+.aula-tarea .btn-sm,
+.tutor-nota-final .btn-sm {
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 960px) {
+    .aula-resumen {
+        grid-template-columns: 1fr;
+    }
+
+    .aula-resumen__accion {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 576px) {
+    .aula-resumen {
+        padding: 16px;
+    }
+
+    .aula-resumen__cifras {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+        .aula-resumen__cifras div {
+            padding: 8px 10px;
+        }
+
+        .aula-resumen__cifras dd {
+            font-size: 1.15rem;
+        }
+
+    .aula-resumen__accion,
+    .aula-entrega__acciones .btn {
+        width: 100%;
+    }
+
+    .aula-tarea__cabecera {
+        flex-direction: column;
+    }
+
+    .aula-tarea__fechas {
+        grid-template-columns: 1fr;
+    }
+
+    .aula-nota {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+
+/* ===================== Documentos adjuntos a una tarea ===================== */
+
+.tarea-adjuntos__nombre {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.tarea-adjuntos__form {
+    display: grid;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+}
+
+.tarea-adjuntos .blog-documentos li {
+    flex-wrap: wrap;
+}
+
+/* El .btn global quita el borde: el botón Quitar lo recupera */
+.tarea-adjuntos .btn[class*="btn-outline-"] {
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid currentColor;
+    border-radius: 10px;
+    background: var(--white);
+    font-size: 0.85rem;
+}
+
+    .tarea-adjuntos .btn-outline-danger:hover {
+        background: #fdecec;
+        color: #b42318;
+    }
+
+@media (max-width: 576px) {
+    .tarea-adjuntos__form .btn {
+        width: 100%;
+    }
+}

@@ -73,6 +73,25 @@ namespace STAT_Academy.Web.Controllers
             });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> NotaFinal(NotaFinalFormViewModel model)
+        {
+            if (!model.UsarCalculada && (model.NotaNumero is not decimal nota || nota < 0 || nota > 100))
+                ModelState.AddModelError(nameof(model.Nota), "La nota final debe ser un número entre 0 y 100.");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = ModelState.Values.SelectMany(v => v.Errors).First().ErrorMessage;
+                return RedirectToAction(nameof(Calificaciones), new { id = model.CursoId });
+            }
+
+            var (exitoso, mensaje) = await _api.AjustarNotaFinal(model);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Calificaciones), new { id = model.CursoId });
+        }
+
         // ------------------------------------------------------------------
         // Tareas
         // ------------------------------------------------------------------
@@ -114,7 +133,9 @@ namespace STAT_Academy.Web.Controllers
                 Titulo = t.Titulo,
                 Descripcion = t.Descripcion,
                 FechaInicio = t.FechaInicio ?? DateTime.Today,
-                FechaLimite = t.FechaLimite ?? DateTime.Today.AddDays(7)
+                FechaLimite = t.FechaLimite ?? DateTime.Today.AddDays(7),
+                Adjuntos = entregas.Adjuntos,
+                AdjuntosDisponible = entregas.AdjuntosDisponible
             });
         }
 
@@ -151,6 +172,47 @@ namespace STAT_Academy.Web.Controllers
 
             return RedirectToAction(nameof(Curso), new { id = cursoId });
         }
+
+        // ------------------------------------------------------------------
+        // Documentos de la tarea (guías, plantillas, enlaces)
+        // ------------------------------------------------------------------
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(MaterialFormViewModel.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = MaterialFormViewModel.MaxBytesPeticion)]
+        public async Task<IActionResult> AgregarAdjunto(AdjuntoTareaFormViewModel model)
+        {
+            var tieneArchivo = model.Archivo is { Length: > 0 };
+            var tieneEnlace = !string.IsNullOrWhiteSpace(model.Enlace);
+
+            if (tieneArchivo == tieneEnlace)
+                ModelState.AddModelError(string.Empty, "Suba un archivo o indique un enlace (solo uno de los dos).");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = ModelState.Values.SelectMany(v => v.Errors).First().ErrorMessage;
+                return RedirectToAction(nameof(EditarTarea), new { id = model.TareaId });
+            }
+
+            var (exitoso, mensaje) = await _api.AgregarAdjunto(model);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(EditarTarea), new { id = model.TareaId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuitarAdjunto(int id, int tareaId)
+        {
+            var (exitoso, mensaje) = await _api.QuitarAdjunto(id);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(EditarTarea), new { id = tareaId });
+        }
+
+        public async Task<IActionResult> Adjunto(int id, CancellationToken ct) =>
+            await Reenviar(await _api.DescargarAdjunto(id, ct), ct);
 
         // ------------------------------------------------------------------
         // Entregas y calificación

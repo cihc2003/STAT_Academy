@@ -15,10 +15,12 @@ namespace STAT_Academy.Api.Controllers
     public class TutorController : ApiControllerBase
     {
         private readonly TutorService _service;
+        private readonly TareaAdjuntoService _adjuntos;
 
-        public TutorController(TutorService service)
+        public TutorController(TutorService service, TareaAdjuntoService adjuntos)
         {
             _service = service;
+            _adjuntos = adjuntos;
         }
 
         // ---------------------------------------------------------------
@@ -41,6 +43,15 @@ namespace STAT_Academy.Api.Controllers
         [HttpGet("cursos/{cursoId}/calificaciones")]
         public IActionResult Calificaciones(int cursoId) =>
             ConCurso(cursoId, () => Ok(_service.Calificaciones(cursoId)));
+
+        /// <summary>Ajusta la nota final del estudiante; con nota = null vuelve a la calculada.</summary>
+        [HttpPut("cursos/{cursoId}/estudiantes/{estudianteId}/nota-final")]
+        public IActionResult AjustarNotaFinal(int cursoId, int estudianteId, TutorNotaFinalRequest request) =>
+            ConCurso(cursoId, () =>
+            {
+                var (exitoso, mensaje) = _service.AjustarNotaFinal(cursoId, estudianteId, request, UsuarioActualId, UsuarioActualEmail);
+                return exitoso ? Ok(new { message = mensaje }) : BadRequest(new { message = mensaje });
+            });
 
         // ---------------------------------------------------------------
         // Tareas
@@ -93,7 +104,65 @@ namespace STAT_Academy.Api.Controllers
 
         [HttpGet("tareas/{tareaId}/entregas")]
         public IActionResult Entregas(int tareaId) =>
-            ConCurso(_service.CursoDeTarea(tareaId), () => Ok(_service.Entregas(tareaId)), "La tarea no existe.");
+            ConCurso(_service.CursoDeTarea(tareaId), () =>
+            {
+                var respuesta = _service.Entregas(tareaId);
+                if (respuesta == null)
+                    return NotFound(new { message = "La tarea no existe." });
+
+                respuesta.adjuntos = _adjuntos.Listar(tareaId);
+                respuesta.adjuntosDisponible = _adjuntos.Disponible;
+                return Ok(respuesta);
+            }, "La tarea no existe.");
+
+        // ---------------------------------------------------------------
+        // Documentos adjuntos a la tarea (guías, plantillas, enlaces)
+        // ---------------------------------------------------------------
+
+        /// <summary>Agrega un archivo (campo "archivo") o un enlace (campo "enlace"); "titulo" es opcional.</summary>
+        [HttpPost("tareas/{tareaId}/adjuntos")]
+        [RequestSizeLimit(BlogArchivoValidador.MaxBytesDocumento + 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = BlogArchivoValidador.MaxBytesDocumento + 1024 * 1024)]
+        public async Task<IActionResult> AgregarAdjunto(
+            int tareaId,
+            [FromForm] string? titulo,
+            [FromForm] IFormFile? archivo,
+            [FromForm] string? enlace)
+        {
+            var error = Verificar(_service.CursoDeTarea(tareaId), "La tarea no existe.");
+            if (error != null)
+                return error;
+
+            var (adjunto, mensaje) = await _adjuntos.Agregar(tareaId, titulo, archivo, enlace, UsuarioActualId, UsuarioActualEmail);
+            return adjunto == null ? BadRequest(new { message = mensaje }) : Ok(adjunto);
+        }
+
+        [HttpDelete("adjuntos/{adjuntoId}")]
+        public async Task<IActionResult> QuitarAdjunto(int adjuntoId)
+        {
+            var error = Verificar(_adjuntos.CursoDeAdjunto(adjuntoId), "El documento no existe.");
+            if (error != null)
+                return error;
+
+            return await _adjuntos.Quitar(adjuntoId, UsuarioActualEmail) != null
+                ? Ok(new { message = "Documento quitado de la tarea." })
+                : NotFound(new { message = "El documento no existe." });
+        }
+
+        [HttpGet("adjuntos/{adjuntoId}/descargar")]
+        public async Task<IActionResult> DescargarAdjunto(int adjuntoId, CancellationToken ct)
+        {
+            var error = Verificar(_adjuntos.CursoDeAdjunto(adjuntoId), "El documento no existe.");
+            if (error != null)
+                return error;
+
+            var archivo = await _adjuntos.Abrir(adjuntoId, ct);
+            if (archivo == null)
+                return NotFound(new { message = "El documento no está disponible." });
+
+            var (contenido, nombre) = archivo.Value;
+            return File(contenido.Contenido, contenido.ContentType ?? "application/octet-stream", nombre);
+        }
 
         [HttpPut("entregas/{entregaId}/calificacion")]
         public IActionResult Calificar(int entregaId, TutorCalificarRequest request) =>
