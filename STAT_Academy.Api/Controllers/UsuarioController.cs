@@ -6,10 +6,9 @@ using STAT_Academy.Api.Services;
 
 namespace STAT_Academy.Api.Controllers
 {
-    [ApiController]
     [Authorize(Roles = Roles.Admin)]
     [Route("api/[controller]")]
-    public class UsuarioController : ControllerBase
+    public class UsuarioController : ApiControllerBase
     {
         private readonly UsuarioService _usuarioService;
         private readonly CorreoService _correoService;
@@ -30,6 +29,21 @@ namespace STAT_Academy.Api.Controllers
         {
             return Ok(_usuarioService.GetUsuarios());
         }
+        /// <summary>Lista paginada y filtrada para el panel de administración.</summary>
+        /// <param name="texto">Busca en el nombre y el correo.</param>
+        /// <param name="orden">nombre, nombre_desc, registro, registro_desc, login o login_desc.</param>
+        [HttpGet("buscar")]
+        public ActionResult<UsuarioPaginaResponse> Buscar(
+            [FromQuery] string? texto,
+            [FromQuery] int? tipo,
+            [FromQuery] bool? estado,
+            [FromQuery] string? orden,
+            [FromQuery] int pagina = 1,
+            [FromQuery] int tamano = 10)
+        {
+            return Ok(_usuarioService.Buscar(texto, tipo, estado, orden, pagina, tamano));
+        }
+
         [HttpGet("tipo/{tipo}")]
         public IActionResult FiltrarPorTipo(int tipo)
         {
@@ -60,10 +74,10 @@ namespace STAT_Academy.Api.Controllers
         {
             try
             {
-                var newUsuario = _usuarioService.CreateUsuario(request);
+                var newUsuario = _usuarioService.CreateUsuario(request, UsuarioActualEmail);
 
                 return CreatedAtAction(
-                    nameof(GetUsuario),
+                    nameof(GetUsuarioById),
                     new { id = newUsuario.id },
                     newUsuario);
             }
@@ -113,7 +127,7 @@ namespace STAT_Academy.Api.Controllers
         {
             try
             {
-                var usuarioActualizado = _usuarioService.UpdateUsuario(id, request);
+                var usuarioActualizado = _usuarioService.UpdateUsuario(id, request, UsuarioActualId, UsuarioActualEmail);
 
                 if (usuarioActualizado == null)
                 {
@@ -129,30 +143,25 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPatch("{id}/desactivar")]
-        public ActionResult<UsuarioResponse> DesactivarUsuario(int id)
-        {
-            var usuarioDesactivado = _usuarioService.DesactivarUsuario(id);
-
-            if (usuarioDesactivado == null)
-            {
-                return NotFound(new { message = "Usuario no encontrado." });
-            }
-
-            return Ok(usuarioDesactivado);
-        }
+        public ActionResult<UsuarioResponse> DesactivarUsuario(int id) => CambiarEstado(id, false);
 
         [HttpPatch("{id}/activar")]
-        public ActionResult<UsuarioResponse> ActivarUsuario(int id)
+        public ActionResult<UsuarioResponse> ActivarUsuario(int id) => CambiarEstado(id, true);
+
+        private ActionResult<UsuarioResponse> CambiarEstado(int id, bool activo)
         {
-            var usuarioActivado = _usuarioService.ActivarUsuario(id);
-
-            if (usuarioActivado == null)
+            try
             {
-                return NotFound(new { message = "Usuario no encontrado." });
+                var usuario = _usuarioService.CambiarEstado(id, activo, UsuarioActualId, UsuarioActualEmail);
+
+                return usuario == null
+                    ? NotFound(new { message = "Usuario no encontrado." })
+                    : Ok(usuario);
             }
-
-            return Ok(usuarioActivado);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
-
     }
 }

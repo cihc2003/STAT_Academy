@@ -2450,3 +2450,636 @@ main .auth-brand__titulo {
     .ver-contrasena[aria-pressed="true"] .ver-contrasena__tachado {
         display: block;
     }
+
+/* =====================================================================
+   Administración: usuarios (lista, detalle y formulario)
+   ===================================================================== */
+
+.usuarios {
+    min-width: 0;
+}
+
+.usuarios-encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+/* Resumen por tipo: tarjetas que también filtran */
+.usuarios-resumen {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.usuarios-resumen__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--white);
+    color: var(--navy);
+    text-decoration: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .usuarios-resumen__item span {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .usuarios-resumen__item strong {
+        font-size: 1.45rem;
+        font-weight: 900;
+        line-height: 1.1;
+    }
+
+    .usuarios-resumen__item:hover {
+        border-color: var(--electric);
+        color: var(--navy);
+    }
+
+.usuarios-resumen__item--activo {
+    border-color: var(--electric);
+    box-shadow: 0 0 0 3px rgba(23, 107, 255, 0.12);
+}
+
+.usuarios-resumen__item--alerta strong {
+    color: #b45309;
+}
+
+/* Barra de filtros */
+.usuarios-filtros {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+    padding: 16px;
+    margin-bottom: 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--light);
+}
+
+    .usuarios-filtros .form-label {
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+.usuarios-filtros__acciones {
+    display: flex;
+    gap: 8px;
+}
+
+/* Tabla */
+.usuarios-tabla th {
+    background: var(--light);
+}
+
+.usuarios-orden {
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+    .usuarios-orden:hover {
+        color: var(--electric);
+    }
+
+.usuarios-tabla td {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.usuarios-fila--inactiva .usuario-celda__nombre,
+.usuarios-fila--inactiva .usuario-avatar {
+    opacity: 0.6;
+}
+
+.usuarios-vacio {
+    padding: 40px 16px !important;
+    color: var(--muted);
+    text-align: center;
+}
+
+.usuarios-acciones {
+    width: 1%;
+    white-space: nowrap;
+}
+
+    .usuarios-acciones .btn + .btn,
+    .usuarios-acciones .btn + form,
+    .usuarios-acciones form + .btn {
+        margin-left: 4px;
+    }
+
+/* El .btn global quita el borde: aquí los botones secundarios lo recuperan y son compactos */
+.usuarios .btn[class*="btn-outline-"],
+.confirmar-modal .btn-outline-secondary {
+    border: 1px solid currentColor;
+    background: var(--white);
+    box-shadow: none;
+}
+
+    .usuarios .btn-outline-secondary,
+    .confirmar-modal .btn-outline-secondary {
+        border-color: var(--line) !important;
+        color: var(--navy);
+    }
+
+    .usuarios .btn[class*="btn-outline-"]:hover {
+        background: var(--light);
+        color: var(--navy);
+    }
+
+    .usuarios .btn-outline-danger:hover {
+        background: #fdecec;
+        color: #b42318;
+    }
+
+    .usuarios .btn-outline-success:hover {
+        background: #e8f7ef;
+        color: #137a44;
+    }
+
+.usuarios .btn-sm {
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+}
+
+    .usuarios .btn-sm:hover {
+        transform: none;
+    }
+
+.usuarios-tabla table {
+    min-width: 720px;
+}
+
+.usuarios-tabla th,
+.usuarios-tabla td {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+    .usuarios-tabla th:first-child,
+    .usuarios-tabla td:first-child {
+        padding-left: 16px;
+    }
+
+    .usuarios-tabla th:last-child,
+    .usuarios-tabla td:last-child {
+        padding-right: 16px;
+    }
+
+/* Las demás columnas no se parten; la de usuario se ajusta y recorta el correo con "…" */
+.usuarios-tabla td:not([data-label="Usuario"]) {
+    white-space: nowrap;
+}
+
+.usuarios-tabla td[data-label="Usuario"] {
+    min-width: 180px;
+}
+
+    .usuarios-tabla td[data-label="Usuario"] .usuario-celda__texto {
+        flex: 1 1 auto;
+    }
+
+    .usuarios-tabla td[data-label="Usuario"] .usuario-celda__correo {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        width: 0;
+        min-width: 100%;
+    }
+
+.usuarios-tabla .usuario-tipo,
+.usuarios-tabla .usuario-estado {
+    padding: 3px 9px;
+    font-size: 0.75rem;
+}
+
+.usuarios-orden-doble {
+    display: inline-flex;
+    gap: 4px;
+    color: var(--muted);
+}
+
+/* Registro y último acceso en una sola celda de dos líneas */
+.usuario-actividad {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+    .usuario-actividad div {
+        display: flex;
+        gap: 6px;
+    }
+
+    .usuario-actividad dt {
+        min-width: 58px;
+        color: var(--muted);
+        font-weight: 600;
+    }
+
+    .usuario-actividad dd {
+        margin: 0;
+        font-weight: 700;
+    }
+
+.usuario-celda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.usuario-celda__texto {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 6px;
+    min-width: 0;
+}
+
+.usuario-celda__nombre {
+    color: var(--navy);
+    font-weight: 800;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+    .usuario-celda__nombre:hover {
+        color: var(--electric);
+    }
+
+.usuario-celda__correo {
+    flex-basis: 100%;
+    color: var(--muted);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.usuario-yo {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--navy);
+    color: var(--white);
+    font-size: 0.7rem;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+/* Avatar con la inicial y etiquetas de tipo/estado */
+.usuario-avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-weight: 900;
+}
+
+.usuario-avatar--grande {
+    width: 72px;
+    height: 72px;
+    font-size: 1.8rem;
+}
+
+.usuario-tipo,
+.usuario-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.usuario-tipo--admin {
+    background: #ece8ff;
+    color: #5b3fd1;
+}
+
+.usuario-tipo--tutor {
+    background: #e3f6fd;
+    color: #0b6f91;
+}
+
+.usuario-tipo--cliente {
+    background: #edf3ff;
+    color: var(--electric);
+}
+
+.usuario-estado::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.usuario-estado--activo {
+    background: #e8f7ef;
+    color: #137a44;
+}
+
+.usuario-estado--inactivo {
+    background: var(--light);
+    color: var(--muted);
+}
+
+/* Paginación */
+.usuarios-paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+    .usuarios-paginacion .page-link {
+        min-width: 34px;
+        color: var(--navy);
+        text-align: center;
+    }
+
+    .usuarios-paginacion .page-item.active .page-link {
+        background: var(--electric);
+        border-color: var(--electric);
+        color: var(--white);
+    }
+
+.usuarios-tamano {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .usuarios-tamano .form-select {
+        width: auto;
+    }
+
+/* Detalle del usuario */
+.usuario-perfil {
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+.usuario-perfil__cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+}
+
+.usuario-perfil__titulo {
+    flex: 1 1 260px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+    .usuario-perfil__titulo h1 {
+        font-size: 1.7rem;
+    }
+
+.usuario-perfil__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.usuario-perfil__seccion {
+    margin: 22px 0 12px;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.usuario-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0 0 12px;
+}
+
+    .usuario-datos div {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--light);
+    }
+
+    .usuario-datos dt {
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .usuario-datos dd {
+        margin: 2px 0 0;
+        font-weight: 800;
+    }
+
+    .usuario-datos .usuario-datos__nota {
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 400;
+    }
+
+.usuario-datos--compacto {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.usuario-form {
+    max-width: 860px;
+}
+
+.confirmar-modal {
+    border: 0;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+    .confirmar-modal .btn-danger {
+        color: var(--white);
+        background: #d92d20;
+    }
+
+@media (max-width: 1100px) {
+    .usuarios-resumen {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .usuarios-filtros {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .usuarios-filtros__buscar {
+        grid-column: 1 / -1;
+    }
+}
+
+/* Teléfonos: cada usuario pasa a ser una tarjeta en vez de una fila de tabla */
+@media (max-width: 720px) {
+    .usuarios-resumen {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+        .usuarios-resumen__item:first-child {
+            grid-column: 1 / -1;
+        }
+
+    .usuarios-filtros {
+        grid-template-columns: 1fr;
+    }
+
+    .usuarios-filtros__acciones .btn {
+        flex: 1 1 0;
+    }
+
+    .usuarios-tabla {
+        overflow: visible;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+        .usuarios-tabla table {
+            min-width: 0;
+        }
+
+        .usuarios-tabla thead {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+        }
+
+        .usuarios-tabla tbody,
+        .usuarios-tabla tr,
+        .usuarios-tabla td {
+            display: block;
+        }
+
+        .usuarios-tabla tr {
+            margin-bottom: 12px;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--white);
+            box-shadow: var(--shadow);
+        }
+
+        .usuarios-tabla td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 0;
+            border: 0;
+        }
+
+            .usuarios-tabla td[data-label]::before {
+                content: attr(data-label);
+                color: var(--muted);
+                font-size: 0.8rem;
+                font-weight: 700;
+            }
+
+            .usuarios-tabla td[data-label="Usuario"] {
+                padding-bottom: 10px;
+                margin-bottom: 4px;
+                border-bottom: 1px solid var(--line);
+            }
+
+                .usuarios-tabla td[data-label="Usuario"]::before {
+                    display: none;
+                }
+
+        .usuarios-tabla td[data-label="Usuario"] .usuario-celda__correo {
+            width: auto;
+            min-width: 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .usuarios-tabla .usuarios-acciones {
+            width: auto;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding-top: 10px;
+        }
+
+            .usuarios-tabla .usuarios-acciones .btn,
+            .usuarios-tabla .usuarios-acciones form {
+                flex: 1 1 0;
+                margin-left: 0 !important;
+            }
+
+                .usuarios-tabla .usuarios-acciones form .btn {
+                    width: 100%;
+                }
+
+        .usuarios-tabla .usuarios-vacio {
+            display: block;
+        }
+
+    .usuarios-paginacion {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+
+        .usuarios-paginacion .pagination {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+    .usuarios-tamano {
+        justify-content: center;
+    }
+
+    .usuario-perfil {
+        padding: 20px;
+    }
+
+    .usuario-perfil__acciones {
+        width: 100%;
+    }
+
+        .usuario-perfil__acciones > * {
+            flex: 1 1 0;
+        }
+
+        .usuario-perfil__acciones .btn {
+            width: 100%;
+        }
+
+    .usuario-datos,
+    .usuario-datos--compacto {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,14 +1,20 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using STAT_Academy.Web.Models.Usuarios;
 using STAT_Academy.Web.Services;
+using System.Security.Claims;
 
 namespace STAT_Academy.Web.Controllers;
 
+/// <summary>
+/// Gestión de usuarios del panel de administración. La API repite todas las validaciones
+/// (rol Admin, correo no editable, un Admin no puede desactivarse ni quitarse el rol).
+/// </summary>
 [Authorize(Roles = "Admin")]
 public class UsuarioController : Controller
 {
+    private static readonly string[] Ordenes = ["nombre", "nombre_desc", "registro", "registro_desc", "login", "login_desc"];
+
     private readonly ApiUsuarioService _apiUsuarioService;
 
     public UsuarioController(ApiUsuarioService apiUsuarioService)
@@ -16,38 +22,30 @@ public class UsuarioController : Controller
         _apiUsuarioService = apiUsuarioService;
     }
 
-    public async Task<IActionResult> Index(string? search, int? tipo, bool? active)
+    private int UsuarioActualId =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : 0;
+
+    public async Task<IActionResult> Index(string? buscar, int? tipo, bool? activo, string? orden, int pagina = 1, int tamano = 10)
     {
-        var usuarios = await _apiUsuarioService.GetUsuariosAsync() ?? [];
-
-        if (!string.IsNullOrWhiteSpace(search))
+        var filtros = new UsuarioFiltros
         {
-            usuarios = usuarios.Where(u =>
-                u.nombre.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                u.email.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
+            Buscar = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim(),
+            Tipo = tipo is >= 1 and <= 3 ? tipo : null,
+            Activo = activo,
+            Orden = Ordenes.Contains(orden) ? orden : null,
+            Pagina = Math.Max(1, pagina),
+            Tamano = UsuarioFiltros.TamanosPagina.Contains(tamano) ? tamano : 10
+        };
 
-        if (tipo.HasValue)
+        var resultado = await _apiUsuarioService.BuscarAsync(filtros);
+        filtros.Pagina = resultado.pagina; // la API ajusta la página si se pasa del final
+
+        return View(new UsuariosIndexViewModel
         {
-            usuarios = usuarios.Where(u => u.fk_Tipo_Usuario == tipo.Value).ToList();
-        }
-
-        if (active.HasValue)
-        {
-            usuarios = usuarios.Where(u => u.activo == active.Value).ToList();
-        }
-
-        ViewBag.Search = search;
-        ViewBag.Tipo = tipo;
-        ViewBag.Active = active;
-        ViewBag.Tipos = new SelectList(new[]
-        {
-            new { Value = 1, Text = "Admin" },
-            new { Value = 2, Text = "Tutor" },
-            new { Value = 3, Text = "Cliente" }
-        }, "Value", "Text", tipo);
-
-        return View(usuarios);
+            Pagina = resultado,
+            Filtros = filtros,
+            UsuarioActualId = UsuarioActualId
+        });
     }
 
     public async Task<IActionResult> Details(int id)
@@ -55,127 +53,135 @@ public class UsuarioController : Controller
         var usuario = await _apiUsuarioService.GetUsuarioByIdAsync(id);
 
         if (usuario == null)
-        {
             return NotFound();
-        }
 
+        ViewBag.EsUsuarioActual = usuario.id == UsuarioActualId;
         return View(usuario);
     }
 
     [HttpGet]
     public async Task<IActionResult> UserForm(int? id)
     {
-        ViewBag.Tipos = new SelectList(new[]
-        {
-            new { Value = 1, Text = "Admin" },
-            new { Value = 2, Text = "Tutor" },
-            new { Value = 3, Text = "Cliente" }
-        }, "Value", "Text");
-
         if (id == null)
-        {
-            return View(new UpdateUsuarioRequest());
-        }
+            return View(new UsuarioFormViewModel());
 
         var usuario = await _apiUsuarioService.GetUsuarioByIdAsync(id.Value);
 
         if (usuario == null)
-        {
             return NotFound();
-        }
 
-        return View(new UpdateUsuarioRequest
-        {
-            nombre = usuario.nombre,
-            email = usuario.email,
-            fk_Tipo_Usuario = usuario.fk_Tipo_Usuario
-        });
+        return View(DesdeUsuario(usuario));
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UserForm(int? id, UpdateUsuarioRequest model)
+    public async Task<IActionResult> UserForm(int? id, UsuarioFormViewModel model)
     {
-        ViewBag.Tipos = new SelectList(new[]
-        {
-            new { Value = 1, Text = "Admin" },
-            new { Value = 2, Text = "Tutor" },
-            new { Value = 3, Text = "Cliente" }
-        }, "Value", "Text", model.fk_Tipo_Usuario);
+        model.Id = id;
+
+        if (model.EsEdicion)
+            return await Editar(model);
+
+        if (string.IsNullOrWhiteSpace(model.Email))
+            ModelState.AddModelError(nameof(model.Email), "El correo es obligatorio.");
+
+        if (string.IsNullOrWhiteSpace(model.Password))
+            ModelState.AddModelError(nameof(model.Password), "La contraseña es obligatoria.");
 
         if (!ModelState.IsValid)
+            return View(model);
+
+        var (exitoso, mensaje) = await _apiUsuarioService.CrearUsuarioAsync(new CreateUsuarioRequest
         {
+            nombre = model.Nombre.Trim(),
+            email = model.Email!.Trim(),
+            password = model.Password!,
+            fk_Tipo_Usuario = model.Tipo
+        });
+
+        if (!exitoso)
+        {
+            ModelState.AddModelError(string.Empty, mensaje);
+            model.Password = null;
             return View(model);
         }
 
-        if (id == null || id == 0)
-        {
-            var creado = await _apiUsuarioService.RegistrarUsuarioAsync(new RegisterUsuarioRequest
-            {
-                nombre = model.nombre,
-                email = model.email,
-                password = model.password,
-                fk_Tipo_Usuario = model.fk_Tipo_Usuario
-            });
-
-            if (creado == null)
-            {
-                ModelState.AddModelError(string.Empty, "No se pudo registrar el usuario.");
-                return View(model);
-            }
-
-            TempData["Success"] = "Usuario registrado correctamente.";
-        }
-        else
-        {
-            var actualizado = await _apiUsuarioService.ActualizarUsuarioAsync(id.Value, model);
-
-            if (actualizado == null)
-            {
-                ModelState.AddModelError(string.Empty, "No se pudo actualizar el usuario.");
-                return View(model);
-            }
-
-            TempData["Success"] = "Usuario actualizado correctamente.";
-        }
-
+        TempData["Success"] = $"Usuario {model.Nombre.Trim()} creado correctamente.";
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task<IActionResult> Editar(UsuarioFormViewModel model)
+    {
+        // El correo y la contraseña no se editan aquí.
+        ModelState.Remove(nameof(model.Email));
+        ModelState.Remove(nameof(model.Password));
+
+        var actual = await _apiUsuarioService.GetUsuarioByIdAsync(model.Id!.Value);
+        if (actual == null)
+            return NotFound();
+
+        // Datos de solo lectura para volver a mostrar el formulario.
+        var lectura = DesdeUsuario(actual);
+        model.Email = lectura.Email;
+        model.Activo = lectura.Activo;
+        model.FechaRegistro = lectura.FechaRegistro;
+        model.UltimoLogin = lectura.UltimoLogin;
+        model.EsUsuarioActual = lectura.EsUsuarioActual;
+
+        if (model.EsUsuarioActual)
+            model.Tipo = TiposUsuario.Admin; // el propio Admin no puede quitarse el rol
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var (exitoso, mensaje) = await _apiUsuarioService.ActualizarUsuarioAsync(model.Id.Value, new UpdateUsuarioRequest
+        {
+            nombre = model.Nombre.Trim(),
+            fk_Tipo_Usuario = model.Tipo
+        });
+
+        if (!exitoso)
+        {
+            ModelState.AddModelError(string.Empty, mensaje);
+            return View(model);
+        }
+
+        TempData["Success"] = "Usuario actualizado correctamente.";
+        return RedirectToAction(nameof(Details), new { id = model.Id });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleUser(int id)
-    {
-        var usuario = await _apiUsuarioService.DesactivarUsuarioAsync(id);
-
-        if (usuario == null)
-        {
-            TempData["Error"] = "No se pudo desactivar el usuario.";
-        }
-        else
-        {
-            TempData["Success"] = "Usuario desactivado correctamente.";
-        }
-
-        return RedirectToAction(nameof(Index));
-    }
-
+    public Task<IActionResult> ToggleUser(int id, string? volver) => CambiarEstado(id, false, volver);
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ActivateUser(int id)
-    {
-        var usuario = await _apiUsuarioService.ActivarUsuarioAsync(id);
+    public Task<IActionResult> ActivateUser(int id, string? volver) => CambiarEstado(id, true, volver);
 
-        if (usuario == null)
-        {
-            TempData["Error"] = "No se pudo activar el usuario.";
-        }
-        else
-        {
-            TempData["Success"] = "Usuario activado correctamente.";
-        }
+    private async Task<IActionResult> CambiarEstado(int id, bool activo, string? volver)
+    {
+        var (exitoso, mensaje) = await _apiUsuarioService.CambiarEstadoAsync(id, activo);
+
+        TempData[exitoso ? "Success" : "Error"] = exitoso
+            ? (activo ? "Usuario activado correctamente." : "Usuario desactivado correctamente.")
+            : mensaje;
+
+        // Vuelve a la misma página de la lista (con sus filtros) o al detalle.
+        if (!string.IsNullOrEmpty(volver) && Url.IsLocalUrl(volver))
+            return LocalRedirect(volver);
 
         return RedirectToAction(nameof(Index));
     }
+
+    private UsuarioFormViewModel DesdeUsuario(UsuarioResponse u) => new()
+    {
+        Id = u.id,
+        Nombre = u.nombre,
+        Email = u.email,
+        Tipo = u.fk_Tipo_Usuario,
+        Activo = u.activo,
+        FechaRegistro = u.fecha_Registro,
+        UltimoLogin = u.ultimo_Login,
+        EsUsuarioActual = u.id == UsuarioActualId
+    };
 }

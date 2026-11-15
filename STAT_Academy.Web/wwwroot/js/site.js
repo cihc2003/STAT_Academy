@@ -100,3 +100,62 @@
 
     document.querySelectorAll("[data-ver-contrasena]").forEach(iniciar);
 })();
+
+// Confirmación antes de enviar formularios con data-confirmar (p. ej. desactivar un usuario).
+// Usa la ventana #modal-confirmar (Views/Shared/_ConfirmarModal.cshtml); sin ella, confirm() nativo.
+(function () {
+    "use strict";
+
+    var modalEl = document.getElementById("modal-confirmar");
+    var pendiente = null;
+
+    function abrir(formulario) {
+        var texto = formulario.getAttribute("data-confirmar") || "¿Desea continuar?";
+
+        if (!modalEl || !window.bootstrap) {
+            if (window.confirm(texto)) enviar(formulario);
+            return;
+        }
+
+        var aceptar = modalEl.querySelector("[data-confirmar-aceptar]");
+        modalEl.querySelector("[data-confirmar-texto]").textContent = texto;
+        aceptar.textContent = formulario.getAttribute("data-confirmar-boton") || "Confirmar";
+        aceptar.classList.toggle("btn-danger", formulario.hasAttribute("data-confirmar-peligro"));
+        aceptar.classList.toggle("btn-primary", !formulario.hasAttribute("data-confirmar-peligro"));
+
+        pendiente = formulario;
+        window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    function enviar(formulario) {
+        formulario.setAttribute("data-confirmado", "");
+        formulario.requestSubmit();
+    }
+
+    // Fase de captura: se cancela el envío antes que la pantalla de carga lo vea.
+    document.addEventListener("submit", function (e) {
+        var formulario = e.target;
+        if (!formulario.hasAttribute || !formulario.hasAttribute("data-confirmar")) return;
+
+        if (formulario.hasAttribute("data-confirmado")) {
+            formulario.removeAttribute("data-confirmado");
+            return;
+        }
+
+        e.preventDefault();
+        abrir(formulario);
+    }, true);
+
+    if (modalEl) {
+        modalEl.querySelector("[data-confirmar-aceptar]").addEventListener("click", function () {
+            var formulario = pendiente;
+            pendiente = null;
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            if (formulario) enviar(formulario);
+        });
+
+        modalEl.addEventListener("hidden.bs.modal", function () {
+            pendiente = null;
+        });
+    }
+})();
