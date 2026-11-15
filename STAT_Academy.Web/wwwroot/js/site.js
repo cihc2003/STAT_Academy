@@ -246,3 +246,48 @@
         document.querySelectorAll(".panel-filtros [disabled]").forEach(function (campo) { campo.disabled = false; });
     });
 })();
+
+// Calificaciones del tutor: la ventana "Ajustar nota final" se llena con los datos del botón que la abre.
+(function () {
+    "use strict";
+
+    var modal = document.getElementById("modal-nota-final");
+    if (!modal) return;
+
+    modal.addEventListener("show.bs.modal", function (e) {
+        var boton = e.relatedTarget;
+        if (!boton || !boton.hasAttribute("data-nota-final")) return;
+
+        var campo = function (nombre) { return modal.querySelector("[data-campo='" + nombre + "']"); };
+        var ajustada = boton.getAttribute("data-ajustada") || "";
+
+        campo("estudiante").value = boton.getAttribute("data-estudiante-id") || "";
+        campo("nombre").textContent = boton.getAttribute("data-nombre") || "";
+        campo("calculada").textContent = boton.getAttribute("data-calculada") || "sin datos";
+        modal.querySelector("[name='Nota']").value = ajustada;
+        modal.querySelector("[name='Comentario']").value = boton.getAttribute("data-comentario") || "";
+        // "Usar la calculada" solo tiene sentido si ya hay un ajuste guardado.
+        campo("quitar").hidden = ajustada === "";
+    });
+
+    modal.addEventListener("shown.bs.modal", function () {
+        modal.querySelector("[name='Nota']").focus();
+    });
+})();
+
+// Entrega de tareas: avisa antes de enviar si se eligieron más archivos de los permitidos.
+(function () {
+    "use strict";
+
+    document.querySelectorAll("[data-entrega-form] input[type='file'][data-max-archivos]").forEach(function (input) {
+        var maximo = parseInt(input.getAttribute("data-max-archivos"), 10) || 5;
+        var error = input.parentElement.querySelector("[data-entrega-error]");
+
+        input.addEventListener("change", function () {
+            var excede = input.files && input.files.length > maximo;
+            input.setCustomValidity(excede ? "Puede adjuntar como máximo " + maximo + " archivo(s) más." : "");
+            input.classList.toggle("is-invalid", excede);
+            if (error) error.textContent = excede ? input.validationMessage : "";
+        });
+    });
+})();

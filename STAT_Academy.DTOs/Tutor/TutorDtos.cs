@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using STAT_Academy.DTOs.Aula;
 
 namespace STAT_Academy.DTOs.Tutor
 {
@@ -34,17 +35,21 @@ namespace STAT_Academy.DTOs.Tutor
         public string email { get; set; } = "";
         public DateTime? fechaMatricula { get; set; }
         public string estadoMatricula { get; set; } = "";
+        /// <summary>Porcentaje del curso transcurrido (igual para todos los estudiantes del curso).</summary>
         public int progreso { get; set; }
         public int tareasEntregadas { get; set; }
         public int tareasTotales { get; set; }
         /// <summary>Promedio de las tareas calificadas (0-100); null si no tiene notas.</summary>
         public decimal? promedio { get; set; }
+        public NotaFinalResponse notaFinal { get; set; } = new();
     }
 
     public class TutorCalificacionesResponse
     {
         public List<TutorTareaColumna> tareas { get; set; } = new();
         public List<TutorFilaCalificaciones> estudiantes { get; set; } = new();
+        /// <summary>False si la tabla NOTA_FINAL todavía no existe: no se puede ajustar la nota final.</summary>
+        public bool ajusteDisponible { get; set; } = true;
     }
 
     public class TutorTareaColumna
@@ -62,6 +67,7 @@ namespace STAT_Academy.DTOs.Tutor
         /// <summary>Una celda por tarea, en el mismo orden que <see cref="TutorCalificacionesResponse.tareas"/>.</summary>
         public List<TutorCeldaCalificacion> notas { get; set; } = new();
         public decimal? promedio { get; set; }
+        public NotaFinalResponse notaFinal { get; set; } = new();
     }
 
     public class TutorCeldaCalificacion
@@ -71,6 +77,18 @@ namespace STAT_Academy.DTOs.Tutor
         /// <summary>"Sin entregar", "Entregada" o "Calificada".</summary>
         public string estado { get; set; } = "";
         public decimal? calificacion { get; set; }
+        /// <summary>Vencida y sin entregar: cuenta como 0 en la nota final.</summary>
+        public bool cuentaComoCero { get; set; }
+    }
+
+    /// <summary>Ajuste de la nota final. nota = null vuelve a la nota calculada.</summary>
+    public class TutorNotaFinalRequest
+    {
+        [Range(0, 100, ErrorMessage = "La nota final debe estar entre 0 y 100.")]
+        public decimal? nota { get; set; }
+
+        [StringLength(255, ErrorMessage = "El comentario admite como máximo 255 caracteres.")]
+        public string? comentario { get; set; }
     }
 
     // ---------------------------------------------------------------------

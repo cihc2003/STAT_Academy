@@ -320,6 +320,73 @@ namespace STAT_Academy.Api.Services
                 """);
         }
 
+        // ---------------------------------------------------------------
+        // Tareas: entregas y calificaciones
+        // ---------------------------------------------------------------
+
+        /// <summary>
+        /// Envía un aviso complementario sin demorar la respuesta (el SMTP puede tardar hasta 20 s).
+        /// Si falla, solo se registra. CorreoService solo depende de la configuración y del logger,
+        /// así que puede seguir usándose cuando termina la petición.
+        /// </summary>
+        public static void EnSegundoPlano(ILogger logger, string descripcion, Func<Task> envio)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await envio();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "No se pudo enviar el aviso por correo de {Descripcion}.", descripcion);
+                }
+            });
+        }
+
+        /// <summary>Aviso al tutor: un estudiante entregó (o actualizó) una tarea.</summary>
+        public Task EnviarEntregaRecibida(
+            string correoDestino, string tutorNombre, string estudiante, string curso, string tarea, int tareaId, bool primeraVez)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Tutor/Entregas/{tareaId}";
+            var accion = primeraVez ? "entregó" : "actualizó su entrega de";
+            var saludo = string.IsNullOrWhiteSpace(tutorNombre) ? "Hola" : $"Hola, {Html(tutorNombre)}";
+
+            return Enviar(configuracion, correoDestino, $"{(primeraVez ? "Nueva entrega" : "Entrega actualizada")}: {tarea}", $"""
+                <h2>{saludo}</h2>
+
+                <p>
+                    <strong>{Html(estudiante)}</strong> {accion} la tarea
+                    <strong>{Html(tarea)}</strong> del curso {Html(curso)}.
+                </p>
+
+                <p><a href="{enlace}">Ver las entregas y calificar</a></p>
+                """);
+        }
+
+        /// <summary>Aviso al estudiante: su tarea tiene nota (nueva o corregida).</summary>
+        public Task EnviarTareaCalificada(
+            string correoDestino, string nombre, string curso, string tarea, int tareaId, decimal nota, bool corregida)
+        {
+            var configuracion = ObtenerConfiguracion();
+            var enlace = $"{configuracion.WebBaseUrl}/Curso/Tarea/{tareaId}";
+            var saludo = string.IsNullOrWhiteSpace(nombre) ? "Hola" : $"Hola, {Html(nombre)}";
+
+            return Enviar(configuracion, correoDestino, $"{(corregida ? "Nota actualizada" : "Tarea calificada")}: {tarea}", $"""
+                <h2>{saludo}</h2>
+
+                <p>
+                    Tu tutor {(corregida ? "actualizó la nota de" : "calificó")} la tarea
+                    <strong>{Html(tarea)}</strong> del curso {Html(curso)}.
+                </p>
+
+                <p>Nota: <strong>{nota.ToString("0.##", CostaRica)}</strong> de 100.</p>
+
+                <p><a href="{enlace}">Ver la calificación y los comentarios</a></p>
+                """);
+        }
+
         private async Task Enviar(
             ConfiguracionCorreo configuracion,
             string destino,

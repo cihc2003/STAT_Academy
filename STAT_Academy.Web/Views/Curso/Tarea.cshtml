@@ -1,0 +1,175 @@
+@model STAT_Academy.Web.Models.Cursos.AulaTareaPagina
+@using STAT_Academy.Web.Helpers
+@using STAT_Academy.Web.Models.Cursos
+
+@{
+    var t = Model.Tarea;
+    ViewData["Title"] = t.Titulo + " · " + t.Curso;
+    var cupo = EntregaFormViewModel.MaxArchivos - t.Archivos.Count;
+}
+
+<section class="section">
+    <div class="container aula-tarea">
+        <a class="text-link" asp-action="Contenido" asp-route-id="@t.CursoId">&larr; Volver a @t.Curso</a>
+
+        <header class="aula-tarea__cabecera mt-3">
+            <div>
+                <span class="eyebrow">Tarea@(t.Semana != null ? $" · semana {t.Semana}" : "")</span>
+                <h1 class="mb-2">@t.Titulo</h1>
+                @if (!string.IsNullOrWhiteSpace(t.Descripcion))
+                {
+                    <p class="aula-tarea__instrucciones">@t.Descripcion</p>
+                }
+            </div>
+            <span class="status-pill @t.ClasePill">@t.Etiqueta</span>
+        </header>
+
+        <dl class="tutor-cifras aula-tarea__fechas">
+            <div><dt>Disponible desde</dt><dd>@Formato.FechaHoraLocal(t.FechaInicio)</dd></div>
+            <div><dt>Fecha límite</dt><dd>@Formato.FechaHoraLocal(t.FechaLimite)</dd></div>
+            <div>
+                <dt>Tu entrega</dt>
+                <dd class="@(t.Tarde ? "text-danger" : "")">@Formato.FechaHoraLocal(t.FechaEntrega, "Sin entregar")</dd>
+            </div>
+        </dl>
+
+        @* ---------------------------- Calificación ---------------------------- *@
+        @if (t.Calificada)
+        {
+            <div class="panel-tarjeta aula-nota mb-4">
+                <div class="aula-nota__valor @(t.Calificacion < 70 ? "aula-nota__valor--baja" : "")">
+                    <strong>@Formato.Nota(t.Calificacion)</strong>
+                    <span>de 100</span>
+                </div>
+                <div>
+                    <h2 class="h5 mb-1">Calificación</h2>
+                    @if (!string.IsNullOrWhiteSpace(t.Feedback))
+                    {
+                        <p class="mb-0 aula-nota__feedback">@t.Feedback</p>
+                    }
+                    else
+                    {
+                        <p class="mb-0 text-muted">Tu tutor no dejó comentarios.</p>
+                    }
+                </div>
+            </div>
+        }
+        else if (t.CuentaComoCero)
+        {
+            <div class="alert alert-warning">
+                La fecha límite ya pasó y no has entregado: por ahora esta tarea cuenta como <strong>0</strong> en tu nota final.
+                Todavía puedes entregarla; tu tutor la verá marcada como <em>fuera de plazo</em>.
+            </div>
+        }
+        else if (t.Entregada)
+        {
+            <div class="alert alert-info">
+                Tu entrega está guardada@(t.Tarde ? " (fuera de plazo)" : "").
+                Puedes cambiarla mientras tu tutor no la califique.
+            </div>
+        }
+
+        @* ---------------------------- Entrega actual ---------------------------- *@
+        <div class="panel-tarjeta">
+            <div class="panel-tarjeta__titulo">
+                <span>Tu entrega</span>
+                @if (t.Entregada)
+                {
+                    <small>Última modificación: @Formato.FechaHoraLocal(t.FechaEntrega)@(t.Tarde ? " · fuera de plazo" : "")</small>
+                }
+            </div>
+
+            @if (t.Archivos.Count == 0 && string.IsNullOrEmpty(t.Enlace))
+            {
+                <p class="text-muted">Todavía no has adjuntado archivos ni enlaces.</p>
+            }
+            else
+            {
+                <ul class="blog-documentos aula-entrega__archivos">
+                    @foreach (var a in t.Archivos)
+                    {
+                        <li>
+                            <span class="blog-documentos__ext">@(System.IO.Path.GetExtension(a.Nombre).TrimStart('.').ToUpperInvariant())</span>
+                            <a asp-action="ArchivoEntrega" asp-route-id="@a.Id" data-sin-carga>@a.Nombre</a>
+                            @if (t.PuedeModificar)
+                            {
+                                <form asp-action="QuitarArchivoEntrega" method="post" class="ms-auto"
+                                      data-confirmar="¿Quitar «@a.Nombre» de tu entrega?" data-confirmar-boton="Quitar archivo" data-confirmar-peligro>
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <input type="hidden" name="tareaId" value="@t.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                                </form>
+                            }
+                        </li>
+                    }
+                    @if (!string.IsNullOrEmpty(t.Enlace))
+                    {
+                        <li>
+                            <span class="blog-documentos__ext">ENLACE</span>
+                            <a href="@t.Enlace" target="_blank" rel="noopener noreferrer" class="aula-entrega__enlace">@t.Enlace</a>
+                            @if (t.PuedeModificar)
+                            {
+                                <form asp-action="Entregar" method="post" class="ms-auto"
+                                      data-confirmar="¿Quitar el enlace de tu entrega?" data-confirmar-boton="Quitar enlace" data-confirmar-peligro>
+                                    <input type="hidden" name="Entrega.TareaId" value="@t.Id" />
+                                    <input type="hidden" name="Entrega.QuitarEnlace" value="true" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                                </form>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+
+            @* ---------------------------- Formulario ---------------------------- *@
+            @if (t.PuedeModificar)
+            {
+                <form asp-action="Entregar" method="post" enctype="multipart/form-data" class="aula-entrega__form" data-entrega-form>
+                    <input type="hidden" asp-for="Entrega.TareaId" />
+
+                    <h2 class="h6 mb-0">@(t.Entregada ? "Agregar o cambiar" : "Entregar la tarea")</h2>
+
+                    @if (cupo > 0)
+                    {
+                        <div>
+                            <label class="form-label" for="entrega-archivos">Archivos</label>
+                            <input id="entrega-archivos" name="Entrega.Archivos" type="file" class="form-control" multiple
+                                   accept="@EntregaFormViewModel.Accept" data-max-archivos="@cupo" />
+                            <div class="form-text">
+                                @EntregaFormViewModel.Ayuda
+                                @if (t.Archivos.Count > 0)
+                                {
+                                    <span>Puedes agregar @cupo más.</span>
+                                }
+                            </div>
+                            <div class="invalid-feedback" data-entrega-error></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="small text-muted mb-0">Ya adjuntaste el máximo de @EntregaFormViewModel.MaxArchivos archivos. Quita uno para agregar otro.</p>
+                    }
+
+                    <div>
+                        <label class="form-label" asp-for="Entrega.Enlace">@(string.IsNullOrEmpty(t.Enlace) ? "Enlace (opcional)" : "Reemplazar el enlace")</label>
+                        <input asp-for="Entrega.Enlace" type="url" class="form-control" maxlength="255"
+                               placeholder="https://drive.google.com/…" inputmode="url" />
+                        <div class="form-text">Por ejemplo, un documento compartido o un repositorio. Asegúrate de que tu tutor tenga acceso.</div>
+                    </div>
+
+                    <div class="aula-entrega__acciones">
+                        <button type="submit" class="btn btn-primary">@(t.Entregada ? "Guardar cambios" : "Entregar")</button>
+                        @if (t.Vencida)
+                        {
+                            <span class="small text-danger">La fecha límite ya pasó: quedará como entrega fuera de plazo.</span>
+                        }
+                    </div>
+                </form>
+            }
+            else
+            {
+                <p class="small text-muted mb-0 mt-3">La tarea ya fue calificada: la entrega no se puede modificar.</p>
+            }
+        </div>
+    </div>
+</section>

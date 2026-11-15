@@ -55,6 +55,8 @@ builder.Services.AddScoped<TareaService>();
 builder.Services.AddScoped<MaterialCursoService>();
 builder.Services.AddScoped<BlogService>();
 builder.Services.AddScoped<TutorService>();
+builder.Services.AddScoped<NotaFinalService>();
+builder.Services.AddScoped<AulaService>();
 builder.Services.AddSingleton<BlogContenidoService>();
 builder.Services.AddScoped<StockAlertaService>();
 builder.Services.AddScoped<CompraService>();

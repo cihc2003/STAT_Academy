@@ -1,0 +1,106 @@
+@model STAT_Academy.Web.Models.Cursos.AulaCurso
+@using STAT_Academy.Web.Helpers
+
+@{
+    ViewData["Title"] = "Calificaciones · " + Model.Curso;
+    var nota = Model.NotaFinal;
+}
+
+<section class="section">
+    <div class="container">
+        <a class="text-link" asp-action="Contenido" asp-route-id="@Model.CursoId">&larr; Volver a @Model.Curso</a>
+
+        <div class="section-heading mt-3">
+            <span class="eyebrow">Mis calificaciones</span>
+            <h1>@Model.Curso</h1>
+        </div>
+
+        <div class="panel-tarjeta aula-nota aula-nota--final mb-4">
+            <div class="aula-nota__valor @(nota.Final < 70 ? "aula-nota__valor--baja" : "")">
+                <strong>@Formato.Nota(nota.Final)</strong>
+                <span>de 100</span>
+            </div>
+            <div>
+                <h2 class="h5 mb-1">Nota final@(nota.EsAjustada ? " (ajustada por tu tutor)" : "")</h2>
+                @if (nota.Final == null)
+                {
+                    <p class="mb-0 text-muted">Todavía no tienes tareas calificadas ni vencidas.</p>
+                }
+                else
+                {
+                    <p class="mb-1 text-muted">
+                        Promedio de @nota.TareasConsideradas de @nota.TareasTotales tareas.
+                        @if (nota.PorCalificar > 0)
+                        {
+                            <span>@nota.PorCalificar @(nota.PorCalificar == 1 ? "entrega espera" : "entregas esperan") calificación.</span>
+                        }
+                    </p>
+                    @if (nota.EsAjustada && nota.Calculada != null)
+                    {
+                        <p class="mb-1 small text-muted">Nota calculada a partir de las tareas: @Formato.Nota(nota.Calculada).</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(nota.Comentario))
+                    {
+                        <p class="mb-0 aula-nota__feedback">@nota.Comentario</p>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (Model.Tareas.Count == 0)
+        {
+            <div class="info-block">
+                <p class="mb-0">Tu tutor todavía no ha publicado tareas.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-card panel-tabla">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tarea</th>
+                            <th>Fecha límite</th>
+                            <th>Estado</th>
+                            <th class="text-md-center">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.Tareas)
+                        {
+                            <tr>
+                                <td class="panel-tabla__principal">
+                                    <a asp-action="Tarea" asp-route-id="@t.Id"><strong>@t.Titulo</strong></a>
+                                    @if (!string.IsNullOrWhiteSpace(t.Feedback))
+                                    {
+                                        <div class="text-muted small aula-calif__feedback">@t.Feedback</div>
+                                    }
+                                </td>
+                                <td data-label="Fecha límite">@Formato.FechaHoraLocal(t.FechaLimite)</td>
+                                <td data-label="Estado"><span class="status-pill @t.ClasePill">@t.Etiqueta</span></td>
+                                <td data-label="Nota" class="text-md-center">
+                                    @if (t.Calificada)
+                                    {
+                                        <strong class="@(t.Calificacion < 70 ? "text-danger" : "")">@Formato.Nota(t.Calificacion)</strong>
+                                    }
+                                    else if (t.CuentaComoCero)
+                                    {
+                                        <strong class="text-danger" title="Vencida sin entregar: cuenta como 0">0</strong>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">@(t.Entregada ? "Por calificar" : "—")</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2">
+                Notas sobre 100. La nota final promedia las tareas calificadas y las vencidas sin entregar (cuentan 0);
+                las tareas abiertas o por calificar todavía no cuentan.
+            </p>
+        }
+    </div>
+</section>

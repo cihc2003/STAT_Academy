@@ -73,6 +73,25 @@ namespace STAT_Academy.Web.Controllers
             });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> NotaFinal(NotaFinalFormViewModel model)
+        {
+            if (!model.UsarCalculada && (model.NotaNumero is not decimal nota || nota < 0 || nota > 100))
+                ModelState.AddModelError(nameof(model.Nota), "La nota final debe ser un número entre 0 y 100.");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = ModelState.Values.SelectMany(v => v.Errors).First().ErrorMessage;
+                return RedirectToAction(nameof(Calificaciones), new { id = model.CursoId });
+            }
+
+            var (exitoso, mensaje) = await _api.AjustarNotaFinal(model);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Calificaciones), new { id = model.CursoId });
+        }
+
         // ------------------------------------------------------------------
         // Tareas
         // ------------------------------------------------------------------

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.Api.Storage;
+using STAT_Academy.DTOs.Aula;
 using STAT_Academy.DTOs.Tutor;
 
 namespace STAT_Academy.Api.Services
@@ -18,17 +19,23 @@ namespace STAT_Academy.Api.Services
         private readonly ApplicationDbContext _context;
         private readonly AuditoriaService _auditoria;
         private readonly IBlobStorageService _blob;
+        private readonly NotaFinalService _notaFinal;
+        private readonly CorreoService _correo;
         private readonly ILogger<TutorService> _logger;
 
         public TutorService(
             ApplicationDbContext context,
             AuditoriaService auditoria,
             IBlobStorageService blob,
+            NotaFinalService notaFinal,
+            CorreoService correo,
             ILogger<TutorService> logger)
         {
             _context = context;
             _auditoria = auditoria;
             _blob = blob;
+            _notaFinal = notaFinal;
+            _correo = correo;
             _logger = logger;
         }
 
@@ -124,8 +131,13 @@ namespace STAT_Academy.Api.Services
                              .AsNoTracking()
                              .ToList();
 
-            var tareaIds = TareasActivasIds(cursoId);
+            var curso = _context.Curso.AsNoTracking().First(c => c.id == cursoId);
+            var progreso = CursoModel.ProgresoDe(curso.fechaInicio, curso.fechaFin);
+
+            var tareas = TareasActivas(cursoId);
+            var tareaIds = tareas.Select(t => t.ID).ToList();
             var entregas = EntregasDelCurso(tareaIds);
+            var ajustes = _notaFinal.Ajustes(matriculas.Select(x => x.m.IdMatricula).ToList());
 
             return matriculas.Select(x =>
             {
@@ -140,10 +152,12 @@ namespace STAT_Academy.Api.Services
                     email = x.email ?? "",
                     fechaMatricula = x.m.Fecha_Matricula,
                     estadoMatricula = x.m.Estado ?? "",
-                    progreso = x.m.Progreso,
+                    // Tiempo transcurrido del curso (la columna Progreso nunca se actualiza).
+                    progreso = progreso,
                     tareasEntregadas = propias.Count(e => e.fecha_Entrega != null),
                     tareasTotales = tareaIds.Count,
-                    promedio = notas.Count > 0 ? Math.Round(notas.Average(), 2) : null
+                    promedio = notas.Count > 0 ? Math.Round(notas.Average(), 2) : null,
+                    notaFinal = NotaFinalCalculo.Calcular(tareas, propias, ajustes.GetValueOrDefault(x.m.IdMatricula))
                 };
             }).ToList();
         }
@@ -154,24 +168,22 @@ namespace STAT_Academy.Api.Services
 
         public TutorCalificacionesResponse Calificaciones(int cursoId)
         {
-            var tareas = _context.Tarea
-                .AsNoTracking()
-                .Where(t => t.CursoId == cursoId && t.Estado != false)
-                .OrderBy(t => t.Fecha_Limite)
-                .ToList();
+            var tareas = TareasActivas(cursoId);
 
             var estudiantes = (from m in _context.EstudianteCurso
                                join u in _context.Usuario on m.EstudianteId equals u.id
                                where m.CursoId == cursoId && m.Estado == MatriculaActiva
                                orderby u.nombre
-                               select new { u.id, u.nombre, u.email })
+                               select new { u.id, u.nombre, u.email, matriculaId = m.IdMatricula })
                               .AsNoTracking()
                               .ToList();
 
             var entregas = EntregasDelCurso(tareas.Select(t => t.ID).ToList());
+            var ajustes = _notaFinal.Ajustes(estudiantes.Select(e => e.matriculaId).ToList());
 
             return new TutorCalificacionesResponse
             {
+                ajusteDisponible = _notaFinal.Disponible,
                 tareas = tareas.Select(t => new TutorTareaColumna
                 {
                     id = t.ID,
@@ -189,7 +201,8 @@ namespace STAT_Academy.Api.Services
                             tareaId = t.ID,
                             entregaId = e?.id,
                             estado = EstadoEntrega(e),
-                            calificacion = e?.calificacion
+                            calificacion = e?.calificacion,
+                            cuentaComoCero = e?.fecha_Entrega == null && NotaFinalCalculo.Vencida(t)
                         };
                     }).ToList();
 
@@ -201,10 +214,30 @@ namespace STAT_Academy.Api.Services
                         nombre = est.nombre ?? est.email ?? "Estudiante sin nombre",
                         email = est.email ?? "",
                         notas = celdas,
-                        promedio = notas.Count > 0 ? Math.Round(notas.Average(), 2) : null
+                        promedio = notas.Count > 0 ? Math.Round(notas.Average(), 2) : null,
+                        notaFinal = NotaFinalCalculo.Calcular(tareas,
+                            entregas.Where(x => x.fk_Estudiante == est.id), ajustes.GetValueOrDefault(est.matriculaId))
                     };
                 }).ToList()
             };
+        }
+
+        /// <summary>Ajusta (o devuelve a la calculada, con nota = null) la nota final de un estudiante.</summary>
+        public (bool exitoso, string mensaje) AjustarNotaFinal(
+            int cursoId, int estudianteId, TutorNotaFinalRequest request, int tutorId, string tutorEmail)
+        {
+            var matricula = (from m in _context.EstudianteCurso
+                             join u in _context.Usuario on m.EstudianteId equals u.id
+                             where m.CursoId == cursoId && m.EstudianteId == estudianteId && m.Estado == MatriculaActiva
+                             select new { m.IdMatricula, u.nombre, u.email })
+                            .AsNoTracking()
+                            .FirstOrDefault();
+
+            if (matricula == null)
+                return (false, "El estudiante no tiene una matrícula activa en este curso.");
+
+            return _notaFinal.Guardar(matricula.IdMatricula, request.nota, request.comentario,
+                tutorId, tutorEmail, matricula.nombre ?? matricula.email ?? "estudiante");
         }
 
         // ==================================================================
@@ -380,6 +413,8 @@ namespace STAT_Academy.Api.Services
             _auditoria.Registrar("ENTREGA_TAREA", corregida ? "REGRADE" : "GRADE",
                 $"Entrega {entrega.id} calificada con {entrega.calificacion:0.##}", tutorEmail, entrega.id);
 
+            AvisarEstudiante(entrega, corregida);
+
             return (true, corregida ? "Calificación actualizada." : "Entrega calificada.");
         }
 
@@ -537,8 +572,43 @@ namespace STAT_Academy.Api.Services
         // Ayudantes
         // ==================================================================
 
-        private List<int> TareasActivasIds(int cursoId) =>
-            _context.Tarea.Where(t => t.CursoId == cursoId && t.Estado != false).Select(t => t.ID).ToList();
+        private List<TareaModel> TareasActivas(int cursoId) =>
+            _context.Tarea
+                .AsNoTracking()
+                .Where(t => t.CursoId == cursoId && t.Estado != false)
+                .OrderBy(t => t.Fecha_Limite)
+                .ToList();
+
+        /// <summary>
+        /// Correo al estudiante con su nota. Es complementario: se arma con los datos ya leídos
+        /// y se envía en segundo plano para no demorar la respuesta (si falla, solo se registra).
+        /// </summary>
+        private void AvisarEstudiante(EntregaTareaModel entrega, bool corregida)
+        {
+            try
+            {
+                var estudianteId = entrega.fk_Estudiante ?? 0;
+                var datos = (from t in _context.Tarea
+                             join c in _context.Curso on t.CursoId equals c.id
+                             from u in _context.Usuario.Where(u => u.id == estudianteId)
+                             where t.ID == entrega.fk_Tarea
+                             select new { tarea = t.Titulo, t.ID, curso = c.nombre, u.email, u.nombre })
+                            .AsNoTracking()
+                            .FirstOrDefault();
+
+                if (datos == null || string.IsNullOrWhiteSpace(datos.email) || entrega.calificacion == null)
+                    return;
+
+                var nota = entrega.calificacion.Value;
+                CorreoService.EnSegundoPlano(_logger, $"la nota de la entrega {entrega.id}", () =>
+                    _correo.EnviarTareaCalificada(datos.email, datos.nombre ?? "", datos.curso,
+                        datos.tarea ?? "Tarea", datos.ID, nota, corregida));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "No se pudo preparar el aviso de la nota de la entrega {EntregaId}.", entrega.id);
+            }
+        }
 
         private List<EntregaTareaModel> EntregasDelCurso(List<int> tareaIds) =>
             _context.EntregaTarea.AsNoTracking().Where(e => e.fk_Tarea != null && tareaIds.Contains(e.fk_Tarea.Value)).ToList();

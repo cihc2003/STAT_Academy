@@ -20,18 +20,32 @@ namespace STAT_Academy.Api.Services
                           on ec.CursoId equals c.id
                           // Los cursos inactivos dejan de estar disponibles para el estudiante.
                           where ec.EstudianteId == estudianteId && c.estado
-                          select new CursoCompradoResponse
+                          select new
                           {
-                              MatriculaId = ec.IdMatricula,
-                              CursoId = c.id,
-                              NombreCurso = c.nombre,
-                              Descripcion = c.descripcion,
-                              Estado = ec.Estado,
-                              Progreso = ec.Progreso,
-                              FechaMatricula = ec.Fecha_Matricula
+                              ec.IdMatricula,
+                              c.id,
+                              c.nombre,
+                              c.descripcion,
+                              ec.Estado,
+                              ec.Fecha_Matricula,
+                              c.fechaInicio,
+                              c.fechaFin
                           }).ToList();
 
-            return cursos;
+            return cursos.Select(x => new CursoCompradoResponse
+            {
+                MatriculaId = x.IdMatricula,
+                CursoId = x.id,
+                NombreCurso = x.nombre,
+                Descripcion = x.descripcion,
+                Estado = x.Estado,
+                // Tiempo transcurrido del curso hasta hoy (hora de Costa Rica) sobre su duración total.
+                // La columna ESTUDIANTE_CURSO.Progreso no se usa: nunca se actualizaba.
+                Progreso = CursoModel.ProgresoDe(x.fechaInicio, x.fechaFin),
+                FechaMatricula = x.Fecha_Matricula,
+                FechaInicio = x.fechaInicio,
+                FechaFin = x.fechaFin
+            }).ToList();
         }
         /// <summary>
         /// Inscripción directa, solo para cursos gratuitos. Los cursos de pago se compran

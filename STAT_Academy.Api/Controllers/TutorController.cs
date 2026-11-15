@@ -42,6 +42,15 @@ namespace STAT_Academy.Api.Controllers
         public IActionResult Calificaciones(int cursoId) =>
             ConCurso(cursoId, () => Ok(_service.Calificaciones(cursoId)));
 
+        /// <summary>Ajusta la nota final del estudiante; con nota = null vuelve a la calculada.</summary>
+        [HttpPut("cursos/{cursoId}/estudiantes/{estudianteId}/nota-final")]
+        public IActionResult AjustarNotaFinal(int cursoId, int estudianteId, TutorNotaFinalRequest request) =>
+            ConCurso(cursoId, () =>
+            {
+                var (exitoso, mensaje) = _service.AjustarNotaFinal(cursoId, estudianteId, request, UsuarioActualId, UsuarioActualEmail);
+                return exitoso ? Ok(new { message = mensaje }) : BadRequest(new { message = mensaje });
+            });
+
         // ---------------------------------------------------------------
         // Tareas
         // ---------------------------------------------------------------

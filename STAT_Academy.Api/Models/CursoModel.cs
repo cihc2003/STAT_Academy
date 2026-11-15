@@ -42,7 +42,34 @@ namespace STAT_Academy.Api.Models
         public int duracionSemanas => CalcularSemanas(fechaInicio, fechaFin);
 
         /// <summary>Fecha de hoy en Costa Rica (UTC-6, sin horario de verano).</summary>
-        public static DateTime HoyCostaRica => DateTime.UtcNow.AddHours(-6).Date;
+        public static DateTime HoyCostaRica => AhoraCostaRica.Date;
+
+        /// <summary>
+        /// Fecha y hora actual en Costa Rica. Las fechas de las tareas (inicio, límite y entrega)
+        /// se guardan en hora local de Costa Rica, así que se comparan contra este valor.
+        /// </summary>
+        public static DateTime AhoraCostaRica => DateTime.UtcNow.AddHours(-6);
+
+        /// <summary>
+        /// Porcentaje del curso que ya transcurrió (0-100): días desde el inicio hasta hoy
+        /// (ambos incluidos) sobre la duración total del curso, en hora de Costa Rica.
+        /// Antes del inicio es 0; desde la fecha de fin, 100.
+        /// </summary>
+        public static int ProgresoDe(DateTime inicio, DateTime fin, DateTime? hoy = null)
+        {
+            var dia = (hoy ?? HoyCostaRica).Date;
+
+            if (dia < inicio.Date)
+                return 0;
+
+            if (dia >= fin.Date)
+                return 100;
+
+            var total = (fin.Date - inicio.Date).TotalDays + 1;
+            var transcurridos = (dia - inicio.Date).TotalDays + 1;
+
+            return (int)Math.Clamp(Math.Floor(transcurridos / total * 100), 0, 100);
+        }
 
         /// <summary>
         /// Se puede comprar o matricular mientras el curso esté activo y no haya iniciado

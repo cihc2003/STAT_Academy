@@ -55,6 +55,13 @@ namespace STAT_Academy.Web.Services
                 feedback = m.Feedback
             }));
 
+        public Task<(bool exitoso, string mensaje)> AjustarNotaFinal(NotaFinalFormViewModel m) =>
+            Enviar(_http.PutAsJsonAsync($"api/Tutor/cursos/{m.CursoId}/estudiantes/{m.EstudianteId}/nota-final", new
+            {
+                nota = m.UsarCalculada ? null : m.NotaNumero,
+                comentario = m.UsarCalculada ? null : m.Comentario
+            }));
+
         // --- Material ------------------------------------------------------
 
         public async Task<(bool exitoso, string mensaje)> AgregarMaterial(MaterialFormViewModel m)

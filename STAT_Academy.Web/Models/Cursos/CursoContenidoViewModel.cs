@@ -4,7 +4,8 @@ namespace STAT_Academy.Web.Models.Cursos
     public class CursoContenidoViewModel
     {
         public CursoResponse Curso { get; set; } = null!;
-        public List<TareaResponse> Tareas { get; set; } = [];
+        /// <summary>Tareas con el estado de la entrega propia, progreso y nota final.</summary>
+        public AulaCurso Aula { get; set; } = new();
         public List<MaterialResponse> Material { get; set; } = [];
     }
 }

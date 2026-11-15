@@ -85,25 +85,107 @@ namespace STAT_Academy.Web.Controllers
             return View(cursos);
         }
 
-        // Aula del curso: datos generales, tareas (por fecha límite) y material.
+        // Aula del curso: datos generales, tareas con el estado de la entrega propia y material.
         [Authorize(Roles = "Cliente")]
         public async Task<IActionResult> Contenido(int id)
         {
             var curso = await _apiCursos.GetCurso(id);
+            // Sin matrícula activa la API responde 403 y el aula no existe para este usuario.
+            var aula = curso == null ? null : await _apiCursos.GetAula(id);
 
-            if (curso == null)
+            if (curso == null || aula == null)
                 return NotFound();
 
             var model = new CursoContenidoViewModel
             {
                 Curso = curso,
-                Tareas = (await _apiCursos.GetTareasPorCurso(id) ?? [])
-                    .OrderBy(t => t.FechaLimite)
-                    .ToList(),
+                Aula = aula,
                 Material = await _apiCursos.GetMaterialPorCurso(id) ?? []
             };
 
             return View(model);
+        }
+
+        /// <summary>Calificaciones del estudiante en el curso: nota por tarea y nota final.</summary>
+        [Authorize(Roles = "Cliente")]
+        public async Task<IActionResult> Calificaciones(int id)
+        {
+            var aula = await _apiCursos.GetAula(id);
+            return aula == null ? NotFound() : View(aula);
+        }
+
+        // ------------------------------------------------------------------
+        // Tarea y entrega del estudiante
+        // ------------------------------------------------------------------
+
+        [Authorize(Roles = "Cliente")]
+        public async Task<IActionResult> Tarea(int id)
+        {
+            var tarea = await _apiCursos.GetAulaTarea(id);
+            if (tarea == null)
+                return NotFound();
+
+            return View(new AulaTareaPagina
+            {
+                Tarea = tarea,
+                Entrega = new EntregaFormViewModel { TareaId = id }
+            });
+        }
+
+        [Authorize(Roles = "Cliente")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(EntregaFormViewModel.MaxBytesPeticion)]
+        [RequestFormLimits(MultipartBodyLengthLimit = EntregaFormViewModel.MaxBytesPeticion)]
+        public async Task<IActionResult> Entregar([Bind(Prefix = "Entrega")] EntregaFormViewModel model)
+        {
+            var archivos = model.Archivos.Count(a => a is { Length: > 0 });
+
+            if (archivos > EntregaFormViewModel.MaxArchivos)
+                ModelState.AddModelError(nameof(model.Archivos), $"Puede adjuntar como máximo {EntregaFormViewModel.MaxArchivos} archivos.");
+
+            if (archivos == 0 && string.IsNullOrWhiteSpace(model.Enlace) && !model.QuitarEnlace)
+                ModelState.AddModelError(string.Empty, "Adjunte al menos un archivo o escriba un enlace.");
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = ModelState.Values.SelectMany(v => v.Errors).First().ErrorMessage;
+                return RedirectToAction(nameof(Tarea), new { id = model.TareaId });
+            }
+
+            var (exitoso, mensaje) = await _apiCursos.Entregar(model);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Tarea), new { id = model.TareaId });
+        }
+
+        [Authorize(Roles = "Cliente")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuitarArchivoEntrega(int id, int tareaId)
+        {
+            var (exitoso, mensaje) = await _apiCursos.QuitarArchivoEntrega(id);
+            TempData[exitoso ? "Success" : "Error"] = mensaje;
+
+            return RedirectToAction(nameof(Tarea), new { id = tareaId });
+        }
+
+        /// <summary>Descarga un archivo de la entrega propia (lo valida la API).</summary>
+        [Authorize(Roles = "Cliente")]
+        public async Task<IActionResult> ArchivoEntrega(int id, CancellationToken ct)
+        {
+            var respuesta = await _apiCursos.DescargarArchivoEntrega(id, ct);
+            if (respuesta == null)
+                return NotFound();
+
+            HttpContext.Response.RegisterForDispose(respuesta);
+
+            var tipo = respuesta.Content.Headers.ContentType?.ToString() ?? "application/octet-stream";
+            var nombre = respuesta.Content.Headers.ContentDisposition?.FileNameStar
+                         ?? respuesta.Content.Headers.ContentDisposition?.FileName?.Trim('"')
+                         ?? "entrega";
+
+            return File(await respuesta.Content.ReadAsStreamAsync(ct), tipo, nombre);
         }
 
         /// <summary>Descarga un material del curso (solo matriculados, tutor o Admin; lo valida la API).</summary>
