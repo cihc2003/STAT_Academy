@@ -11,6 +11,7 @@ using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Configuration;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Errores;
+using STAT_Academy.Api.Seguridad;
 using STAT_Academy.Api.Services;
 using STAT_Academy.Api.Storage;
 
@@ -117,6 +118,8 @@ builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 // ---------------------------------------------------------------------------
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Seccion));
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ValidadorSesion>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -136,7 +139,18 @@ builder.Services
             NameClaimType = ClaimTiposJwt.Nombre,
             RoleClaimType = ClaimTiposJwt.Rol
         };
+
+        // Revocación: el sello del token debe coincidir con la contraseña, el rol y el estado actuales.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = ctx => ctx.HttpContext.RequestServices
+                .GetRequiredService<ValidadorSesion>()
+                .ValidarAsync(ctx)
+        };
     });
+
+// Límites de intentos en login, registro, recuperación y cambio de contraseña.
+builder.Services.AddLimitesSolicitudes();
 
 // Seguro por defecto: todo endpoint exige token salvo que lleve [AllowAnonymous].
 builder.Services.AddAuthorization(options =>
@@ -180,17 +194,39 @@ var app = builder.Build();
 // Primero, para atrapar cualquier excepción del resto del pipeline (también en Development:
 // el cliente nunca recibe trazas; el detalle queda en el log).
 app.UseExceptionHandler();
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+
+// Encabezados básicos: la API solo responde JSON y archivos, nunca debe mostrarse en un marco.
+app.Use(async (context, next) =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "STAT Academy API v1");
-    c.ScriptBundlePath = "./swagger-ui-bundle.js?v=10.2.3";
-    c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
-    c.StylesPath = "./swagger-ui.css?v=10.2.3";
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers.XFrameOptions = "DENY";
+    await next();
 });
+
+// Swagger expone el mapa completo de la API: solo en desarrollo, o si se habilita a propósito
+// (Swagger__Habilitado=true en App Settings).
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Habilitado"))
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "STAT Academy API v1");
+        c.ScriptBundlePath = "./swagger-ui-bundle.js?v=10.2.3";
+        c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
+        c.StylesPath = "./swagger-ui.css?v=10.2.3";
+    });
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+// Después de la autenticación: algunos límites se cuentan por usuario.
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -16,12 +16,14 @@ namespace STAT_Academy.Api.Services
 
         private readonly ApplicationDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ValidadorSesion _validadorSesion;
         private readonly PasswordHasher<UsuarioModel> _passwordHasher;
 
-        public UsuarioService(ApplicationDbContext context, AuditoriaService auditoria)
+        public UsuarioService(ApplicationDbContext context, AuditoriaService auditoria, ValidadorSesion validadorSesion)
         {
             _context = context;
             _auditoria = auditoria;
+            _validadorSesion = validadorSesion;
             _passwordHasher = new PasswordHasher<UsuarioModel>();
         }
 
@@ -199,6 +201,7 @@ namespace STAT_Academy.Api.Services
             {
                 usuario.estado = activo;
                 _context.SaveChanges();
+                _validadorSesion.Invalidar(usuario.id); // desactivar revoca sus tokens al instante
 
                 _auditoria.Registrar(Entidad, activo ? "ENABLE" : "DISABLE",
                     $"Usuario {usuario.email} {(activo ? "activado" : "desactivado")}", actorEmail, usuario.id);
@@ -244,6 +247,7 @@ namespace STAT_Academy.Api.Services
                     usuario.estado = request.estado.Value;
 
                 _context.SaveChanges();
+                _validadorSesion.Invalidar(usuario.id); // un cambio de rol o estado revoca sus tokens
 
                 var detalle = Recortar($"Usuario {usuario.email} actualizado ({string.Join(", ", cambios)})");
                 _auditoria.Registrar(Entidad, "UPDATE", detalle, actorEmail, usuario.id);

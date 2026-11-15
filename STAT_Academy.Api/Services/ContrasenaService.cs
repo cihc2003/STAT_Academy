@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.DTOs.Contrasena;
@@ -12,14 +13,17 @@ namespace STAT_Academy.Api.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly AuditoriaService _auditoria;
+        private readonly ValidadorSesion _validadorSesion;
         private readonly PasswordHasher<UsuarioModel> _passwordHasher;
 
         public ContrasenaService(
             ApplicationDbContext context,
-            AuditoriaService auditoria)
+            AuditoriaService auditoria,
+            ValidadorSesion validadorSesion)
         {
             _context = context;
             _auditoria = auditoria;
+            _validadorSesion = validadorSesion;
             _passwordHasher = new PasswordHasher<UsuarioModel>();
         }
 
@@ -91,6 +95,7 @@ namespace STAT_Academy.Api.Services
             usuario.intentos_login = 0;
 
             _context.SaveChanges();
+            _validadorSesion.Invalidar(usuario.id); // revoca los tokens emitidos con la contraseña anterior
 
             _auditoria.Registrar(
                 "USUARIO",
@@ -156,6 +161,7 @@ namespace STAT_Academy.Api.Services
             usuario.intentos_login = 0;
 
             _context.SaveChanges();
+            _validadorSesion.Invalidar(usuario.id); // revoca los tokens emitidos con la contraseña anterior
 
             _auditoria.Registrar(
                 "USUARIO",

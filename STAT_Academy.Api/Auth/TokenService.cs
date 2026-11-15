@@ -19,7 +19,8 @@ namespace STAT_Academy.Api.Auth
                 SecurityAlgorithms.HmacSha256);
         }
 
-        public (string token, DateTime expiraEn) GenerarToken(LoginResponse usuario)
+        /// <param name="sello">Sello de sesión (ver <see cref="ValidadorSesion"/>).</param>
+        public (string token, DateTime expiraEn) GenerarToken(LoginResponse usuario, string sello)
         {
             var expiraEn = DateTime.UtcNow.AddMinutes(_options.ExpiracionMinutos);
 
@@ -34,7 +35,8 @@ namespace STAT_Academy.Api.Auth
                     new Claim(ClaimTiposJwt.UsuarioId, usuario.id.ToString()),
                     new Claim(ClaimTiposJwt.Email, usuario.email),
                     new Claim(ClaimTiposJwt.Nombre, usuario.nombre),
-                    new Claim(ClaimTiposJwt.Rol, Roles.DesdeTipoUsuario(usuario.fk_Tipo_Usuario))
+                    new Claim(ClaimTiposJwt.Rol, Roles.DesdeTipoUsuario(usuario.fk_Tipo_Usuario)),
+                    new Claim(ValidadorSesion.ClaimSello, sello)
                 })
             };
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using STAT_Academy.Web.Controllers;
 using STAT_Academy.Web.Filtros;
+using STAT_Academy.Web.Seguridad;
 using STAT_Academy.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,7 +43,6 @@ void AddApiClient<TClient>() where TClient : class =>
         .ConfigurePrimaryHttpMessageHandler(CreateDevelopmentHandler)
         .AddHttpMessageHandler<BearerTokenHandler>();
 
-AddApiClient<CursoService>();
 AddApiClient<ApiUserGateway>();
 AddApiClient<ApiContrasenaService>();
 AddApiClient<ApiUsuarioService>();
@@ -62,7 +62,8 @@ builder.Services.AddHttpClient(ApiClient.Nombre, client => client.BaseAddress = 
 // 401/403/404 de la API → login o página de error (ver ErroresApiFilter).
 builder.Services.AddControllersWithViews(options => options.Filters.Add<ErroresApiFilter>());
 
-builder.Services.AddSession();
+// Límites por IP en login, registro y recuperación de contraseña.
+builder.Services.AddLimitesSolicitudesWeb();
 
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -74,6 +75,10 @@ builder.Services
         options.SlidingExpiration = true;
         options.Cookie.HttpOnly = true;
         options.Cookie.IsEssential = true;
+        // En Azure la cookie (que lleva el JWT) solo viaja por HTTPS; en local se permite http://localhost.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
 
         // Si el JWT de la API ya expiró, la sesión de la Web tampoco sirve:
         // se cierra y el usuario vuelve a iniciar sesión.
@@ -121,6 +126,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Encabezados de seguridad en todas las respuestas (una acción puede fijar los suyos antes).
+app.Use(async (context, next) =>
+{
+    var encabezados = context.Response.Headers;
+    encabezados.XContentTypeOptions = "nosniff";
+    // Ningún otro sitio puede mostrar estas páginas en un marco (clickjacking).
+    encabezados.XFrameOptions = "SAMEORIGIN";
+    encabezados["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    await next();
+});
+
 // 404, 403, 405... sin contenido → /Error/{código}, conservando la URL original.
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
@@ -130,7 +146,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseSession();
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllerRoute(

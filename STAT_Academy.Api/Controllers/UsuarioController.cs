@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using STAT_Academy.Api.Seguridad;
 using STAT_Academy.Api.Auth;
 using STAT_Academy.DTOs.Usuarios;
 using STAT_Academy.Api.Services;
@@ -89,6 +91,7 @@ namespace STAT_Academy.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("Registrar")]
+        [EnableRateLimiting(LimitesSolicitudes.Anonimo)]
         public async Task<ActionResult<UsuarioResponse>> RegisterUsuario(RegisterUsuarioRequest request)
         {
             UsuarioResponse newUsuario;

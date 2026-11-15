@@ -17,6 +17,8 @@ namespace STAT_Academy.Web.Services
                     HttpStatusCode.Forbidden => "No tiene permiso para realizar esta acción.",
                     HttpStatusCode.NotFound => "El recurso no existe.",
                     HttpStatusCode.RequestEntityTooLarge => "El archivo supera el tamaño máximo permitido.",
+                    HttpStatusCode.TooManyRequests => "Demasiados intentos. Espere unos minutos e intente de nuevo.",
+                    HttpStatusCode.ServiceUnavailable => "El servicio se está iniciando. Intente de nuevo en unos segundos.",
                     _ => "No se pudo procesar la solicitud."
                 };
 

@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using STAT_Academy.Api.Auth;
+using STAT_Academy.Api.Seguridad;
 using STAT_Academy.Api.Services;
 using STAT_Academy.DTOs.Contrasena;
 
@@ -11,25 +14,38 @@ namespace STAT_Academy.Api.Controllers
     {
         private readonly ContrasenaService _contrasenaService;
         private readonly CorreoService _correoService;
+        private readonly LoginService _loginService;
+        private readonly TokenService _tokenService;
+        private readonly LimitadorPorCorreo _limitador;
         private readonly ILogger<ContrasenaController> _logger;
 
         public ContrasenaController(
             ContrasenaService contrasenaService,
             CorreoService correoService,
+            LoginService loginService,
+            TokenService tokenService,
+            LimitadorPorCorreo limitador,
             ILogger<ContrasenaController> logger)
         {
             _contrasenaService = contrasenaService;
             _correoService = correoService;
+            _loginService = loginService;
+            _tokenService = tokenService;
+            _limitador = limitador;
             _logger = logger;
         }
 
         [AllowAnonymous]
         [HttpPost("solicitar-recuperacion")]
+        [EnableRateLimiting(LimitesSolicitudes.Anonimo)]
         public async Task<IActionResult> SolicitarRecuperacion(
             SolicitarRecuperacionRequest request)
         {
-            var token = _contrasenaService
-                .GenerarTokenRecuperacion(request.email);
+            // Pasado el límite por dirección no se genera ni envía nada, pero la respuesta es la misma
+            // (así no se puede usar para saber qué correos existen ni para inundar un buzón).
+            var token = _limitador.PermitirRecuperacion(request.email)
+                ? _contrasenaService.GenerarTokenRecuperacion(request.email)
+                : null;
 
             if (token != null)
             {
@@ -58,6 +74,7 @@ namespace STAT_Academy.Api.Controllers
 
         [AllowAnonymous]
         [HttpPost("restablecer")]
+        [EnableRateLimiting(LimitesSolicitudes.Anonimo)]
         public IActionResult RestablecerContrasena(
             RestablecerContrasenaRequest request)
         {
@@ -80,6 +97,7 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPost("cambiar")]
+        [EnableRateLimiting(LimitesSolicitudes.CambioContrasena)]
         public async Task<IActionResult> CambiarContrasena(
             CambiarContrasenaRequest request)
         {
@@ -109,7 +127,14 @@ namespace STAT_Academy.Api.Controllers
                 }
             }
 
-            return Ok(new { message = resultado.mensaje });
+            // El cambio revoca los tokens anteriores (ver ValidadorSesion), incluido el de esta
+            // sesión: se devuelve uno nuevo para que el cliente siga conectado.
+            var sesion = _loginService.SesionDe(UsuarioActualId);
+            if (sesion == null)
+                return Ok(new { message = resultado.mensaje });
+
+            var (token, expiraEn) = _tokenService.GenerarToken(sesion.Datos, sesion.Sello);
+            return Ok(new { message = resultado.mensaje, token, expiraEn });
         }
     }
 }

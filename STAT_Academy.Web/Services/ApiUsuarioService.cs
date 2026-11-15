@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using STAT_Academy.Web.Models.Usuarios;
 
 namespace STAT_Academy.Web.Services;
@@ -58,14 +58,18 @@ public class ApiUsuarioService
     }
 
     /// <summary>Registro público (siempre crea un Cliente y envía el correo de bienvenida).</summary>
-    public async Task<UsuarioResponse?> RegistrarUsuarioAsync(RegisterUsuarioRequest request)
+    /// <returns>El usuario creado, o null y el motivo (p. ej. correo ya registrado o demasiados intentos).</returns>
+    public async Task<(UsuarioResponse? usuario, string mensaje)> RegistrarUsuarioAsync(RegisterUsuarioRequest request)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/Usuario/Registrar", request);
+        using var response = await _httpClient.PostAsJsonAsync("api/Usuario/Registrar", request);
 
         if (!response.IsSuccessStatusCode)
-            return null;
+        {
+            var (_, mensaje) = await ApiRespuesta.Leer(response);
+            return (null, mensaje);
+        }
 
-        return await response.Content.ReadFromJsonAsync<UsuarioResponse>();
+        return (await response.Content.ReadFromJsonAsync<UsuarioResponse>(), string.Empty);
     }
 
     public async Task<(bool exitoso, string mensaje)> ActualizarUsuarioAsync(int id, UpdateUsuarioRequest request)
