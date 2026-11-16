@@ -1,4 +1,4 @@
-﻿@model STAT_Academy.Web.Models.Home.InicioViewModel
+@model STAT_Academy.Web.Models.Home.InicioViewModel
 @{
     ViewData["Title"] = "Formación en salud";
     var autenticado = User.Identity?.IsAuthenticated == true;
@@ -10,6 +10,10 @@
 
 @* 1. Portada: mensaje y agenda real de próximos inicios *@
 <section class="inicio-hero" aria-labelledby="inicio-titulo">
+    @* Trazo de electrocardiograma: se dibuja una vez al cargar (decorativo). *@
+    <svg class="inicio-hero__pulso" viewBox="0 0 1200 80" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path pathLength="1" d="M0 52 H120 l14 -10 l14 10 h22 l8 10 l12 -58 l12 74 l8 -26 h34 l20 -12 l20 12 H420 l14 -10 l14 10 h22 l8 10 l12 -58 l12 74 l8 -26 h34 l20 -12 l20 12 H720 l14 -10 l14 10 h22 l8 10 l12 -58 l12 74 l8 -26 h34 l20 -12 l20 12 H1020 l14 -10 l14 10 h22 l8 10 l12 -58 l12 74 l8 -26 h34 l20 -12 l20 12 H1200" />
+    </svg>
     <div class="container inicio-hero__grid">
         <div class="inicio-hero__texto">
             <p class="inicio-hero__marca">Academia de STATMEDICAL</p>
@@ -30,13 +34,13 @@
                     {
                         <div class="cifras__item">
                             <dt>@(cursos.Count == 1 ? "curso con inscripción abierta" : "cursos con inscripción abierta")</dt>
-                            <dd>@cursos.Count</dd>
+                            <dd><span class="visually-hidden">@cursos.Count</span><span aria-hidden="true" data-contar="@cursos.Count">@cursos.Count</span></dd>
                         </div>
                         @if (Model.Instructores > 0)
                         {
                             <div class="cifras__item">
                                 <dt>@(Model.Instructores == 1 ? "tutor a cargo" : "tutores a cargo")</dt>
-                                <dd>@Model.Instructores</dd>
+                                <dd><span class="visually-hidden">@Model.Instructores</span><span aria-hidden="true" data-contar="@Model.Instructores">@Model.Instructores</span></dd>
                             </div>
                         }
                     }
@@ -44,13 +48,13 @@
                     {
                         <div class="cifras__item">
                             <dt>@(productos.Count == 1 ? "producto en la tienda" : "productos en la tienda")</dt>
-                            <dd>@productos.Count</dd>
+                            <dd><span class="visually-hidden">@productos.Count</span><span aria-hidden="true" data-contar="@productos.Count">@productos.Count</span></dd>
                         </div>
                         @if (Model.Categorias.Count > 0)
                         {
                             <div class="cifras__item">
                                 <dt>@(Model.Categorias.Count == 1 ? "categoría" : "categorías")</dt>
-                                <dd>@Model.Categorias.Count</dd>
+                                <dd><span class="visually-hidden">@Model.Categorias.Count</span><span aria-hidden="true" data-contar="@Model.Categorias.Count">@Model.Categorias.Count</span></dd>
                             </div>
                         }
                     }
@@ -172,12 +176,20 @@
                 </div>
                 <a class="enlace-accion" asp-controller="Blog" asp-action="Index">Ver todos los artículos @Html.Icono("flecha-derecha", "icono--sm")</a>
             </div>
-            <div class="rejilla rejilla--amplia">
-                @foreach (var a in articulos.Take(3))
-                {
-                    <partial name="~/Views/Blog/_BlogTarjeta.cshtml" model="a" />
-                }
-            </div>
+            @{
+                var destacada = articulos[0];
+                var vistaDestacada = new ViewDataDictionary(ViewData) { ["Nivel"] = "h3", ["SinGestion"] = true };
+            }
+            <partial name="~/Views/Blog/_BlogDestacada.cshtml" model="destacada" view-data="vistaDestacada" />
+            @if (articulos.Count > 1)
+            {
+                <div class="blog-lista inicio-blog__lista">
+                    @foreach (var a in articulos.Skip(1).Take(2))
+                    {
+                        <partial name="~/Views/Blog/_BlogTarjeta.cshtml" model="a" />
+                    }
+                </div>
+            }
         </div>
     </section>
 }

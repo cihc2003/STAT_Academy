@@ -5,6 +5,9 @@ namespace STAT_Academy.Web.Models.Productos
     {
         public List<ProductoResponse> Productos { get; set; } = [];
 
+        /// <summary>Productos que cumplen los filtros (todas las páginas).</summary>
+        public int Encontrados { get; set; }
+
         /// <summary>Productos activos antes de filtrar.</summary>
         public int Total { get; set; }
 

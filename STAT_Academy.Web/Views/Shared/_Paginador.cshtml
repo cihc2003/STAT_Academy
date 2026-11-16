@@ -1,0 +1,68 @@
+@model STAT_Academy.Web.Helpers.Paginacion
+@*
+    Paginación de los catálogos públicos (cursos, tienda y blog). Conserva la búsqueda y los
+    filtros de la dirección actual. No se muestra si todo cabe en una página.
+    Uso: <partial name="_Paginador" model="(Paginacion)ViewBag.Paginacion" />
+*@
+@{
+    var consulta = Context.Request.Query;
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    var paginas = Model.PaginasVisibles();
+
+    Dictionary<string, string> Ruta(int pagina)
+    {
+        var ruta = FiltrosPanel.Sin(consulta, "pagina");
+        if (pagina > 1) ruta["pagina"] = pagina.ToString();
+        return ruta;
+    }
+}
+
+@if (Model.TotalPaginas > 1)
+{
+    <nav class="paginador" aria-label="Páginas de @Model.Elementos">
+        <p class="paginador__resumen">
+            Mostrando <strong>@Model.Desde–@Model.Hasta</strong> de <strong>@Model.Total</strong> @Model.Elementos
+        </p>
+
+        <ul class="pagination">
+            <li class="page-item @(Model.Pagina == 1 ? "disabled" : "")">
+                @if (Model.Pagina == 1)
+                {
+                    <span class="page-link paginador__paso" aria-hidden="true">@Html.Icono("chevron-izquierda", "icono--sm")<span class="paginador__texto">Anterior</span></span>
+                }
+                else
+                {
+                    <a class="page-link paginador__paso" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina - 1)" rel="prev">
+                        @Html.Icono("chevron-izquierda", "icono--sm")<span class="paginador__texto">Anterior</span><span class="visually-hidden"> (página @(Model.Pagina - 1))</span>
+                    </a>
+                }
+            </li>
+
+            @for (var i = 0; i < paginas.Count; i++)
+            {
+                var n = paginas[i];
+                if (i > 0 && n - paginas[i - 1] > 1)
+                {
+                    <li class="page-item disabled paginador__numero"><span class="page-link" aria-hidden="true">…</span></li>
+                }
+                <li class="page-item paginador__numero @(n == Model.Pagina ? "active" : "")">
+                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(n)"
+                       aria-current="@(n == Model.Pagina ? "page" : null)"><span class="visually-hidden">Página </span>@n</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.Pagina == Model.TotalPaginas ? "disabled" : "")">
+                @if (Model.Pagina == Model.TotalPaginas)
+                {
+                    <span class="page-link paginador__paso" aria-hidden="true"><span class="paginador__texto">Siguiente</span>@Html.Icono("chevron-derecha", "icono--sm")</span>
+                }
+                else
+                {
+                    <a class="page-link paginador__paso" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina + 1)" rel="next">
+                        <span class="paginador__texto">Siguiente</span><span class="visually-hidden"> (página @(Model.Pagina + 1))</span>@Html.Icono("chevron-derecha", "icono--sm")
+                    </a>
+                }
+            </li>
+        </ul>
+    </nav>
+}

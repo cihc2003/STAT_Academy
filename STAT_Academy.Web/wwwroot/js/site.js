@@ -443,3 +443,33 @@ window.addEventListener("pageshow", function (e) {
         boton.disabled = false;
     });
 });
+
+// Portada: las cifras cuentan desde 0 hasta su valor una sola vez (solo la parte visual;
+// el número real está en un texto oculto para lectores de pantalla). Sin animación si el
+// sistema pide reducir el movimiento.
+(function () {
+    "use strict";
+
+    var cifras = document.querySelectorAll("[data-contar]");
+    if (!cifras.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var DURACION = 1100;
+
+    cifras.forEach(function (el) {
+        var final = parseInt(el.getAttribute("data-contar"), 10);
+        if (!isFinite(final) || final <= 0) return;
+
+        var inicio = null;
+        el.textContent = "0";
+
+        function paso(t) {
+            if (inicio === null) inicio = t;
+            var avance = Math.min((t - inicio) / DURACION, 1);
+            var suavizado = 1 - Math.pow(1 - avance, 3);
+            el.textContent = String(Math.round(final * suavizado));
+            if (avance < 1) requestAnimationFrame(paso);
+        }
+
+        setTimeout(function () { requestAnimationFrame(paso); }, 350);
+    });
+})();

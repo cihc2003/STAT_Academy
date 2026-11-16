@@ -4949,3 +4949,119 @@ h3.panel-form__seccion {
 .field-validation-error:empty {
     display: none !important;
 }
+
+/* ---- Paginación de catálogos públicos ---- */
+.paginador {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-4);
+    margin-top: var(--e-10);
+    padding-top: var(--e-6);
+    border-top: var(--borde) solid var(--color-borde);
+}
+
+.paginador__resumen {
+    margin: 0;
+    color: var(--color-texto-2);
+    font-size: var(--texto-sm);
+}
+
+    .paginador__resumen strong {
+        color: var(--color-titulo);
+    }
+
+.paginador .pagination {
+    flex-wrap: wrap;
+}
+
+.paginador__paso {
+    display: inline-flex;
+    gap: var(--e-1);
+    padding-inline: var(--e-4);
+}
+
+@media (max-width: 575.98px) {
+    .paginador {
+        justify-content: center;
+        text-align: center;
+    }
+
+    /* En teléfonos solo Anterior / página actual / Siguiente */
+    .paginador__numero:not(.active) {
+        display: none;
+    }
+}
+
+/* ---- Portada: movimiento (una sola secuencia al cargar) ---- */
+.inicio-hero {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Trazo de electrocardiograma a lo ancho, al pie del hero */
+.inicio-hero__pulso {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--e-3);
+    width: 100%;
+    height: clamp(2.5rem, 5vw, 4.5rem);
+    pointer-events: none;
+}
+
+    .inicio-hero__pulso path {
+        fill: none;
+        stroke: var(--color-accion);
+        stroke-width: 2;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        vector-effect: non-scaling-stroke;
+        opacity: 0.35;
+        stroke-dasharray: 1;
+        stroke-dashoffset: 0;
+    }
+
+.inicio-hero__grid {
+    position: relative;
+    z-index: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .inicio-hero__pulso path {
+        animation: pulso-trazo 2.4s cubic-bezier(0.45, 0, 0.2, 1) 0.2s both;
+    }
+
+    .inicio-hero__marca,
+    .inicio-hero__titulo,
+    .inicio-hero__bajada,
+    .inicio-hero__acciones,
+    .inicio-hero .cifras,
+    .inicio-hero .agenda {
+        animation: entrada-suave 700ms var(--curva) both;
+    }
+
+    .inicio-hero__titulo { animation-delay: 80ms; }
+    .inicio-hero__bajada { animation-delay: 160ms; }
+    .inicio-hero__acciones { animation-delay: 240ms; }
+    .inicio-hero .cifras { animation-delay: 320ms; }
+    .inicio-hero .agenda { animation-delay: 200ms; }
+}
+
+@keyframes pulso-trazo {
+    from {
+        stroke-dashoffset: 1;
+    }
+}
+
+@keyframes entrada-suave {
+    from {
+        opacity: 0;
+        transform: translateY(var(--e-3));
+    }
+}
+
+.inicio-blog__lista {
+    margin-top: var(--e-5);
+}

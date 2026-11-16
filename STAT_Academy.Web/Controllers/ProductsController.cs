@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Web.Services;
 using STAT_Academy.Web.Helpers;
 using STAT_Academy.Web.Models.Productos;
@@ -16,7 +16,7 @@ public class ProductsController : Controller
 
     /// <param name="buscar">Texto a buscar en el nombre (sin distinguir mayúsculas ni tildes).</param>
     /// <param name="categoria">Categoría exacta elegida en el filtro.</param>
-    public async Task<IActionResult> Index(string? buscar, string? categoria)
+    public async Task<IActionResult> Index(string? buscar, string? categoria, int pagina = 1)
     {
         ViewData["Title"] = "Tienda";
         ViewData["Page"] = "Tienda";
@@ -34,9 +34,13 @@ public class ProductsController : Controller
             .ThenBy(p => p.nombre)
             .ToList();
 
+        var (items, paginacion) = Paginacion.Catalogo(filtrados, pagina, 12, "productos");
+        ViewBag.Paginacion = paginacion;
+
         return View(new TiendaViewModel
         {
-            Productos = filtrados,
+            Productos = items,
+            Encontrados = filtrados.Count,
             Total = activos.Count,
             Buscar = buscar?.Trim(),
             Categoria = categoria?.Trim(),

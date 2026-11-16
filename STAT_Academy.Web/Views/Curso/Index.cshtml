@@ -1,11 +1,12 @@
-﻿@model IEnumerable<STAT_Academy.Web.Models.CursoModel>
+@model IEnumerable<STAT_Academy.Web.Models.CursoModel>
 
 @{
     ViewData["Title"] = "Cursos";
     var buscar = ViewData["Buscar"] as string;
     var total = ViewData["Total"] as int? ?? Model.Count();
     var filtrando = !string.IsNullOrWhiteSpace(buscar);
-    var cantidad = Model.Count();
+    var paginacion = (Paginacion)ViewBag.Paginacion;
+    var cantidad = paginacion.Total;
 }
 
 <section class="encabezado-pagina">
@@ -66,6 +67,7 @@
                     <partial name="_CursoTarjeta" model="item" />
                 }
             </div>
+            <partial name="_Paginador" model="paginacion" />
         }
     </div>
 </section>

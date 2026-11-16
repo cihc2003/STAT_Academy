@@ -52,7 +52,7 @@
             @if (Model.Filtrando)
             {
                 <p class="resultados__texto">
-                    <strong>@Model.Productos.Count</strong> de @Model.Total @(Model.Total == 1 ? "producto" : "productos")
+                    <strong>@Model.Encontrados</strong> de @Model.Total @(Model.Total == 1 ? "producto" : "productos")
                     @if (hayBusqueda) { <text>para «@Model.Buscar»</text> }
                     @if (!string.IsNullOrWhiteSpace(categoriaReal)) { <text>en @categoriaReal</text> }
                 </p>
@@ -90,6 +90,7 @@
                     <partial name="_ProductoTarjeta" model="producto" />
                 }
             </div>
+            <partial name="_Paginador" model="(Paginacion)ViewBag.Paginacion" />
         }
     </div>
 </section>

@@ -9,14 +9,14 @@
 
 @if (esAutor)
 {
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secundario btn-sm" aria-label="Editar «@Model.Titulo»">@Html.Icono("editar", "icono--sm")Editar</a>
+    <a asp-controller="Blog" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-secundario btn-sm" aria-label="Editar «@Model.Titulo»">@Html.Icono("editar", "icono--sm")Editar</a>
 }
 
 @if (esAutor || esAdmin)
 {
     if (Model.Estado)
     {
-        <form asp-action="Desactivar" asp-route-id="@Model.Id" method="post" class="d-inline"
+        <form asp-controller="Blog" asp-action="Desactivar" asp-route-id="@Model.Id" method="post" class="d-inline"
               data-confirmar="¿Desactivar «@Model.Titulo»? Dejará de verse en el blog hasta que la vuelva a publicar."
               data-confirmar-boton="Desactivar" data-confirmar-peligro>
             <button type="submit" class="btn btn-outline-danger btn-sm" aria-label="Desactivar «@Model.Titulo»">@Html.Icono("ojo-tachado", "icono--sm")Desactivar</button>
@@ -24,7 +24,7 @@
     }
     else
     {
-        <form asp-action="Activar" asp-route-id="@Model.Id" method="post" class="d-inline">
+        <form asp-controller="Blog" asp-action="Activar" asp-route-id="@Model.Id" method="post" class="d-inline">
             <button type="submit" class="btn btn-secundario btn-sm" aria-label="Publicar «@Model.Titulo»">@Html.Icono("ojo", "icono--sm")Publicar</button>
         </form>
     }

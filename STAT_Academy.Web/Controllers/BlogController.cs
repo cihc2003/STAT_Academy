@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STAT_Academy.Web.Helpers;
 using STAT_Academy.Web.Models.Blog;
@@ -22,17 +22,24 @@ namespace STAT_Academy.Web.Controllers
             int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 
         /// <param name="buscar">Texto a buscar en el título o el resumen (sin distinguir mayúsculas ni tildes).</param>
-        public async Task<IActionResult> Index(string? buscar)
+        /// <summary>Artículos por página (la primera incluye la entrada destacada).</summary>
+        public const int ArticulosPorPagina = 9;
+
+        public async Task<IActionResult> Index(string? buscar, int pagina = 1)
         {
             var blogs = await _blogService.ObtenerBlogs();
 
             ViewData["Buscar"] = buscar?.Trim();
             ViewData["Total"] = blogs.Count;
 
-            return View(blogs
+            var filtrados = blogs
                 .Where(b => Busqueda.Coincide(b.Titulo, buscar) || Busqueda.Coincide(b.Resumen, buscar))
-                .OrderByDescending(b => b.FechaCreacion)
-                .ToList());
+                .OrderByDescending(b => b.FechaCreacion);
+
+            var (items, paginacion) = Paginacion.Catalogo(filtrados, pagina, ArticulosPorPagina, "artículos");
+            ViewBag.Paginacion = paginacion;
+
+            return View(items);
         }
 
         public async Task<IActionResult> Details(int id)

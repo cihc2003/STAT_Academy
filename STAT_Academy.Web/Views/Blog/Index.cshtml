@@ -6,10 +6,11 @@
     var buscar = ViewData["Buscar"] as string;
     var total = ViewData["Total"] as int? ?? Model.Count;
     var filtrando = !string.IsNullOrWhiteSpace(buscar);
+    var paginacion = (Paginacion)ViewBag.Paginacion;
 
     // La entrada publicada más reciente se destaca arriba (solo cuando no se está buscando);
     // si todas están ocultas (solo las ve un Admin), se destaca la más reciente.
-    var destacada = !filtrando ? Model.FirstOrDefault(b => b.Estado) ?? Model.FirstOrDefault() : null;
+    var destacada = !filtrando && paginacion.Pagina == 1 ? Model.FirstOrDefault(b => b.Estado) ?? Model.FirstOrDefault() : null;
     var resto = destacada == null ? Model : Model.Where(b => b != destacada).ToList();
 }
 
@@ -40,7 +41,7 @@
         @if (filtrando)
         {
             <div class="resultados" aria-live="polite">
-                <p class="resultados__texto"><strong>@Model.Count</strong> de @total @(total == 1 ? "artículo" : "artículos") para «@buscar»</p>
+                <p class="resultados__texto"><strong>@paginacion.Total</strong> de @total @(total == 1 ? "artículo" : "artículos") para «@buscar»</p>
                 <a class="chip" asp-action="Index">«@buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar búsqueda</span></a>
             </div>
         }
@@ -65,41 +66,7 @@
         {
             @if (destacada != null)
             {
-                var autor = string.IsNullOrWhiteSpace(destacada.Autor) ? "Equipo STAT Academy" : destacada.Autor;
-
-                <article class="blog-destacada fondo-oscuro @(destacada.Estado ? "" : "blog-destacada--oculta")" aria-labelledby="blog-destacada-titulo">
-                    <a class="blog-destacada__portada" asp-action="Details" asp-route-id="@destacada.Id" tabindex="-1" aria-hidden="true">
-                        @if (!string.IsNullOrEmpty(destacada.ImagenPrincipal))
-                        {
-                            <img src="@destacada.ImagenPrincipal" alt="" />
-                        }
-                        else
-                        {
-                            <span class="tarjeta-item__sin-imagen">@Html.Icono("articulo", "icono--xl")</span>
-                        }
-                    </a>
-                    <div class="blog-destacada__cuerpo">
-                        @if (destacada.Estado)
-                        {
-                            <span class="blog-destacada__marca">Lo más reciente</span>
-                        }
-                        else
-                        {
-                            <span class="blog-destacada__marca blog-destacada__marca--oculta">Oculta: solo la ven los administradores</span>
-                        }
-                        <h2 id="blog-destacada-titulo"><a asp-action="Details" asp-route-id="@destacada.Id">@destacada.Titulo</a></h2>
-                        <p class="blog-destacada__resumen">@destacada.Resumen</p>
-                        <ul class="datos-icono datos-icono--fila blog-destacada__datos">
-                            <li>@Html.Icono("usuario")<span>@autor</span></li>
-                            <li>@Html.Icono("calendario")<time datetime="@destacada.FechaCreacion.ToString("o")">@Formato.Fecha(destacada.FechaCreacion)</time></li>
-                            <li>@Html.Icono("reloj")<span>@destacada.MinutosLectura min de lectura</span></li>
-                        </ul>
-                        <a asp-action="Details" asp-route-id="@destacada.Id" class="btn btn-primary btn-lg blog-destacada__leer">Leer el artículo @Html.Icono("flecha-derecha", "icono--sm")</a>
-                        <div class="blog-gestion blog-gestion--oscura">
-                            <partial name="_BlogAcciones" model="destacada" />
-                        </div>
-                    </div>
-                </article>
+                <partial name="_BlogDestacada" model="destacada" />
             }
 
             @if (resto.Any())
@@ -125,6 +92,8 @@
                     }
                 </div>
             }
+
+            <partial name="_Paginador" model="paginacion" />
         }
     </div>
 </section>
