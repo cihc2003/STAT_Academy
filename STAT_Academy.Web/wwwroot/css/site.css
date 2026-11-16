@@ -5014,14 +5014,22 @@ h3.panel-form__seccion {
     .inicio-hero__pulso path {
         fill: none;
         stroke: var(--color-accion);
-        stroke-width: 2;
         stroke-linejoin: round;
         stroke-linecap: round;
-        vector-effect: non-scaling-stroke;
-        opacity: 0.35;
-        stroke-dasharray: 1;
-        stroke-dashoffset: 0;
     }
+
+/* Línea base: cruza todo el ancho */
+.inicio-hero__pulso-linea {
+    stroke-width: 2;
+    opacity: 0.3;
+}
+
+/* Destello: un tramo corto que recorre la línea (solo con movimiento permitido) */
+.inicio-hero__pulso-luz {
+    stroke-width: 3;
+    opacity: 0;
+    stroke-dasharray: 0.07 0.93;
+}
 
 .inicio-hero__grid {
     position: relative;
@@ -5029,8 +5037,14 @@ h3.panel-form__seccion {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-    .inicio-hero__pulso path {
+    .inicio-hero__pulso-linea {
+        stroke-dasharray: 1;
         animation: pulso-trazo 2.4s cubic-bezier(0.45, 0, 0.2, 1) 0.2s both;
+    }
+
+    .inicio-hero__pulso-luz {
+        opacity: 0.9;
+        animation: pulso-recorrido 4s linear 2.6s infinite both;
     }
 
     .inicio-hero__marca,
@@ -5052,6 +5066,20 @@ h3.panel-form__seccion {
 @keyframes pulso-trazo {
     from {
         stroke-dashoffset: 1;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes pulso-recorrido {
+    from {
+        stroke-dashoffset: 0.07;
+    }
+
+    to {
+        stroke-dashoffset: -0.93;
     }
 }
 
