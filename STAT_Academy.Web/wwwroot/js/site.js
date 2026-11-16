@@ -176,7 +176,7 @@
     "use strict";
 
     document.querySelectorAll("[data-portada-input]").forEach(function (input) {
-        var campo = input.closest(".portada-campo");
+        var campo = input.closest(".portada-campo") || input.closest("[data-portada-grupo]");
         var vista = campo && campo.querySelector("[data-portada-vista]");
         if (!vista || !window.URL) return;
 

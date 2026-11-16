@@ -1,4 +1,4 @@
-﻿@model List<STAT_Academy.Web.Models.Blog.BlogResponse>
+@model List<STAT_Academy.Web.Models.Blog.BlogResponse>
 
 @{
     ViewData["Title"] = "Blog";
@@ -107,8 +107,12 @@
                 {
                     <h2 class="blog-listado__titulo">Más artículos</h2>
                 }
+                else
+                {
+                    <h2 class="visually-hidden">Artículos</h2>
+                }
 
-                <div class="rejilla rejilla--amplia">
+                <div class="blog-lista">
                     @foreach (var blog in resto)
                     {
                         <div class="blog-rejilla__item">

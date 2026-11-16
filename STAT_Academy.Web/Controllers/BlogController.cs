@@ -192,6 +192,55 @@ namespace STAT_Academy.Web.Controllers
             return RedirectToAction(nameof(Edit), new { id });
         }
 
+        /// <summary>
+        /// Cambia la portada en un paso: sube la imagen con el endpoint de archivos y la marca
+        /// como principal con el de portada (la anterior queda en la galería).
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(6 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 6 * 1024 * 1024)]
+        public async Task<IActionResult> SubirPortada(int id, IFormFile? portada)
+        {
+            if (portada == null || portada.Length == 0)
+            {
+                TempData["Error"] = "Seleccione una imagen para la portada.";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            var antes = await _blogService.ObtenerBlogPorId(id);
+            if (antes == null)
+                return NotFound();
+
+            var (subida, mensaje) = await _blogService.SubirArchivos(id, [portada]);
+            if (!subida)
+            {
+                TempData["Error"] = mensaje;
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            // La imagen nueva es la que no estaba antes de subirla.
+            var idsAnteriores = antes.Archivos.Select(a => a.Id).ToHashSet();
+            var nueva = (await _blogService.ObtenerBlogPorId(id))?.Imagenes
+                .Where(i => !idsAnteriores.Contains(i.Id))
+                .OrderByDescending(i => i.Id)
+                .FirstOrDefault();
+
+            if (nueva == null)
+            {
+                TempData["Error"] = "La imagen se subió, pero no se pudo usar como portada. Márquela desde la galería.";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            var (exitoso, mensajePortada) = nueva.EsPrincipal
+                ? (true, "Portada actualizada.")
+                : await _blogService.MarcarPrincipal(id, nueva.Id);
+
+            TempData[exitoso ? "Success" : "Error"] = mensajePortada;
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]

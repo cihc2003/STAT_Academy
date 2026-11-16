@@ -141,41 +141,6 @@
         display: none;
     }
 
-/* Artículo */
-.blog-articulo__cabecera {
-    padding-block: var(--e-6) var(--e-8);
-}
-
-.blog-articulo__titulo {
-    margin-block: var(--e-4) var(--e-6);
-    font-size: clamp(2rem, 1.3rem + 2.6vw, 3.5rem);
-    font-stretch: var(--ancho-display);
-    letter-spacing: var(--tracking-display);
-}
-
-.blog-articulo__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--e-4);
-    padding-block: var(--e-4);
-    border-block: var(--borde) solid var(--color-borde);
-}
-
-.blog-articulo__portada {
-    max-width: calc(72rem + 2 * var(--margen));
-    margin-bottom: var(--e-10);
-}
-
-    .blog-articulo__portada img {
-        display: block;
-        width: 100%;
-        max-height: 34rem;
-        object-fit: cover;
-        border-radius: var(--radio-3);
-    }
-
 .blog-seccion {
     margin: var(--e-12) 0 var(--e-4);
     font-size: var(--texto-xl);
@@ -364,14 +329,6 @@
         }
 
 /* Editor */
-.blog-editor-pagina {
-    max-width: calc(64rem + 2 * var(--margen));
-}
-
-    .blog-editor-pagina > * + * {
-        margin-top: var(--e-6);
-    }
-
 .blog-form {
     padding: clamp(var(--e-5), 3vw, var(--e-8));
 }
@@ -547,3 +504,248 @@
         padding: var(--e-4);
     }
 }
+
+/* =========================================================================
+   Listado horizontal: portada a la izquierda y datos a la derecha.
+   Una columna hasta 1400 px; dos columnas en pantallas anchas.
+   ========================================================================= */
+.blog-lista {
+    display: grid;
+    gap: var(--e-5);
+}
+
+    .blog-lista .tarjeta-item__titulo {
+        font-size: var(--texto-xl);
+        -webkit-line-clamp: 3;
+    }
+
+@media (min-width: 640px) {
+    .blog-lista .tarjeta-item {
+        flex-direction: row;
+    }
+
+    .blog-lista .tarjeta-item__media {
+        flex: 0 0 42%;
+        aspect-ratio: auto;
+        min-height: 15rem;
+    }
+
+    .blog-lista .tarjeta-item__cuerpo {
+        padding: var(--e-6);
+    }
+}
+
+@media (min-width: 1400px) {
+    .blog-lista {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================================
+   Artículo: portada panorámica, contenido amplio y columna lateral.
+   ========================================================================= */
+.blog-articulo__portada {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 70vh;
+    overflow: hidden;
+    background: var(--color-hundido);
+}
+
+    .blog-articulo__portada img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+@media (min-width: 768px) {
+    .blog-articulo__portada {
+        aspect-ratio: 21 / 8;
+    }
+}
+
+.blog-articulo__cabecera {
+    padding-block: var(--e-6) var(--e-8);
+    border-bottom: var(--borde) solid var(--color-borde);
+}
+
+.blog-articulo__titulo {
+    max-width: 28ch;
+    margin: var(--e-3) 0 0;
+    font-size: clamp(2rem, 1.2rem + 3vw, 4rem);
+    font-stretch: var(--ancho-display);
+    letter-spacing: var(--tracking-display);
+}
+
+.blog-articulo__cuerpo {
+    display: grid;
+    gap: var(--e-8);
+    align-items: start;
+    padding-block: var(--e-10) var(--e-12);
+}
+
+.blog-articulo__lateral {
+    display: grid;
+    gap: var(--e-5);
+}
+
+.blog-ficha {
+    display: grid;
+    gap: var(--e-4);
+}
+
+    .blog-ficha .datos-icono {
+        font-size: var(--texto-base);
+    }
+
+@media (min-width: 1100px) {
+    .blog-articulo__cuerpo {
+        grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+        gap: clamp(var(--e-10), 4vw, var(--e-20));
+    }
+
+    .blog-articulo__lateral {
+        position: sticky;
+        top: calc(var(--alto-cabecera) + var(--e-6));
+    }
+}
+
+/* Texto del artículo: más amplio que la medida general, con líneas legibles */
+.blog-articulo .blog-contenido {
+    max-width: 92ch;
+    font-size: clamp(var(--texto-md), 1rem + 0.25vw, var(--texto-lg));
+}
+
+    .blog-articulo .blog-contenido > p:first-child {
+        font-size: 1.12em;
+        color: var(--color-texto);
+    }
+
+    .blog-articulo .blog-contenido img.img-lg {
+        width: 100%;
+    }
+
+/* Galería: rejilla uniforme y separación clara del pie */
+.blog-galeria-seccion {
+    padding-bottom: var(--seccion);
+}
+
+    .blog-galeria-seccion .blog-seccion {
+        margin-top: 0;
+        padding-top: var(--e-8);
+        border-top: var(--borde) solid var(--color-borde);
+    }
+
+.blog-galeria {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: var(--e-4);
+}
+
+    .blog-galeria img {
+        aspect-ratio: 4 / 3;
+    }
+
+    .blog-galeria a {
+        border-radius: var(--radio-2);
+    }
+
+        .blog-galeria a:focus-visible {
+            outline-offset: 3px;
+        }
+
+/* =========================================================================
+   Formularios de crear y editar: contenido a la izquierda, archivos a la derecha.
+   ========================================================================= */
+.blog-editor-pagina > .section-heading {
+    margin-bottom: var(--e-6);
+}
+
+.blog-form-rejilla {
+    display: grid;
+    gap: var(--e-6);
+    align-items: start;
+}
+
+.blog-form-rejilla__lateral {
+    display: grid;
+    gap: var(--e-5);
+}
+
+.blog-form-rejilla__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-3);
+}
+
+@media (min-width: 1200px) {
+    .blog-form-rejilla {
+        grid-template-columns: minmax(0, 1fr) minmax(20rem, 26rem);
+    }
+}
+
+.blog-form__titulo {
+    margin-bottom: var(--e-2);
+    font-size: var(--texto-lg);
+}
+
+.blog-form__subida {
+    display: grid;
+    justify-items: start;
+    gap: var(--e-2);
+    margin-top: var(--e-4);
+    padding-top: var(--e-4);
+    border-top: var(--borde) solid var(--color-borde);
+}
+
+    .blog-form__subida .form-control {
+        width: 100%;
+    }
+
+    .blog-form__subida .form-label {
+        margin: 0;
+    }
+
+/* Vista previa de la portada con la misma proporción que en la entrada */
+.portada-blog__vista {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 21 / 9;
+    overflow: hidden;
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-2);
+    background: var(--color-fondo-alterno);
+}
+
+    .portada-blog__vista img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.portada-blog__vacio {
+    display: grid;
+    justify-items: center;
+    gap: var(--e-2);
+    color: var(--color-texto-3);
+    font-size: var(--texto-sm);
+}
+
+.blog-adjuntos {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+    gap: var(--e-3);
+}
+
+.blog-adjunto figcaption .acciones-fila {
+    flex-wrap: nowrap;
+}
+
+    .blog-adjunto figcaption .acciones-fila form:first-child {
+        flex: 1 1 auto;
+    }
+
+        .blog-adjunto figcaption .acciones-fila form:first-child .btn {
+            width: 100%;
+            padding-inline: var(--e-2);
+            white-space: normal;
+        }

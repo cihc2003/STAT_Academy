@@ -4,6 +4,8 @@
 @{
     ViewData["Title"] = "Editar entrada";
     var imagenes = Model.ArchivosActuales.Where(a => a.EsImagen).ToList();
+    var portada = imagenes.FirstOrDefault(i => i.EsPrincipal);
+    var galeria = imagenes.Where(i => !i.EsPrincipal).ToList();
     var documentos = Model.ArchivosActuales.Where(a => !a.EsImagen).ToList();
 }
 
@@ -13,124 +15,158 @@
 }
 
 <section class="section section--compacta">
-    <div class="container blog-editor blog-editor-pagina">
-        <div>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Ver la entrada</a>
-            <div class="section-heading mt-3 mb-0">
-                <span class="eyebrow">Blog académico</span>
-                <h1>Editar entrada</h1>
-                <p>Solo el autor original puede modificar esta publicación y sus archivos.</p>
-            </div>
+    <div class="container blog-editor-pagina">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Ver la entrada</a>
+
+        <div class="section-heading">
+            <h1>Editar entrada</h1>
+            <p>Solo el autor original puede modificar esta publicación y sus archivos.</p>
         </div>
 
-        @* Texto y estado *@
-        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card blog-form card-body">
-            <input asp-for="Id" type="hidden" />
+        <div class="blog-form-rejilla">
+            @* Texto y estado *@
+            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="formulario blog-form-rejilla__principal" data-un-solo-envio>
+                <input asp-for="Id" type="hidden" />
 
-            <div asp-validation-summary="All" class="aviso aviso--error"></div>
+                <div asp-validation-summary="All" class="aviso aviso--error"></div>
 
-            <div class="mb-4">
-                <label asp-for="Titulo" class="form-label fw-bold"></label>
-                <input asp-for="Titulo" class="form-control form-control-lg blog-titulo-input" maxlength="150" />
-                <span asp-validation-for="Titulo" class="text-danger"></span>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label fw-bold">Contenido</label>
-                <partial name="_EditorContenido" model="Model.Contenido" />
-                <span asp-validation-for="Contenido" class="text-danger"></span>
-            </div>
-
-            <div class="form-check mb-3">
-                <input asp-for="Estado" class="form-check-input" />
-                <label asp-for="Estado" class="form-check-label"></label>
-            </div>
-
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secundario">Cancelar</a>
-            </div>
-        </form>
-
-        @* Archivos: cada acción es un formulario propio (no se pueden anidar formularios) *@
-        <div class="card blog-form card-body">
-            <h2 class="blog-seccion mt-0">Imagen de portada</h2>
-            <p class="text-muted small">
-                La portada aparece en el listado del blog y arriba de la entrada. Las imágenes dentro del texto
-                se agregan desde el editor, con el botón de imagen.
-            </p>
-
-            @if (imagenes.Count == 0)
-            {
-                <p class="text-muted">Esta entrada no tiene portada. Suba una imagen abajo.</p>
-            }
-            else
-            {
-                <div class="blog-adjuntos">
-                    @foreach (var imagen in imagenes)
-                    {
-                        <figure class="blog-adjunto @(imagen.EsPrincipal ? "blog-adjunto--principal" : "")">
-                            <img src="@imagen.Url" alt="@imagen.Nombre" loading="lazy" />
-                            <figcaption>
-                                <span class="blog-adjunto__nombre" title="@imagen.Nombre">@imagen.Nombre</span>
-
-                                @if (imagen.EsPrincipal)
-                                {
-                                    <span class="tag">Portada actual</span>
-                                }
-                                else
-                                {
-                                    <form asp-action="MarcarPrincipal" asp-route-id="@Model.Id" method="post">
-                                        <input type="hidden" name="archivoId" value="@imagen.Id" />
-                                        <button type="submit" class="btn btn-link btn-sm p-0">Usar como portada</button>
-                                    </form>
-                                }
-
-                                <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post"
-                                      data-confirmar="¿Quitar esta imagen de la entrada?" data-confirmar-boton="Quitar" data-confirmar-peligro>
-                                    <input type="hidden" name="archivoId" value="@imagen.Id" />
-                                    <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Quitar</button>
-                                </form>
-                            </figcaption>
-                        </figure>
-                    }
+                <div class="form-group">
+                    <label asp-for="Titulo" class="form-label"></label>
+                    <input asp-for="Titulo" class="form-control form-control-lg blog-titulo-input" maxlength="150" />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
                 </div>
-            }
 
-            <h2 class="blog-seccion">Documentos</h2>
+                <div class="form-group">
+                    <label class="form-label">Contenido</label>
+                    <partial name="_EditorContenido" model="Model.Contenido" />
+                    <span asp-validation-for="Contenido" class="text-danger"></span>
+                </div>
 
-            @if (documentos.Count == 0)
-            {
-                <p class="text-muted">Esta entrada no tiene documentos adjuntos.</p>
-            }
-            else
-            {
-                <ul class="blog-documentos">
-                    @foreach (var documento in documentos)
-                    {
-                        <li>
-                            <span class="blog-documentos__ext">@documento.Extension</span>
-                            <a asp-action="Documento" data-sin-carga asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
-                            <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post" class="ms-auto"
-                                  data-confirmar="¿Quitar el documento «@documento.Nombre»?" data-confirmar-boton="Quitar" data-confirmar-peligro>
-                                <input type="hidden" name="archivoId" value="@documento.Id" />
-                                <button type="submit" class="btn btn-link btn-sm p-0 text-danger">Quitar</button>
-                            </form>
-                        </li>
-                    }
-                </ul>
-            }
+                <div class="form-check">
+                    <input asp-for="Estado" class="form-check-input" />
+                    <label asp-for="Estado" class="form-check-label"></label>
+                </div>
 
-            <h2 class="blog-seccion">Agregar archivos</h2>
-
-            <form asp-action="SubirArchivos" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
-                <input type="file" name="archivos" class="form-control" multiple required
-                       accept="@BlogArchivoLimites.Accept" data-blog-archivos />
-                <div class="form-text">@BlogArchivoLimites.Ayuda</div>
-                <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
-
-                <button type="submit" class="btn btn-outline-primary mt-3">Subir archivos</button>
+                <div class="formulario__acciones">
+                    <button type="submit" class="btn btn-primary btn-lg">Guardar cambios</button>
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secundario btn-lg">Cancelar</a>
+                </div>
             </form>
+
+            @* Archivos: cada acción es un formulario propio (no se pueden anidar formularios) *@
+            <aside class="blog-form-rejilla__lateral">
+                <div class="formulario" data-portada-grupo>
+                    <h2 class="blog-form__titulo">Imagen de portada</h2>
+                    <p class="form-text mt-0 mb-3">Se muestra en el listado y a todo el ancho arriba de la entrada. Use una imagen horizontal.</p>
+
+                    <div class="portada-blog">
+                        <div class="portada-blog__vista" data-portada-vista>
+                            @if (portada != null)
+                            {
+                                <img src="@portada.Url" alt="Portada actual: @portada.Nombre" />
+                            }
+                            else
+                            {
+                                <span class="portada-blog__vacio">@Html.Icono("imagen", "icono--xl")<span>Sin portada</span></span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (portada != null)
+                    {
+                        <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post" class="mt-2"
+                              data-confirmar="¿Quitar la portada? Si hay imágenes en la galería, la primera pasará a ser la portada."
+                              data-confirmar-boton="Quitar portada" data-confirmar-peligro>
+                            <input type="hidden" name="archivoId" value="@portada.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">@Html.Icono("eliminar", "icono--sm")Quitar portada</button>
+                        </form>
+                    }
+
+                    <form asp-action="SubirPortada" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="blog-form__subida" data-un-solo-envio>
+                        <label for="portada" class="form-label">@(portada == null ? "Agregar portada" : "Cambiar portada")</label>
+                        <input id="portada" name="portada" type="file" class="form-control" required accept=".jpg,.jpeg,.png,.gif,.webp"
+                               data-portada-input aria-describedby="portada-ayuda" />
+                        <div id="portada-ayuda" class="form-text">JPG, PNG, GIF o WEBP de hasta 5 MB. La portada anterior pasa a la galería.</div>
+                        <button type="submit" class="btn btn-secundario">@Html.Icono("subir", "icono--sm")Subir portada</button>
+                    </form>
+                </div>
+
+                <div class="formulario">
+                    <h2 class="blog-form__titulo">Galería</h2>
+                    @if (galeria.Count == 0)
+                    {
+                        <p class="form-text mt-0">La entrada no tiene imágenes en la galería.</p>
+                    }
+                    else
+                    {
+                        <div class="blog-adjuntos">
+                            @foreach (var imagen in galeria)
+                            {
+                                <figure class="blog-adjunto">
+                                    <img src="@imagen.Url" alt="@imagen.Nombre" loading="lazy" />
+                                    <figcaption>
+                                        <span class="blog-adjunto__nombre" title="@imagen.Nombre">@imagen.Nombre</span>
+                                        <div class="acciones-fila">
+                                            <form asp-action="MarcarPrincipal" asp-route-id="@Model.Id" method="post">
+                                                <input type="hidden" name="archivoId" value="@imagen.Id" />
+                                                <button type="submit" class="btn btn-sm btn-secundario">Usar como portada<span class="visually-hidden">: @imagen.Nombre</span></button>
+                                            </form>
+                                            <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post"
+                                                  data-confirmar="¿Quitar esta imagen de la galería?" data-confirmar-boton="Quitar" data-confirmar-peligro>
+                                                <input type="hidden" name="archivoId" value="@imagen.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Quitar @imagen.Nombre">@Html.Icono("eliminar", "icono--sm")</button>
+                                            </form>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            }
+                        </div>
+                    }
+
+                    <form asp-action="SubirArchivos" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="blog-form__subida" data-un-solo-envio>
+                        <label for="galeria" class="form-label">Agregar imágenes</label>
+                        <input id="galeria" type="file" name="archivos" class="form-control" multiple required
+                               accept=".jpg,.jpeg,.png,.gif,.webp" data-blog-archivos aria-describedby="galeria-ayuda" />
+                        <div id="galeria-ayuda" class="form-text">JPG, PNG, GIF o WEBP de hasta 5 MB cada una.</div>
+                        <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
+                        <button type="submit" class="btn btn-secundario">@Html.Icono("subir", "icono--sm")Subir imágenes</button>
+                    </form>
+                </div>
+
+                <div class="formulario">
+                    <h2 class="blog-form__titulo">Documentos</h2>
+                    @if (documentos.Count == 0)
+                    {
+                        <p class="form-text mt-0">La entrada no tiene documentos adjuntos.</p>
+                    }
+                    else
+                    {
+                        <ul class="lista-archivos">
+                            @foreach (var documento in documentos)
+                            {
+                                <li class="lista-archivos__item">
+                                    <span class="lista-archivos__tipo">@documento.Extension</span>
+                                    <a class="lista-archivos__nombre" asp-action="Documento" data-sin-carga asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre</a>
+                                    <form asp-action="QuitarArchivo" asp-route-id="@Model.Id" method="post"
+                                          data-confirmar="¿Quitar el documento «@documento.Nombre»?" data-confirmar-boton="Quitar" data-confirmar-peligro>
+                                        <input type="hidden" name="archivoId" value="@documento.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-icono" aria-label="Quitar @documento.Nombre">@Html.Icono("eliminar", "icono--sm")</button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    }
+
+                    <form asp-action="SubirArchivos" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" class="blog-form__subida" data-un-solo-envio>
+                        <label for="documentos" class="form-label">Agregar documentos</label>
+                        <input id="documentos" type="file" name="archivos" class="form-control" multiple required
+                               accept=".pdf,.doc,.docx,.xlsx,.pptx,.txt,.csv" data-blog-archivos aria-describedby="documentos-ayuda" />
+                        <div id="documentos-ayuda" class="form-text">PDF, Word, Excel, PowerPoint, TXT o CSV de hasta 10 MB.</div>
+                        <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
+                        <button type="submit" class="btn btn-secundario">@Html.Icono("subir", "icono--sm")Subir documentos</button>
+                    </form>
+                </div>
+            </aside>
         </div>
     </div>
 </section>
