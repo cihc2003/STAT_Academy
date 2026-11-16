@@ -3,7 +3,7 @@
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Calificaciones · " + Model.Curso.Nombre;
+    ViewData["Title"] = "Calificaciones de " + Model.Curso.Nombre;
     var tareas = Model.Calificaciones.Tareas;
     var filas = Model.Calificaciones.Estudiantes;
     var ajusteDisponible = Model.Calificaciones.AjusteDisponible;
@@ -27,10 +27,10 @@
         {
             @if (!ajusteDisponible)
             {
-                <div class="alert alert-info small">
+                <aviso tipo="info">
                     El ajuste manual de la nota final todavía no está habilitado en la base de datos;
                     se muestra la nota calculada a partir de las tareas.
-                </div>
+                </aviso>
             }
 
             <div class="table-card">

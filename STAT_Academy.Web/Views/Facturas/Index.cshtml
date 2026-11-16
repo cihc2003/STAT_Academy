@@ -19,21 +19,21 @@
         <div class="perfil-encabezado">
             <span class="eyebrow">Mi cuenta</span>
             <h1>Facturas y pedidos</h1>
-            <p>Consulta tus compras, el estado de cada pago y envía los comprobantes de SINPE Móvil o transferencia.</p>
+            <p>Consulte sus compras, el estado de cada pago y envíe los comprobantes de SINPE Móvil o transferencia.</p>
         </div>
 
         @if (porPagar > 0)
         {
-            <div class="alert alert-warning" role="status">
-                Tienes <strong>@porPagar @(porPagar == 1 ? "compra pendiente" : "compras pendientes")</strong> de pago.
+            <aviso tipo="advertencia" role="status">
+                Tiene <strong>@porPagar @(porPagar == 1 ? "compra pendiente" : "compras pendientes")</strong> de pago.
                 Abre la factura para ver los datos de pago y subir el comprobante.
-            </div>
+            </aviso>
         }
 
         @if (Model.total == 0)
         {
             <div class="card p-4 text-center">
-                <p class="mb-3">Todavía no tienes compras registradas.</p>
+                <p class="mb-3">Todavía no tiene compras registradas.</p>
                 <div class="d-flex flex-wrap justify-content-center gap-2">
                     <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ir a la tienda</a>
                     <a class="btn btn-outline-primary" asp-controller="Curso" asp-action="Index">Ver cursos</a>
@@ -54,7 +54,7 @@
                         <option value="@valor" selected="@(valor == Model.orden)">@texto</option>
                     }
                 </select>
-                <noscript><button class="btn btn-sm btn-outline-secondary" type="submit">Aplicar</button></noscript>
+                <noscript><button class="btn btn-sm btn-secundario" type="submit">Aplicar</button></noscript>
             </form>
 
             <div class="table-card">

@@ -12,7 +12,7 @@
 
 <section class="section">
     <div class="container contenedor-angosto">
-        <a class="text-link no-print" asp-action="Index">&larr; Facturas y pedidos</a>
+        <a class="enlace-volver no-print" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Facturas y pedidos</a>
 
         <div class="section-heading mt-3">
             <span class="eyebrow">Comprobante de compra</span>
@@ -27,29 +27,29 @@
         @switch (Model.estado)
         {
             case "PAGADA":
-                <div class="alert alert-success" role="status">
+                <aviso tipo="exito" role="status">
                     Pago confirmado.
                     @if (tieneCursos)
                     {
-                        <text>Ya tienes acceso a tu curso en <a asp-controller="Curso" asp-action="MisCursos">Mis cursos</a>.</text>
+                        <text>Ya tiene acceso a su curso en <a asp-controller="Curso" asp-action="MisCursos">Mis cursos</a>.</text>
                     }
-                </div>
+                </aviso>
                 break;
             case "EN_VERIFICACION":
-                <div class="alert alert-info" role="status">
-                    Recibimos tu comprobante el @EstadoPago.Fecha(ultimo!.fechaEnvio). Lo estamos verificando y
-                    te avisaremos por correo cuando se apruebe.
-                </div>
+                <aviso tipo="info" role="status">
+                    Recibimos su comprobante el @EstadoPago.Fecha(ultimo!.fechaEnvio). Lo estamos verificando y
+                    le avisaremos por correo cuando se apruebe.
+                </aviso>
                 break;
             case "RECHAZADA":
-                <div class="alert alert-danger" role="status">
-                    <strong>Tu último comprobante no fue aprobado.</strong>
+                <aviso tipo="error" role="status">
+                    <strong>Su último comprobante no fue aprobado.</strong>
                     @if (!string.IsNullOrWhiteSpace(ultimo?.observacion))
                     {
                         <div>Motivo: @ultimo.observacion</div>
                     }
-                    <div>Revisa el pago y envía un nuevo comprobante.</div>
-                </div>
+                    <div>Revise el pago y envíe un nuevo comprobante.</div>
+                </aviso>
                 break;
         }
 
@@ -63,7 +63,7 @@
             <div class="card p-4 mt-4">
                 <h2 class="h5">Cómo pagar</h2>
                 <p class="mb-3">
-                    Paga <strong>@Formato.Colones(Model.total)</strong> con una de estas opciones e indica
+                    Pague <strong>@Formato.Colones(Model.total)</strong> con una de estas opciones e indique
                     <strong>Compra #@Model.id</strong> en el detalle de la transferencia.
                 </p>
 
@@ -94,7 +94,7 @@
             <div class="card p-4 mt-4 no-print">
                 <h2 class="h5">Enviar comprobante de pago</h2>
                 <p class="text-muted">
-                    Sube la captura o el PDF del comprobante (imagen JPG, PNG o WEBP de hasta 5 MB, o PDF de hasta 10 MB).
+                    Suba la captura o el PDF del comprobante (imagen JPG, PNG o WEBP de hasta 5 MB, o PDF de hasta 10 MB).
                 </p>
 
                 <form asp-action="EnviarComprobante" method="post" enctype="multipart/form-data"
@@ -102,7 +102,7 @@
                     <input type="hidden" name="FacturaId" value="@Model.id" />
 
                     <fieldset class="mb-3">
-                        <legend class="form-label fs-6">¿Cómo pagaste?</legend>
+                        <legend class="form-label fs-6">¿Cómo pagó?</legend>
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="Metodo" id="metodo-sinpe" value="SINPE" checked="@(formulario.Metodo != "TRANSFERENCIA")" />
                             <label class="form-check-label" for="metodo-sinpe">SINPE Móvil</label>
@@ -140,7 +140,7 @@
                         <li class="py-2 border-bottom">
                             <div class="d-flex flex-wrap justify-content-between gap-2">
                                 <span>
-                                    <strong>@EstadoPago.Metodo(p.metodo)</strong> · @Formato.Colones(p.monto)
+                                    <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
                                     <div class="small text-muted">
                                         Enviado el @EstadoPago.Fecha(p.fechaEnvio)
                                         @if (!string.IsNullOrWhiteSpace(p.referencia))

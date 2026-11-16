@@ -9,7 +9,7 @@
     <partial name="_AdminNav" />
 
     <section>
-        <a class="panel-volver" asp-action="Index">&larr; Proveedores</a>
+        <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Proveedores</a>
 
         <div class="panel-encabezado">
             <div>
@@ -20,7 +20,7 @@
         </div>
 
         <form asp-action="SupplierForm" method="post" class="form-card panel-form">
-            <div asp-validation-summary="ModelOnly"></div>
+            <div asp-validation-summary="ModelOnly" class="aviso aviso--error"></div>
 
             <div class="row g-3">
                 <div class="col-md-6 form-group">

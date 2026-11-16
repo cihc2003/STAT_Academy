@@ -16,8 +16,6 @@
 
     var cursos = await ApiTutor.Cursos() ?? [];
 
-    const string IconoCursos = "<path d=\"M22 10 12 5 2 10l10 5 10-5z\"/><path d=\"M6 12v5c3 2 9 2 12 0v-5\"/>";
-    const string IconoCurso = "<path d=\"M2 4h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H2z\"/><path d=\"M22 4h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h8z\"/>";
 }
 
 <aside class="admin-sidebar" aria-label="Panel del tutor">
@@ -34,8 +32,7 @@
         <a asp-controller="Tutor" asp-action="Index"
            class="admin-sidebar__link @(enInicio ? "admin-sidebar__link--activo" : "")"
            aria-current="@(enInicio ? "page" : null)">
-            <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoCursos)</svg>
+            @Html.Icono("birrete", "admin-sidebar__icono")
             <span>Mis cursos</span>
         </a>
 
@@ -48,12 +45,11 @@
                 <a asp-controller="Tutor" asp-action="Curso" asp-route-id="@c.Id"
                    class="admin-sidebar__link @(activo ? "admin-sidebar__link--activo" : "") @(c.Estado ? "" : "admin-sidebar__link--apagado")"
                    aria-current="@(activo ? "page" : null)" title="@c.Nombre">
-                    <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoCurso)</svg>
+                    @Html.Icono("libro", "admin-sidebar__icono")
                     <span class="admin-sidebar__texto">@c.Nombre</span>
                     @if (c.EntregasPorCalificar > 0)
                     {
-                        <span class="admin-sidebar__badge" title="Entregas por calificar">@c.EntregasPorCalificar</span>
+                        <span class="admin-sidebar__badge">@c.EntregasPorCalificar<span class="visually-hidden"> @(c.EntregasPorCalificar == 1 ? "entrega por calificar" : "entregas por calificar")</span></span>
                     }
                 </a>
             }
@@ -61,8 +57,7 @@
     </nav>
 
     <a class="admin-sidebar__sitio" asp-controller="Home" asp-action="Index">
-        <svg class="admin-sidebar__icono" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        @Html.Icono("flecha-izquierda", "admin-sidebar__icono")
         <span>Volver al sitio</span>
     </a>
 </aside>

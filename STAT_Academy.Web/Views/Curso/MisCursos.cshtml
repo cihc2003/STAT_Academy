@@ -1,63 +1,82 @@
 ﻿@model List<STAT_Academy.Web.Models.Cursos.CursoCompradoResponse>
 
 @{
-    ViewData["Title"] = "Mis Cursos";
+    ViewData["Title"] = "Mis cursos";
+    var hoy = STAT_Academy.Web.Helpers.Formato.AhoraCostaRica.Date;
 }
 
-<section class="section">
+<section class="encabezado-pagina">
     <div class="container">
-        <div class="section-heading">
-            <span class="eyebrow">Aula virtual</span>
-            <h1>Mis cursos</h1>
-            <p>Cursos en los que estás matriculado actualmente.</p>
-        </div>
+        <h1>Mis cursos</h1>
+        <p>Cursos en los que está matriculado: avance, fechas y acceso al aula.</p>
+    </div>
+</section>
 
+<section class="section section--compacta">
+    <div class="container">
         @if (!Model.Any())
         {
-            <p>Todavía no estás matriculado en ningún curso.</p>
-            <a class="btn btn-primary" asp-controller="Curso" asp-action="Index">Explorar cursos</a>
+            <div class="vacio">
+                <span class="vacio__icono">@Html.Icono("libro", "icono--lg")</span>
+                <h2>Todavía no está matriculado en ningún curso</h2>
+                <p>Cuando se inscriba o se apruebe el pago de un curso, aparecerá aquí.</p>
+                <a class="btn btn-primary" asp-controller="Curso" asp-action="Index">Ver cursos disponibles</a>
+            </div>
         }
         else
         {
-            <div class="card-grid three">
+            <div class="rejilla rejilla--amplia">
                 @foreach (var curso in Model)
                 {
-                    <article class="card p-4">
-                        <span class="tag">@curso.Estado</span>
-                        <h3>@curso.NombreCurso</h3>
-                        <p>@curso.Descripcion</p>
-
-                        <div class="course-meta">
-                            <span>Avance del curso</span>
-                            <strong>@curso.Progreso%</strong>
-                        </div>
-
-                        <div class="progress progreso-delgado mt-2 mb-1" role="progressbar" aria-label="Avance del curso"
-                             aria-valuenow="@curso.Progreso" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-bar" data-progreso="@curso.Progreso"></div>
-                        </div>
-                        <p class="small text-muted mb-3">
-                            @if (curso.FechaInicio.Date > STAT_Academy.Web.Helpers.Formato.AhoraCostaRica.Date)
+                    var porIniciar = curso.FechaInicio.Date > hoy;
+                    <article class="tarjeta-item mi-curso">
+                        <div class="tarjeta-item__cuerpo">
+                            <span class="estado estado--info">@curso.Estado</span>
+                            <h2 class="tarjeta-item__titulo">
+                                <a class="tarjeta-item__enlace" asp-controller="Curso" asp-action="Contenido" asp-route-id="@curso.CursoId">@curso.NombreCurso</a>
+                            </h2>
+                            @if (!string.IsNullOrWhiteSpace(curso.Descripcion))
                             {
-                                <text>Inicia el @curso.FechaInicio.ToString("dd/MM/yyyy")</text>
+                                <p class="tarjeta-item__resumen">@curso.Descripcion</p>
                             }
-                            else if (curso.Progreso >= 100)
-                            {
-                                <text>Finalizó el @curso.FechaFin.ToString("dd/MM/yyyy")</text>
-                            }
-                            else
-                            {
-                                <text>Termina el @curso.FechaFin.ToString("dd/MM/yyyy")</text>
-                            }
-                        </p>
 
-                        <div class="mis-cursos__acciones">
-                            <a class="text-link" asp-controller="Curso" asp-action="Contenido" asp-route-id="@curso.CursoId">
-                                Entrar al curso
-                            </a>
-                            <a class="text-link" asp-controller="Curso" asp-action="Calificaciones" asp-route-id="@curso.CursoId">
-                                Calificaciones
-                            </a>
+                            <div class="mi-curso__avance">
+                                <div class="mi-curso__avance-texto">
+                                    <span>Avance</span>
+                                    <strong>@curso.Progreso %</strong>
+                                </div>
+                                <div class="progress" role="progressbar" aria-label="Avance de @curso.NombreCurso"
+                                     aria-valuenow="@curso.Progreso" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar" data-progreso="@curso.Progreso"></div>
+                                </div>
+                            </div>
+
+                            <ul class="datos-icono">
+                                <li>
+                                    @Html.Icono("calendario")
+                                    <span>
+                                        @if (porIniciar)
+                                        {
+                                            <text>Inicia el @Formato.FechaCorta(curso.FechaInicio)</text>
+                                        }
+                                        else if (curso.Progreso >= 100)
+                                        {
+                                            <text>Finalizó el @Formato.FechaCorta(curso.FechaFin)</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Termina el @Formato.FechaCorta(curso.FechaFin)</text>
+                                        }
+                                    </span>
+                                </li>
+                            </ul>
+
+                            <div class="tarjeta-item__pie mi-curso__acciones">
+                                <span class="tarjeta-item__accion" aria-hidden="true">Entrar al aula @Html.Icono("chevron-derecha", "icono--sm")</span>
+                                <a class="btn btn-sm btn-secundario mi-curso__secundaria" asp-controller="Curso" asp-action="Calificaciones" asp-route-id="@curso.CursoId">
+                                    @Html.Icono("calificacion", "icono--sm")Calificaciones<span class="visually-hidden"> de @curso.NombreCurso</span>
+                                </a>
+                            </div>
                         </div>
                     </article>
                 }

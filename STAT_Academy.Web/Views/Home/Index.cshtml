@@ -1,216 +1,214 @@
-﻿@{
-    ViewData["Title"] = "Inicio";
-    ViewData["Page"] = "Inicio";
+﻿@model STAT_Academy.Web.Models.Home.InicioViewModel
+@{
+    ViewData["Title"] = "Formación en salud";
+    var autenticado = User.Identity?.IsAuthenticated == true;
+    var esCliente = User.IsInRole("Cliente");
+    var cursos = Model.Cursos;
+    var productos = Model.Productos;
+    var articulos = Model.Articulos;
+}
 
-    var featuredCourses = new[]
-    {
-        new
-        {
-            Id = 1,
-            Category = "Estadística aplicada",
-            Title = "Introducción a la estadística médica",
-            Description = "Aprende los fundamentos de análisis estadístico aplicado a datos de salud."
-        },
-        new
-        {
-            Id = 2,
-            Category = "Investigación",
-            Title = "Diseño de estudios clínicos",
-            Description = "Comprende cómo estructurar estudios, variables, muestras y resultados."
-        },
-        new
-        {
-            Id = 3,
-            Category = "Análisis de datos",
-            Title = "Interpretación de resultados",
-            Description = "Convierte tablas, gráficos e indicadores en conclusiones claras y útiles."
-        }
-    };
-
-    var featuredProducts = new[]
-    {
-        new
-        {
-            Id = 1,
-            Category = "Material educativo",
-            Name = "Guía de estadística básica",
-            Description = "Material de apoyo para estudiantes y profesionales de ciencias de la salud.",
-            Stock = 25,
-            Price = 15000m
-        },
-        new
-        {
-            Id = 2,
-            Category = "Recurso digital",
-            Name = "Plantillas para análisis de datos",
-            Description = "Formatos descargables para organizar resultados y reportes académicos.",
-            Stock = 40,
-            Price = 9500m
-        },
-        new
-        {
-            Id = 3,
-            Category = "Simulación",
-            Name = "Caso práctico de investigación",
-            Description = "Ejercicio guiado para practicar análisis e interpretación de información clínica.",
-            Stock = 18,
-            Price = 12000m
-        }
-    };
-
-    var featuredPosts = new[]
-    {
-        new
-        {
-            Id = 1,
-            Category = "Salud",
-            Title = "La importancia de interpretar bien los datos",
-            Summary = "Una lectura correcta de los datos permite tomar mejores decisiones clínicas y académicas."
-        },
-        new
-        {
-            Id = 2,
-            Category = "Prevención",
-            Title = "Indicadores básicos en estudios de salud",
-            Summary = "Conoce algunos indicadores frecuentes y cómo pueden usarse en investigación."
-        },
-        new
-        {
-            Id = 3,
-            Category = "Educación",
-            Title = "Cómo estudiar estadística sin frustrarse",
-            Summary = "Consejos prácticos para avanzar paso a paso en temas cuantitativos."
-        }
-    };
-
-    <section class="hero">
-        <div class="container hero-grid">
-            <div class="hero-copy">
-                <span class="eyebrow">STATMEDICAL presenta</span>
-                <h1>STAT Academy</h1>
-                <p>Plataforma educativa y tienda profesional para cursos de salud, recursos médicos, blog educativo y aprendizaje guiado por tutores.</p>
-                <div class="d-flex gap-2 flex-wrap">
-                    <a class="btn btn-primary" asp-controller="Courses" asp-action="Index">Explorar cursos</a>
-                    <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ver tienda</a>
-                </div>
+@* 1. Portada: mensaje y agenda real de próximos inicios *@
+<section class="inicio-hero" aria-labelledby="inicio-titulo">
+    <div class="container inicio-hero__grid">
+        <div class="inicio-hero__texto">
+            <p class="inicio-hero__marca">Academia de STATMEDICAL</p>
+            <h1 id="inicio-titulo" class="inicio-hero__titulo">Formación en salud que empieza a tiempo.</h1>
+            <p class="inicio-hero__bajada">
+                Cursos con tutor y fecha de inicio definida, materiales para la práctica clínica y
+                artículos educativos, en un mismo lugar.
+            </p>
+            <div class="inicio-hero__acciones">
+                <a class="btn btn-primary btn-lg" asp-controller="Curso" asp-action="Index">Ver cursos</a>
+                <a class="btn btn-secundario btn-lg" asp-controller="Products" asp-action="Index">Ir a la tienda</a>
             </div>
-            <div class="hero-panel" aria-label="Resumen visual de aprendizaje">
-                <div class="metric-card large">
-                    <span>92%</span>
-                    <p>de estudiantes aplican lo aprendido en proyectos reales</p>
-                </div>
-                <div class="chart-card">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <section class="section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Rutas destacadas</span>
-                <h2>Cursos destacados</h2>
-                <p>Programas diseñados por STATMEDICAL para aprendizaje práctico y profesional.</p>
-            </div>
-            <div class="card-grid three">
-                @foreach (var course in featuredCourses)
-                {
-                    <article class="card course-card">
-                        <div class="visual visual-stats" role="img" aria-label="Curso destacado"></div>
-                        <div class="card-body">
-                            <span class="tag">@course.Category</span>
-                            <h3>@course.Title</h3>
-                            <p>@course.Description</p>
-                            <a class="text-link" asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id">Ver curso</a>
+            @if (Model.CursosDisponibles || Model.ProductosDisponibles)
+            {
+                <dl class="cifras" aria-label="STAT Academy en cifras">
+                    @if (Model.CursosDisponibles)
+                    {
+                        <div class="cifras__item">
+                            <dt>@(cursos.Count == 1 ? "curso con inscripción abierta" : "cursos con inscripción abierta")</dt>
+                            <dd>@cursos.Count</dd>
                         </div>
-                    </article>
-                }
-            </div>
+                        @if (Model.Instructores > 0)
+                        {
+                            <div class="cifras__item">
+                                <dt>@(Model.Instructores == 1 ? "tutor a cargo" : "tutores a cargo")</dt>
+                                <dd>@Model.Instructores</dd>
+                            </div>
+                        }
+                    }
+                    @if (Model.ProductosDisponibles)
+                    {
+                        <div class="cifras__item">
+                            <dt>@(productos.Count == 1 ? "producto en la tienda" : "productos en la tienda")</dt>
+                            <dd>@productos.Count</dd>
+                        </div>
+                        @if (Model.Categorias.Count > 0)
+                        {
+                            <div class="cifras__item">
+                                <dt>@(Model.Categorias.Count == 1 ? "categoría" : "categorías")</dt>
+                                <dd>@Model.Categorias.Count</dd>
+                            </div>
+                        }
+                    }
+                </dl>
+            }
         </div>
-    </section>
 
-    <section class="section mission-section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Tienda</span>
-                <h2>Productos destacados</h2>
-                <p>Recursos e insumos seleccionados para prácticas, cursos y simulación.</p>
+        <aside class="agenda fondo-oscuro" aria-labelledby="agenda-titulo">
+            <div class="agenda__cabecera">
+                <h2 id="agenda-titulo" class="agenda__titulo">Próximos inicios</h2>
+                @Html.Icono("calendario", "icono--lg")
             </div>
-            <div class="card-grid three">
-                @foreach (var product in featuredProducts)
+
+            @if (cursos.Count > 0)
+            {
+                <ol class="agenda__lista">
+                    @foreach (var c in Model.ProximosInicios)
+                    {
+                        <li>
+                            <a class="agenda__item" asp-controller="Curso" asp-action="Details" asp-route-id="@c.Id">
+                                <time class="agenda__fecha" datetime="@c.Fecha_Inicio.ToString("yyyy-MM-dd")">
+                                    <span class="agenda__dia">@c.Fecha_Inicio.Day</span>
+                                    <span class="agenda__mes">@Formato.MesCorto(c.Fecha_Inicio)</span>
+                                </time>
+                                <span class="agenda__curso">
+                                    <strong>@c.Nombre</strong>
+                                    <span class="agenda__datos">
+                                        <span>@Formato.Semanas(c.Duracion_Semanas)</span>
+                                        <span>@Formato.PrecioCurso(c.Precio_Base)</span>
+                                    </span>
+                                </span>
+                                @Html.Icono("chevron-derecha", "agenda__flecha")
+                            </a>
+                        </li>
+                    }
+                </ol>
+                <a class="btn btn-claro agenda__boton" asp-controller="Curso" asp-action="Index">
+                    @(cursos.Count == 1 ? "Ver el curso disponible" : $"Ver los {cursos.Count} cursos disponibles")
+                </a>
+            }
+            else
+            {
+                <div class="agenda__vacia">
+                    <p><strong>No hay inicios programados por ahora.</strong></p>
+                    <p>Los cursos nuevos aparecen aquí con su fecha de inicio en cuanto abren inscripción.</p>
+                    <a class="btn btn-contorno-claro" asp-controller="Blog" asp-action="Index">Leer el blog mientras tanto</a>
+                </div>
+            }
+        </aside>
+    </div>
+</section>
+
+@* 2. Cursos con inscripción abierta *@
+@if (cursos.Count > 0)
+{
+    <section class="section section--alterna" aria-labelledby="inicio-cursos">
+        <div class="container">
+            <div class="cabecera-seccion">
+                <div>
+                    <h2 id="inicio-cursos">Cursos con inscripción abierta</h2>
+                    <p>Ordenados por fecha de inicio. Cada curso indica su duración, tutor y precio.</p>
+                </div>
+                <a class="enlace-accion" asp-controller="Curso" asp-action="Index">Ver todos los cursos @Html.Icono("flecha-derecha", "icono--sm")</a>
+            </div>
+            <div class="rejilla">
+                @foreach (var c in cursos.Take(8))
                 {
-                    <article class="card p-4">
-                        <span class="tag">@product.Category</span>
-                        <h3>@product.Name</h3>
-                        <p>@product.Description</p>
-                        <div class="course-meta"><span>Existencias @product.Stock</span><strong>@Formato.Colones(product.Price)</strong></div>
-                        <a class="text-link" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id">Comprar</a>
-                    </article>
+                    <partial name="_CursoTarjeta" model="c" />
                 }
             </div>
         </div>
     </section>
+}
 
-    <section class="section">
+@* 3. Tienda: categorías reales y productos disponibles *@
+@if (productos.Count > 0)
+{
+    <section class="section" aria-labelledby="inicio-tienda">
         <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Artículos educativos</span>
-                <h2>Aprendizaje continuo</h2>
-                <p>Artículos de prevención, salud, analítica y mejores prácticas.</p>
+            <div class="cabecera-seccion">
+                <div>
+                    <h2 id="inicio-tienda">Materiales para la práctica</h2>
+                    <p>Insumos y recursos educativos de la tienda de STATMEDICAL.</p>
+                </div>
+                <a class="enlace-accion" asp-controller="Products" asp-action="Index">Ver la tienda @Html.Icono("flecha-derecha", "icono--sm")</a>
             </div>
-            <div class="card-grid three">
-                @foreach (var post in featuredPosts)
+
+            @if (Model.Categorias.Count > 1)
+            {
+                <nav class="lista-chips" aria-label="Categorías de la tienda">
+                    @foreach (var (nombre, cantidad) in Model.Categorias)
+                    {
+                        <a class="chip" asp-controller="Products" asp-action="Index" asp-route-categoria="@nombre">
+                            @nombre <span class="chip__cantidad"><span class="visually-hidden">, </span>@cantidad<span class="visually-hidden"> @(cantidad == 1 ? "producto" : "productos")</span></span>
+                        </a>
+                    }
+                </nav>
+            }
+
+            <div class="rejilla">
+                @foreach (var p in productos.Take(8))
                 {
-                    <article class="card p-4">
-                        <span class="tag">@post.Category</span>
-                        <h3>@post.Title</h3>
-                        <p>@post.Summary</p>
-                        <a class="text-link" asp-controller="Blog" asp-action="Details" asp-route-id="@post.Id">Leer más</a>
-                    </article>
+                    <partial name="_ProductoTarjeta" model="p" />
                 }
             </div>
         </div>
     </section>
+}
 
-    <section class="section stats-section">
-        <div class="container stats-grid">
-            <div class="stat-box">
-                <strong>1,250+</strong>
-                <span>Estudiantes</span>
+@* 4. Blog *@
+@if (articulos.Count > 0)
+{
+    <section class="section section--alterna" aria-labelledby="inicio-blog">
+        <div class="container">
+            <div class="cabecera-seccion">
+                <div>
+                    <h2 id="inicio-blog">Del blog</h2>
+                    <p>Artículos recientes del equipo docente.</p>
+                </div>
+                <a class="enlace-accion" asp-controller="Blog" asp-action="Index">Ver todos los artículos @Html.Icono("flecha-derecha", "icono--sm")</a>
             </div>
-            <div class="stat-box">
-                <strong>18</strong>
-                <span>Profesores</span>
-            </div>
-            <div class="stat-box">
-                <strong>24</strong>
-                <span>Cursos disponibles</span>
+            <div class="rejilla rejilla--amplia">
+                @foreach (var a in articulos.Take(3))
+                {
+                    <partial name="~/Views/Blog/_BlogTarjeta.cshtml" model="a" />
+                }
             </div>
         </div>
     </section>
+}
 
-    <section class="section">
-        <div class="container">
-            <div class="section-heading">
-                <span class="eyebrow">Experiencias</span>
-                <h2>Lo que dicen nuestros estudiantes</h2>
-            </div>
-            <div class="card-grid two">
-                <article class="card testimonial-card">
-                    <p>"Las clases son claras, ordenadas y muy aplicables. Logré construir mi primer panel con datos reales."</p>
-                    <h3>Mariana López</h3>
-                    <span>Analista junior</span>
-                </article>
-                <article class="card testimonial-card">
-                    <p>"Me gustó que cada módulo termina con ejercicios prácticos. La estadística dejó de sentirse abstracta."</p>
-                    <h3>Carlos Méndez</h3>
-                    <span>Estudiante de ingeniería</span>
-                </article>
-            </div>
+@* 5. Cierre: siguiente paso según quién visita *@
+@if (!autenticado || esCliente)
+{
+    <section class="banda fondo-oscuro" aria-labelledby="inicio-cierre">
+        <div class="container banda__grid">
+            @if (!autenticado)
+            {
+                <div>
+                    <h2 id="inicio-cierre">Cree su cuenta para inscribirse</h2>
+                    <p>Con una cuenta puede comprar cursos y productos, entregar tareas y consultar sus calificaciones.</p>
+                </div>
+                <div class="banda__acciones">
+                    <a class="btn btn-primary btn-lg" asp-controller="Cuenta" asp-action="Registrar">Crear cuenta</a>
+                    <a class="btn btn-contorno-claro btn-lg" asp-controller="Cuenta" asp-action="Login">Ya tengo cuenta</a>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <h2 id="inicio-cierre">Siga con sus cursos</h2>
+                    <p>Revise sus tareas pendientes, materiales y calificaciones.</p>
+                </div>
+                <div class="banda__acciones">
+                    <a class="btn btn-primary btn-lg" asp-controller="Curso" asp-action="MisCursos">Ir a mis cursos</a>
+                    <a class="btn btn-contorno-claro btn-lg" asp-controller="Facturas" asp-action="Index">Ver facturas y pedidos</a>
+                </div>
+            }
         </div>
     </section>
 }

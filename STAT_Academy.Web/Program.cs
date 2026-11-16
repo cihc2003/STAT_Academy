@@ -184,7 +184,7 @@ public partial class Program
         "style-src 'self' https://cdn.jsdelivr.net; " +
         "style-src-attr 'unsafe-inline'; " +
         "img-src 'self' data: blob: https://*.blob.core.windows.net; " +
-        "font-src 'self' data:; " +
+        "font-src 'self' data: https://cdn.jsdelivr.net; " +
         "connect-src 'self'; " +
         "frame-src https://www.google.com https://maps.google.com; " +
         "frame-ancestors 'self'; " +

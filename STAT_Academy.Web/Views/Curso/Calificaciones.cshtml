@@ -2,13 +2,13 @@
 @using STAT_Academy.Web.Helpers
 
 @{
-    ViewData["Title"] = "Calificaciones · " + Model.Curso;
+    ViewData["Title"] = "Calificaciones de " + Model.Curso;
     var nota = Model.NotaFinal;
 }
 
 <section class="section">
     <div class="container">
-        <a class="text-link" asp-action="Contenido" asp-route-id="@Model.CursoId">&larr; Volver a @Model.Curso</a>
+        <a class="enlace-volver" asp-action="Contenido" asp-route-id="@Model.CursoId">@Html.Icono("flecha-izquierda", "icono--sm")Volver a @Model.Curso</a>
 
         <div class="section-heading mt-3">
             <span class="eyebrow">Mis calificaciones</span>
@@ -21,10 +21,10 @@
                 <span>de 100</span>
             </div>
             <div>
-                <h2 class="h5 mb-1">Nota final@(nota.EsAjustada ? " (ajustada por tu tutor)" : "")</h2>
+                <h2 class="h5 mb-1">Nota final@(nota.EsAjustada ? " (ajustada por su tutor)" : "")</h2>
                 @if (nota.Final == null)
                 {
-                    <p class="mb-0 text-muted">Todavía no tienes tareas calificadas ni vencidas.</p>
+                    <p class="mb-0 text-muted">Todavía no tiene tareas calificadas ni vencidas.</p>
                 }
                 else
                 {
@@ -50,7 +50,7 @@
         @if (Model.Tareas.Count == 0)
         {
             <div class="info-block">
-                <p class="mb-0">Tu tutor todavía no ha publicado tareas.</p>
+                <p class="mb-0">Su tutor todavía no ha publicado tareas.</p>
             </div>
         }
         else

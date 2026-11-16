@@ -16,6 +16,18 @@ namespace STAT_Academy.Web.Helpers
         /// <summary>Fecha legible: 5 de enero de 2027</summary>
         public static string FechaLarga(DateTime fecha) => fecha.ToString("d 'de' MMMM 'de' yyyy", CostaRica);
 
+        /// <summary>Fecha sin conversión de zona, corta: 3 feb 2027.</summary>
+        public static string FechaCorta(DateTime fecha) => fecha.ToString("d MMM yyyy", CostaRica).Replace(".", "");
+
+        /// <summary>Mes abreviado sin punto: feb.</summary>
+        public static string MesCorto(DateTime fecha) => fecha.ToString("MMM", CostaRica).Replace(".", "");
+
+        /// <summary>Duración en semanas: "1 semana", "8 semanas".</summary>
+        public static string Semanas(int semanas) => semanas == 1 ? "1 semana" : $"{semanas} semanas";
+
+        /// <summary>Precio o "Gratis" si es cero.</summary>
+        public static string PrecioCurso(decimal monto) => monto > 0 ? Colones(monto) : "Gratis";
+
         /// <summary>Iniciales para un respaldo visual sin imagen: "Excel Avanzado" → "EA".</summary>
         public static string Iniciales(string? texto)
         {

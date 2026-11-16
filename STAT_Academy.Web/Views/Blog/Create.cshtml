@@ -12,7 +12,7 @@
 
 <section class="section">
     <div class="container blog-editor-pagina">
-        <a asp-action="Index" class="text-link">&larr; Volver al blog</a>
+        <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Volver al blog</a>
 
         <div class="section-heading mt-3">
             <span class="eyebrow">Blog académico</span>
@@ -21,7 +21,7 @@
         </div>
 
         <form asp-action="Create" method="post" enctype="multipart/form-data" class="card blog-form card-body">
-            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <div asp-validation-summary="All" class="aviso aviso--error"></div>
 
             <div class="mb-4">
                 <label asp-for="Titulo" class="form-label fw-bold"></label>

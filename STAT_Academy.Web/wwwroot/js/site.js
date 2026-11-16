@@ -205,16 +205,47 @@
     });
 })();
 
-// Avisos de resultado (toast): los de éxito se ocultan solos; los de error quedan hasta cerrarlos.
+// Notificaciones flotantes (Shared/_Notificaciones): se vuelven a anunciar al cargar (los lectores
+// de pantalla no leen una región que ya tenía texto), las de éxito e información se ocultan a
+// los 6 s salvo que el mouse o el foco estén encima, y todas se pueden cerrar.
 (function () {
     "use strict";
 
-    if (!window.bootstrap || !window.bootstrap.Toast) return;
+    var DURACION_MS = 6000;
 
-    document.querySelectorAll(".aviso-toast").forEach(function (el) {
-        var toast = window.bootstrap.Toast.getOrCreateInstance(el);
-        toast.show();
-        el.addEventListener("hidden.bs.toast", function () { el.remove(); });
+    function cerrar(el) {
+        el.hidden = true;
+        el.remove();
+    }
+
+    document.querySelectorAll("[data-notificacion]").forEach(function (el) {
+        var texto = el.querySelector("[data-notificacion-texto]");
+        if (texto) {
+            var contenido = texto.textContent;
+            texto.textContent = "";
+            setTimeout(function () { texto.textContent = contenido; }, 150);
+        }
+
+        var boton = el.querySelector("[data-notificacion-cerrar]");
+        if (boton) boton.addEventListener("click", function () { cerrar(el); });
+
+        el.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") cerrar(el);
+        });
+
+        if (el.getAttribute("data-autocerrar") !== "true") return;
+
+        var temporizador = null;
+        function programar() { temporizador = setTimeout(function () { cerrar(el); }, DURACION_MS); }
+        function pausar() { clearTimeout(temporizador); }
+
+        el.addEventListener("mouseenter", pausar);
+        el.addEventListener("focusin", pausar);
+        el.addEventListener("mouseleave", programar);
+        el.addEventListener("focusout", function (e) {
+            if (!el.contains(e.relatedTarget)) programar();
+        });
+        programar();
     });
 })();
 
@@ -299,9 +330,18 @@
 (function () {
     // Formularios de pago/compra: el botón se desactiva al enviar para no duplicar la operación.
     document.querySelectorAll("form[data-un-solo-envio]").forEach(function (form) {
-        form.addEventListener("submit", function () {
+        form.addEventListener("submit", function (e) {
             var boton = form.querySelector("button[type=submit]") || form.querySelector("button");
-            if (boton) boton.disabled = true;
+            if (!boton) return;
+            // Se espera a que terminen los demás manejadores: si la validación del cliente
+            // canceló el envío, el botón sigue disponible para corregir y reintentar.
+            setTimeout(function () {
+                if (e.defaultPrevented) return;
+                // Estado "cargando": el botón queda inactivo y lo anuncia (aria-busy muestra el indicador).
+                boton.setAttribute("aria-busy", "true");
+                boton.setAttribute("aria-disabled", "true");
+                boton.disabled = true;
+            }, 0);
         });
     });
 
@@ -320,9 +360,10 @@
     document.querySelectorAll("[data-copiar-enlace]").forEach(function (boton) {
         boton.addEventListener("click", function () {
             navigator.clipboard.writeText(window.location.href).then(function () {
-                var original = boton.textContent;
-                boton.textContent = "¡Enlace copiado!";
-                setTimeout(function () { boton.textContent = original; }, 2000);
+                var etiqueta = boton.querySelector("[data-copiar-texto]") || boton;
+                var original = etiqueta.textContent;
+                etiqueta.textContent = "Enlace copiado";
+                setTimeout(function () { etiqueta.textContent = original; }, 2000);
             });
         });
     });
@@ -392,3 +433,13 @@
         barra.style.width = (Number.isFinite(valor) ? Math.min(Math.max(valor, 0), 100) : 0) + '%';
     });
 })();
+
+// Al volver con "Atrás" (caché del navegador), los botones de un solo envío recuperan su estado.
+window.addEventListener("pageshow", function (e) {
+    if (!e.persisted) return;
+    document.querySelectorAll("form[data-un-solo-envio] [aria-busy='true']").forEach(function (boton) {
+        boton.removeAttribute("aria-busy");
+        boton.removeAttribute("aria-disabled");
+        boton.disabled = false;
+    });
+});

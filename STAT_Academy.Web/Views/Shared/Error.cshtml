@@ -5,30 +5,17 @@
     var icono = Model.Codigo switch
     {
         401 or 403 => "candado",
-        404 => "lupa",
-        _ => "alerta"
+        404 => "buscar",
+        _ => "advertencia"
     };
 }
 
 <section class="section pagina-error">
     <div class="container">
-        <div class="card pagina-error__tarjeta" role="alert" aria-live="polite">
-            <div class="pagina-error__icono pagina-error__icono--@icono" aria-hidden="true">
-                @if (icono == "candado")
-                {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-                }
-                else if (icono == "lupa")
-                {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /><path d="M8.5 11h5" /></svg>
-                }
-                else
-                {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
-                }
-            </div>
+        <div class="pagina-error__tarjeta" role="alert">
+            <span class="pagina-error__icono">@Html.Icono(icono, "icono--xl")</span>
 
-            <span class="eyebrow">Error @Model.Codigo</span>
+            <p class="pagina-error__codigo-http">Error @Model.Codigo</p>
             <h1 class="pagina-error__titulo">@Model.Titulo</h1>
             <p class="pagina-error__mensaje">@Model.Mensaje</p>
 
@@ -41,12 +28,12 @@
                 @if (Model.MostrarIngresar && !autenticado)
                 {
                     <a class="btn btn-primary" asp-controller="Cuenta" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Ingresar</a>
-                    <a class="btn pagina-error__secundario" asp-controller="Home" asp-action="Index">Ir al inicio</a>
+                    <a class="btn btn-secundario" asp-controller="Home" asp-action="Index">Ir al inicio</a>
                 }
                 else
                 {
                     <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Ir al inicio</a>
-                    <button type="button" class="btn pagina-error__secundario" data-volver hidden>Volver atrás</button>
+                    <button type="button" class="btn btn-secundario" data-volver hidden>Volver atrás</button>
                 }
             </div>
 

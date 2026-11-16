@@ -1,4 +1,4 @@
-﻿@model STAT_Academy.Web.Models.Cursos.CursoContenidoViewModel
+@model STAT_Academy.Web.Models.Cursos.CursoContenidoViewModel
 @using STAT_Academy.Web.Helpers
 
 @{
@@ -10,19 +10,18 @@
 
 <section class="section">
     <div class="container">
-        <a class="text-link" asp-controller="Curso" asp-action="MisCursos">&larr; Volver a mis cursos</a>
+        <a class="enlace-volver" asp-controller="Curso" asp-action="MisCursos">@Html.Icono("flecha-izquierda", "icono--sm")Mis cursos</a>
 
-        <div class="section-heading mt-3">
-            <span class="eyebrow">Aula virtual</span>
-            <h1>@Model.Curso.nombre</h1>
+        <div class="section-heading">
+                        <h1>@Model.Curso.nombre</h1>
             <p>@Model.Curso.descripcion</p>
         </div>
 
-        <div class="aula-resumen mb-5">
+        <div class="aula-resumen">
             <div class="aula-resumen__progreso">
                 <div class="d-flex justify-content-between align-items-baseline gap-2">
                     <span class="aula-resumen__etiqueta">Avance del curso</span>
-                    <strong>@aula.Progreso%</strong>
+                    <strong>@aula.Progreso %</strong>
                 </div>
                 <div class="progress aula-progreso" role="progressbar" aria-label="Avance del curso"
                      aria-valuenow="@aula.Progreso" aria-valuemin="0" aria-valuemax="100">
@@ -42,8 +41,8 @@
                 <div><dt>Material</dt><dd>@Model.Material.Count</dd></div>
             </dl>
 
-            <a class="btn btn-outline-primary aula-resumen__accion" asp-action="Calificaciones" asp-route-id="@aula.CursoId">
-                Ver mis calificaciones
+            <a class="btn btn-secundario aula-resumen__accion" asp-action="Calificaciones" asp-route-id="@aula.CursoId">
+                @Html.Icono("calificacion", "icono--sm")Ver mis calificaciones
             </a>
         </div>
 
@@ -54,8 +53,9 @@
 
                 @if (aula.Tareas.Count == 0)
                 {
-                    <div class="info-block">
-                        <p class="mb-0">Tu tutor todavía no ha publicado tareas.</p>
+                    <div class="vacio vacio--compacto">
+                        <span class="vacio__icono">@Html.Icono("tareas", "icono--lg")</span>
+                        <p>Su tutor todavía no ha publicado tareas.</p>
                     </div>
                 }
                 else
@@ -79,7 +79,7 @@
                                         }
                                         else if (tarea.Entregada)
                                         {
-                                            <text>Entregada el @Formato.FechaHoraLocal(tarea.FechaEntrega) · esperando nota</text>
+                                            <text>Entregada el @Formato.FechaHoraLocal(tarea.FechaEntrega), esperando nota</text>
                                         }
                                         else
                                         {
@@ -100,26 +100,27 @@
 
                 @if (Model.Material.Count == 0)
                 {
-                    <div class="info-block">
-                        <p class="mb-0">Todavía no hay material publicado.</p>
+                    <div class="vacio vacio--compacto">
+                        <span class="vacio__icono">@Html.Icono("archivo", "icono--lg")</span>
+                        <p>Todavía no hay material publicado.</p>
                     </div>
                 }
                 else
                 {
-                    <ul class="blog-documentos">
+                    <ul class="lista-archivos">
                         @foreach (var item in Model.Material)
                         {
-                            <li>
-                                <span class="blog-documentos__ext">@item.Tipo</span>
+                            <li class="lista-archivos__item">
+                                <span class="lista-archivos__tipo">@item.Tipo</span>
                                 @if (item.EsEnlace)
                                 {
-                                    <a href="@item.UbicacionMaterial" target="_blank" rel="noopener">@item.Titulo</a>
-                                    <span class="ms-auto small text-muted">Enlace</span>
+                                    <a class="lista-archivos__nombre" href="@item.UbicacionMaterial" target="_blank" rel="noopener" data-sin-carga>@item.Titulo<span class="visually-hidden"> (enlace externo, se abre en una pestaña nueva)</span></a>
+                                    @Html.Icono("externo", "icono--sm lista-archivos__icono")
                                 }
                                 else
                                 {
-                                    <a asp-controller="Curso" asp-action="Material" asp-route-id="@item.Id" data-sin-carga>@item.Titulo</a>
-                                    <span class="ms-auto small text-muted">Descargar</span>
+                                    <a class="lista-archivos__nombre" asp-controller="Curso" asp-action="Material" asp-route-id="@item.Id" data-sin-carga>@item.Titulo<span class="visually-hidden"> (descargar)</span></a>
+                                    @Html.Icono("descargar", "icono--sm lista-archivos__icono")
                                 }
                             </li>
                         }

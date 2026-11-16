@@ -44,7 +44,7 @@
             <input type="hidden" name="vista" value="@Model.Vista" />
             <div class="panel-filtros__buscar">
                 <label class="panel-filtros__etiqueta" for="buscar">Buscar</label>
-                <svg class="panel-filtros__lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                @Html.Icono("buscar", "panel-filtros__lupa")
                 <input class="form-control" id="buscar" name="buscar" type="search" value="@Model.Buscar"
                        placeholder="Nombre, correo o número de compra" maxlength="100" />
             </div>
@@ -70,11 +70,11 @@
             <span><strong>@cantidad</strong> @(esPagos ? (cantidad == 1 ? "comprobante" : "comprobantes") : (cantidad == 1 ? "factura" : "facturas"))</span>
             @if (hayBusqueda)
             {
-                <a class="panel-chip" asp-action="Invoices" asp-route-vista="@Model.Vista" asp-route-estado="@Model.Estado" title="Quitar filtro">«@Model.Buscar» <span aria-hidden="true">×</span></a>
+                <a class="panel-chip" asp-action="Invoices" asp-route-vista="@Model.Vista" asp-route-estado="@Model.Estado" >«@Model.Buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
             }
             @if (hayEstado)
             {
-                <a class="panel-chip" asp-action="Invoices" asp-route-vista="@Model.Vista" asp-route-buscar="@Model.Buscar" title="Quitar filtro">@estadoTexto <span aria-hidden="true">×</span></a>
+                <a class="panel-chip" asp-action="Invoices" asp-route-vista="@Model.Vista" asp-route-buscar="@Model.Buscar" >@estadoTexto @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
             }
             @if (hayBusqueda || hayEstado)
             {

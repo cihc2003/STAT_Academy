@@ -15,7 +15,7 @@
 <section class="section">
     <div class="container blog-editor blog-editor-pagina">
         <div>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="text-link">&larr; Ver la entrada</a>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Ver la entrada</a>
             <div class="section-heading mt-3 mb-0">
                 <span class="eyebrow">Blog académico</span>
                 <h1>Editar entrada</h1>
@@ -27,7 +27,7 @@
         <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="card blog-form card-body">
             <input asp-for="Id" type="hidden" />
 
-            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            <div asp-validation-summary="All" class="aviso aviso--error"></div>
 
             <div class="mb-4">
                 <label asp-for="Titulo" class="form-label fw-bold"></label>
@@ -48,7 +48,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancelar</a>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secundario">Cancelar</a>
             </div>
         </form>
 

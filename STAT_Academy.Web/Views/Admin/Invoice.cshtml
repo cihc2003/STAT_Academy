@@ -10,7 +10,7 @@
     <partial name="_AdminNav" />
 
     <section>
-        <a class="panel-volver" asp-action="Invoices">&larr; Facturas y pagos</a>
+        <a class="enlace-volver" asp-action="Invoices">@Html.Icono("flecha-izquierda", "icono--sm")Facturas y pagos</a>
 
         <div class="panel-encabezado">
             <div>
@@ -64,7 +64,7 @@
                     <article class="comprobante-revision">
                         <div class="d-flex flex-wrap justify-content-between gap-2">
                             <div>
-                                <strong>@EstadoPago.Metodo(p.metodo)</strong> · @Formato.Colones(p.monto)
+                                <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
                                 <div class="small text-muted">
                                     Enviado el @EstadoPago.Fecha(p.fechaEnvio)
                                     @if (!string.IsNullOrWhiteSpace(p.referencia))

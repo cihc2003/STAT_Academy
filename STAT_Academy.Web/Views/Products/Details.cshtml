@@ -1,110 +1,125 @@
 ﻿@model STAT_Academy.Web.Models.Productos.ProductoResponse
 
 @{
+    ViewData["Title"] = Model.nombre;
     var secundarias = Model.ImagenesSecundarias.ToList();
     var puedeComprar = !Model.agotado && (User.Identity?.IsAuthenticated != true || User.IsInRole("Cliente"));
 }
 
-<section class="section">
+<section class="section section--compacta">
     <div class="container">
-        <a class="text-link" asp-controller="Products" asp-action="Index">&larr; Volver a la tienda</a>
+        <a class="enlace-volver" asp-controller="Products" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Tienda</a>
 
-        <div class="producto-detalle mt-3">
-            @* --------- Imagen principal --------- *@
-            <div class="producto-detalle__principal">
-                @if (!string.IsNullOrEmpty(Model.imagen_principal))
-                {
-                    <img src="@Model.imagen_principal" alt="@Model.nombre" />
-                }
-                else
-                {
-                    <span class="producto-card__sin-imagen">Sin imagen</span>
-                }
-            </div>
-
-            @* --------- Datos y compra --------- *@
-            <div class="producto-detalle__info">
-                <span class="eyebrow">@Model.categoria</span>
-                <h1>@Model.nombre</h1>
-                <p class="producto-detalle__precio">@Formato.Colones(Model.precio_base)</p>
-
-                <h2 class="h6 text-uppercase text-muted mt-4">Descripción</h2>
-                <p class="producto-detalle__descripcion">@Model.descripcion</p>
-
-                <p class="mb-3">
-                    @if (Model.agotado)
+        <div class="producto-detalle">
+            <div class="producto-detalle__galeria">
+                <div class="producto-detalle__principal">
+                    @if (!string.IsNullOrEmpty(Model.imagen_principal))
                     {
-                        <span class="status-pill tutor-pill--gris">Agotado</span>
-                    }
-                    else if (Model.stock <= 5)
-                    {
-                        <span class="status-pill tutor-pill--alerta">¡Últimas @Model.stock unidades!</span>
+                        <img src="@Model.imagen_principal" alt="@Model.nombre" />
                     }
                     else
                     {
-                        <span class="status-pill tutor-pill--ok">Disponible</span>
+                        <span class="tarjeta-item__sin-imagen">@Html.Icono("caja", "icono--xl")<span>Sin imagen</span></span>
+                    }
+                </div>
+
+                @* Carrusel con las demás imágenes (no principales) *@
+                @if (secundarias.Count > 0)
+                {
+                    <section class="producto-detalle__mas" aria-labelledby="titulo-galeria">
+                        <h2 id="titulo-galeria" class="h6">Más imágenes</h2>
+
+                        <div id="carruselProducto" class="carousel slide producto-carrusel" data-bs-ride="false" data-bs-interval="false">
+                            @if (secundarias.Count > 1)
+                            {
+                                <div class="carousel-indicators">
+                                    @for (var i = 0; i < secundarias.Count; i++)
+                                    {
+                                        <button type="button" data-bs-target="#carruselProducto" data-bs-slide-to="@i"
+                                                class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)"
+                                                aria-label="Imagen @(i + 1) de @secundarias.Count"></button>
+                                    }
+                                </div>
+                            }
+
+                            <div class="carousel-inner">
+                                @for (var i = 0; i < secundarias.Count; i++)
+                                {
+                                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                                        <img src="@secundarias[i].url" alt="@Model.nombre, imagen @(i + 1)" loading="lazy" />
+                                    </div>
+                                }
+                            </div>
+
+                            @if (secundarias.Count > 1)
+                            {
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carruselProducto" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Imagen anterior</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carruselProducto" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Imagen siguiente</span>
+                                </button>
+                            }
+                        </div>
+                    </section>
+                }
+            </div>
+
+            <div class="producto-detalle__info">
+                @if (!string.IsNullOrWhiteSpace(Model.categoria))
+                {
+                    <a class="etiqueta" asp-action="Index" asp-route-categoria="@Model.categoria">@Model.categoria</a>
+                }
+                <h1>@Model.nombre</h1>
+                <p class="producto-detalle__precio">@Formato.Colones(Model.precio_base)</p>
+
+                <p>
+                    @if (Model.agotado)
+                    {
+                        <span class="estado estado--error">Agotado</span>
+                    }
+                    else if (Model.stock <= 5)
+                    {
+                        <span class="estado estado--advertencia">Últimas @Model.stock @(Model.stock == 1 ? "unidad" : "unidades")</span>
+                    }
+                    else
+                    {
+                        <span class="estado estado--exito">Disponible</span>
                     }
                 </p>
 
-                @if (puedeComprar)
+                <div class="compra-caja compra-caja--plana">
+                    @if (puedeComprar)
+                    {
+                        <form asp-controller="Carrito" asp-action="Agregar" method="post" class="producto-detalle__compra" data-un-solo-envio>
+                            <input type="hidden" name="productoId" value="@Model.id" />
+                            <div class="campo">
+                                <label for="cantidad" class="form-label">Cantidad</label>
+                                <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="@Model.stock" class="form-control form-control-lg"
+                                       inputmode="numeric" aria-describedby="cantidad-ayuda" />
+                            </div>
+                            <button class="btn btn-primary btn-lg" type="submit">@Html.Icono("carrito")Agregar al carrito</button>
+                            <span id="cantidad-ayuda" class="form-text producto-detalle__ayuda">Puede agregar hasta @Model.stock @(Model.stock == 1 ? "unidad" : "unidades").</span>
+                        </form>
+                    }
+                    else if (Model.agotado)
+                    {
+                        <aviso tipo="info">Este producto está agotado. Vuelva más tarde o revise otros productos de la categoría.</aviso>
+                    }
+                    else
+                    {
+                        <p class="compra-caja__nota">@Html.Icono("info", "icono--sm")La compra está disponible para cuentas de estudiante.</p>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.descripcion))
                 {
-                    <form asp-controller="Carrito" asp-action="Agregar" method="post" class="producto-detalle__compra">
-                        <input type="hidden" name="productoId" value="@Model.id" />
-                        <div>
-                            <label for="cantidad" class="form-label">Cantidad</label>
-                            <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="@Model.stock" class="form-control" />
-                        </div>
-                        <button class="btn btn-primary" type="submit">Agregar al carrito</button>
-                    </form>
-                }
-                else if (Model.agotado)
-                {
-                    <button class="btn btn-outline-secondary" type="button" disabled>Producto agotado</button>
+                    <h2 class="h5">Descripción</h2>
+                    <p class="texto-largo">@Model.descripcion</p>
                 }
             </div>
         </div>
-
-        @* --------- Carrusel con las demás imágenes (no principales) --------- *@
-        @if (secundarias.Count > 0)
-        {
-            <section class="mt-5" aria-labelledby="titulo-galeria">
-                <h2 id="titulo-galeria" class="h4">Más imágenes</h2>
-
-                <div id="carruselProducto" class="carousel slide producto-carrusel" data-bs-ride="false">
-                    @if (secundarias.Count > 1)
-                    {
-                        <div class="carousel-indicators">
-                            @for (var i = 0; i < secundarias.Count; i++)
-                            {
-                                <button type="button" data-bs-target="#carruselProducto" data-bs-slide-to="@i"
-                                        class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)"
-                                        aria-label="Imagen @(i + 1) de @secundarias.Count"></button>
-                            }
-                        </div>
-                    }
-
-                    <div class="carousel-inner">
-                        @for (var i = 0; i < secundarias.Count; i++)
-                        {
-                            <div class="carousel-item @(i == 0 ? "active" : "")">
-                                <img src="@secundarias[i].url" alt="@Model.nombre, imagen @(i + 1)" loading="lazy" />
-                            </div>
-                        }
-                    </div>
-
-                    @if (secundarias.Count > 1)
-                    {
-                        <button class="carousel-control-prev" type="button" data-bs-target="#carruselProducto" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Anterior</span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#carruselProducto" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                            <span class="visually-hidden">Siguiente</span>
-                        </button>
-                    }
-                </div>
-            </section>
-        }
     </div>
 </section>

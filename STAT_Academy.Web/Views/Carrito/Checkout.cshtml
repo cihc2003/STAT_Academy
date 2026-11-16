@@ -1,52 +1,48 @@
 @model STAT_Academy.Web.Models.Carrito.CarritoResponse
 
 @{
-    ViewData["Title"] = "Finalizar compra";
+    ViewData["Title"] = "Confirmar compra";
 }
 
-<section class="section">
-    <div class="container contenedor-angosto">
-        <a class="text-link" asp-action="Index">&larr; Volver al carrito</a>
+<section class="section section--compacta">
+    <div class="container contenedor-lectura">
+        <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Carrito</a>
 
-        <div class="section-heading mt-3">
-            <span class="eyebrow">Pago</span>
+        <div class="section-heading">
             <h1>Confirmar compra</h1>
-            <p>Revisa tu pedido. Al confirmar, se registra la compra, se reservan las unidades y te enviamos el comprobante por correo.</p>
+            <p>Revise su pedido. Al confirmar, se registra la compra, se reservan las unidades y le enviamos el comprobante por correo.</p>
         </div>
 
-        <div class="card p-4">
-            <h2 class="h5">Resumen del pedido</h2>
+        <div class="panel-tarjeta">
+            <h2 class="panel-tarjeta__titulo">Resumen del pedido</h2>
 
-            <ul class="list-unstyled mt-3 mb-0">
+            <ul class="lista-pedido">
                 @foreach (var item in Model.items)
                 {
-                    <li class="d-flex justify-content-between gap-3 py-2 border-bottom">
+                    <li>
                         <span>
-                            @item.nombre
-                            <span class="text-muted">× @item.cantidad</span>
-                            <div class="small text-muted">@Formato.Colones(item.precio_unitario) c/u</div>
+                            <strong>@item.nombre</strong>
+                            <span class="lista-pedido__detalle">@item.cantidad × @Formato.Colones(item.precio_unitario)</span>
                         </span>
                         <strong class="text-nowrap">@Formato.Colones(item.subtotal)</strong>
                     </li>
                 }
             </ul>
 
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="h5 mb-0">Total</span>
-                <strong class="h4 mb-0">@Formato.Colones(Model.total)</strong>
+            <div class="lista-pedido__total">
+                <span>Total</span>
+                <strong>@Formato.Colones(Model.total)</strong>
             </div>
 
             @* El pago se hace fuera de la plataforma (SINPE Móvil o transferencia) y se verifica con el comprobante. *@
-            <div class="alert alert-info mt-4 mb-0" role="note">
-                <strong>Pago por SINPE Móvil o transferencia.</strong> Después de confirmar verás el número
-                de SINPE y la cuenta bancaria. Cuando pagues, sube el comprobante en
-                <em>Facturas y pedidos</em> (menú de tu perfil); te avisaremos por correo cuando lo verifiquemos.
-            </div>
+            <aviso tipo="info" titulo="Pago por SINPE Móvil o transferencia" anunciar="false">
+                Después de confirmar verá el número de SINPE y la cuenta bancaria. Cuando pague, suba el comprobante en
+                <em>Facturas y pedidos</em> (menú de su perfil); le avisaremos por correo cuando lo verifiquemos.
+            </aviso>
 
-            <form asp-action="Confirmar" method="post" class="d-flex flex-wrap gap-2 mt-4"
-                  data-un-solo-envio>
-                <button class="btn btn-primary" type="submit">Confirmar compra · @Formato.Colones(Model.total)</button>
-                <a class="btn btn-outline-secondary" asp-action="Index">Volver al carrito</a>
+            <form asp-action="Confirmar" method="post" class="acciones-fila" data-un-solo-envio>
+                <button class="btn btn-primary btn-lg" type="submit">Confirmar compra por @Formato.Colones(Model.total)</button>
+                <a class="btn btn-secundario btn-lg" asp-action="Index">Volver al carrito</a>
             </form>
         </div>
     </div>

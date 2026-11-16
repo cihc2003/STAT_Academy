@@ -1,0 +1,32 @@
+@*
+    Notificaciones flotantes (sistema único, misma paleta e íconos que <aviso>).
+    TempData: "Success" (éxito), "Error", "Advertencia" e "Info".
+    Se generan visibles para que funcionen sin JavaScript; site.js las vuelve a anunciar
+    al cargar, oculta las de éxito e información a los 6 s (pausa con el mouse o el foco)
+    y deja las de error y advertencia hasta que se cierren.
+*@
+@{
+    var avisos = new List<(string tipo, string texto, string titulo)>();
+    if (TempData["Success"] is string exito) avisos.Add(("exito", exito, "Listo"));
+    if (TempData["Error"] is string error) avisos.Add(("error", error, "No se pudo completar"));
+    if (TempData["Advertencia"] is string advertencia) avisos.Add(("advertencia", advertencia, "Atención"));
+    if (TempData["Info"] is string info) avisos.Add(("info", info, "Información"));
+}
+
+<div class="notificaciones" data-notificaciones>
+    @foreach (var (tipo, texto, titulo) in avisos)
+    {
+        var urgente = tipo is "error" or "advertencia";
+        <div class="notificacion notificacion--@tipo" role="@(urgente ? "alert" : "status")"
+             data-notificacion data-autocerrar="@(urgente ? "false" : "true")">
+            @Html.Icono(AvisoTagHelper.Icono(tipo), "notificacion__icono")
+            <p class="notificacion__texto">
+                <span class="notificacion__titulo">@titulo</span>
+                <span data-notificacion-texto>@texto</span>
+            </p>
+            <button type="button" class="notificacion__cerrar" data-notificacion-cerrar aria-label="Cerrar notificación">
+                @Html.Icono("cerrar", "icono--sm")
+            </button>
+        </div>
+    }
+</div>
