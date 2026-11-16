@@ -66,11 +66,7 @@
                             <div>
                                 <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
                                 <div class="small text-muted">
-                                    Enviado el @EstadoPago.Fecha(p.fechaEnvio)
-                                    @if (!string.IsNullOrWhiteSpace(p.referencia))
-                                    {
-                                        <text>, ref. <strong>@p.referencia</strong></text>
-                                    }
+                                    Enviado el @EstadoPago.Fecha(p.fechaEnvio)@if (!string.IsNullOrWhiteSpace(p.referencia)) {<text>, ref. <strong>@p.referencia</strong></text>}
                                 </div>
                             </div>
                             <span><span class="status-pill @clase">@texto</span></span>

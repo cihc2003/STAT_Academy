@@ -80,15 +80,10 @@
                                 <span>
                                     <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
                                     <div class="small text-muted">
-                                        Enviado el @EstadoPago.Fecha(p.fechaEnvio)
-                                        @if (!string.IsNullOrWhiteSpace(p.referencia))
-                                        {
-                                            <text>, ref. @p.referencia</text>
-                                        }
-                                        @if (p.fechaRevision is DateTime revision)
-                                        {
-                                            <text>, revisado el @EstadoPago.Fecha(revision)</text>
-                                        }
+                                        @* Una sola línea de texto: evita espacios sueltos antes de las comas *@
+                                        @($"Enviado el {EstadoPago.Fecha(p.fechaEnvio)}"
+                                          + (string.IsNullOrWhiteSpace(p.referencia) ? "" : $", ref. {p.referencia}")
+                                          + (p.fechaRevision is DateTime revision ? $", revisado el {EstadoPago.Fecha(revision)}" : ""))
                                     </div>
                                     @if (p.estado == "RECHAZADO" && !string.IsNullOrWhiteSpace(p.observacion))
                                     {
