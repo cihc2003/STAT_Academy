@@ -383,3 +383,12 @@
         });
     });
 })();
+
+// Barras de progreso: data-progreso="45" → ancho 45 % (la CSP no permite style= en el HTML;
+// asignar el estilo desde JavaScript sí está permitido).
+(function () {
+    document.querySelectorAll('[data-progreso]').forEach(function (barra) {
+        const valor = Number(barra.dataset.progreso);
+        barra.style.width = (Number.isFinite(valor) ? Math.min(Math.max(valor, 0), 100) : 0) + '%';
+    });
+})();

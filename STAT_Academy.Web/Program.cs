@@ -173,14 +173,16 @@ public partial class Program
 {
     /// <summary>
     /// Content-Security-Policy de las páginas. Sin JavaScript inline: los comportamientos van en site.js
-    /// con atributos data-*. Los estilos inline se permiten (atributos style= de las vistas y colores del
-    /// contenido del blog, ya saneado en la API). Externos: Quill (jsDelivr), imágenes de Azure Blob
-    /// Storage y el mapa de Google en Contacto.
+    /// con atributos data-*. Sin bloques &lt;style&gt; en línea: los estilos van en site.css. Solo se permiten
+    /// atributos style= (style-src-attr) porque el contenido del blog guarda colores de texto y fondo así
+    /// (la API ya los sanea: solo color y background-color); las vistas no usan style=. Externos: Quill
+    /// (jsDelivr), imágenes de Azure Blob Storage y el mapa de Google en Contacto.
     /// </summary>
     private const string PoliticaContenido =
         "default-src 'self'; " +
         "script-src 'self' https://cdn.jsdelivr.net; " +
-        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; " +
+        "style-src 'self' https://cdn.jsdelivr.net; " +
+        "style-src-attr 'unsafe-inline'; " +
         "img-src 'self' data: blob: https://*.blob.core.windows.net; " +
         "font-src 'self' data:; " +
         "connect-src 'self'; " +
