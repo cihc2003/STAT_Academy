@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using STAT_Academy.DTOs.Curso;
 
 namespace STAT_Academy.Api.Models
 {
@@ -33,6 +34,16 @@ namespace STAT_Academy.Api.Models
 
         [Column("Fecha_Fin")]
         public DateTime fechaFin { get; set; }
+
+        /// <summary>Texto libre corto (p. ej. "Virtual" o "Taller"); null si no se indicó.</summary>
+        [Column("Tipo")]
+        [MaxLength(CursoCreateRequest.TipoMaxLargo)]
+        public string? tipo { get; set; }
+
+        /// <summary>Conocimientos o cursos previos recomendados; null si no hay.</summary>
+        [Column("Prerrequisitos")]
+        [MaxLength(CursoCreateRequest.PrerrequisitosMaxLargo)]
+        public string? prerrequisitos { get; set; }
 
         /// <summary>
         /// La tabla CURSO no tiene columna de duración: se calcula a partir de

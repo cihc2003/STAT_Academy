@@ -163,7 +163,9 @@ namespace STAT_Academy.Web.Services
                 descripcion = model.descripcion,
                 precio = model.precio,
                 fechaInicio = model.fechaInicio,
-                fechaFin = model.fechaFin
+                fechaFin = model.fechaFin,
+                tipo = CursoCreateRequest.Limpiar(model.tipo),
+                prerrequisitos = CursoCreateRequest.Limpiar(model.prerrequisitos)
             };
 
             var response = await _httpClient.PutAsJsonAsync($"api/Curso/{id}", request);
@@ -181,7 +183,9 @@ namespace STAT_Academy.Web.Services
                 descripcion = model.descripcion,
                 precio = model.precio,
                 fechaInicio = model.fechaInicio,
-                fechaFin = model.fechaFin
+                fechaFin = model.fechaFin,
+                tipo = CursoCreateRequest.Limpiar(model.tipo),
+                prerrequisitos = CursoCreateRequest.Limpiar(model.prerrequisitos)
             };
 
             using var response = await _httpClient.PostAsJsonAsync("api/Curso", request);
@@ -280,5 +284,11 @@ namespace STAT_Academy.Web.Services
         public decimal precio { get; set; }
         public DateTime fechaInicio { get; set; }
         public DateTime fechaFin { get; set; }
+        public string? tipo { get; set; }
+        public string? prerrequisitos { get; set; }
+
+        /// <summary>Quita espacios de los extremos; un texto vacío se envía como null.</summary>
+        public static string? Limpiar(string? texto) =>
+            string.IsNullOrWhiteSpace(texto) ? null : texto.Trim();
     }
 }

@@ -14,7 +14,7 @@
             <div>
                 <span class="eyebrow">Administración</span>
                 <h1>@(Model.id == null ? "Nuevo curso" : "Editar curso")</h1>
-                <p>Nombre, tutor, precio, fechas, portada y estado del curso.</p>
+                <p>Nombre, tutor, tipo, prerrequisitos, precio, fechas, portada y estado del curso.</p>
             </div>
         </div>
 
@@ -59,6 +59,26 @@
                     <label asp-for="descripcion" class="form-label">Descripción</label>
                     <textarea asp-for="descripcion" class="form-control" rows="5"></textarea>
                     <span asp-validation-for="descripcion" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="tipo" class="form-label"></label>
+                    <input asp-for="tipo" class="form-control" list="tipos-sugeridos" maxlength="50" autocomplete="off" aria-describedby="tipo-ayuda" />
+                    <datalist id="tipos-sugeridos">
+                        @foreach (var sugerido in STAT_Academy.Web.Models.Admin.CursoFormViewModel.TiposSugeridos)
+                        {
+                            <option value="@sugerido"></option>
+                        }
+                    </datalist>
+                    <div id="tipo-ayuda" class="form-text">Opcional. Por ejemplo: Virtual, Presencial o Taller.</div>
+                    <span asp-validation-for="tipo" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="prerrequisitos" class="form-label"></label>
+                    <textarea asp-for="prerrequisitos" class="form-control" rows="3" maxlength="500" aria-describedby="prerrequisitos-ayuda"></textarea>
+                    <div id="prerrequisitos-ayuda" class="form-text">Opcional. Conocimientos o cursos previos que se recomiendan, hasta 500 caracteres.</div>
+                    <span asp-validation-for="prerrequisitos" class="text-danger small"></span>
                 </div>
             </div>
 

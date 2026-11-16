@@ -22,6 +22,12 @@
 
         public DateTime fechaFin { get; set; }
 
+        /// <summary>Tipo de curso (texto libre); null si no se indicó.</summary>
+        public string? tipo { get; set; }
+
+        /// <summary>Prerrequisitos (texto libre); null si no hay.</summary>
+        public string? prerrequisitos { get; set; }
+
         /// <summary>Nombre del tutor asignado (null si no se encuentra).</summary>
         public string? tutorNombre { get; set; }
 
