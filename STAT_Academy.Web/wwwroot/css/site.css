@@ -5093,3 +5093,189 @@ h3.panel-form__seccion {
 .inicio-blog__lista {
     margin-top: var(--e-5);
 }
+
+/* =========================================================================
+   Perfil a página completa (Mis datos, Seguridad, Mis cursos, Facturas)
+   ========================================================================= */
+.perfil-contenido {
+    max-width: none;
+    gap: var(--e-6);
+}
+
+/* Cabecera de la cuenta: avatar, nombre y datos clave en una franja */
+.perfil-resumen {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--e-4) var(--e-6);
+    padding: clamp(var(--e-5), 3vw, var(--e-8));
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-3);
+    background: var(--color-superficie);
+    box-shadow: var(--sombra-1);
+}
+
+.perfil-resumen__avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: var(--texto-2xl);
+}
+
+.perfil-resumen__texto {
+    min-width: 0;
+}
+
+    .perfil-resumen__texto h1 {
+        margin: 0;
+        font-size: var(--texto-2xl);
+        overflow-wrap: anywhere;
+    }
+
+    .perfil-resumen__texto p {
+        margin: var(--e-1) 0 0;
+        color: var(--color-texto-2);
+        overflow-wrap: anywhere;
+    }
+
+.perfil-resumen__datos {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: var(--e-3);
+    margin: 0;
+}
+
+    .perfil-resumen__datos div {
+        padding: var(--e-3) var(--e-4);
+        border-radius: var(--radio-2);
+        background: var(--color-fondo-alterno);
+    }
+
+    .perfil-resumen__datos dt {
+        color: var(--color-texto-3);
+        font-size: var(--texto-sm);
+        font-weight: var(--peso-medio);
+    }
+
+    .perfil-resumen__datos dd {
+        margin: var(--e-1) 0 0;
+        color: var(--color-titulo);
+        font-weight: var(--peso-semi);
+    }
+
+@media (min-width: 1200px) {
+    .perfil-resumen {
+        grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.4fr);
+    }
+
+    .perfil-resumen__datos {
+        grid-column: auto;
+    }
+}
+
+/* Dos columnas: contenido principal y panel secundario */
+.perfil-columnas {
+    display: grid;
+    gap: var(--e-6);
+    align-items: start;
+}
+
+@media (min-width: 1100px) {
+    .perfil-columnas {
+        grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 1fr);
+    }
+}
+
+/* Formularios del perfil: campos en dos columnas cuando hay espacio */
+.perfil-form-ancho__campos {
+    display: grid;
+    gap: 0 var(--e-5);
+}
+
+@media (min-width: 768px) {
+    .perfil-form-ancho__campos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Accesos rápidos del perfil */
+.perfil-accesos {
+    display: grid;
+    gap: var(--e-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .perfil-accesos a {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--e-3);
+        padding: var(--e-3);
+        border: var(--borde) solid var(--color-borde);
+        border-radius: var(--radio-2);
+        color: var(--color-texto);
+        text-decoration: none;
+        transition: border-color var(--duracion-1) var(--curva), background-color var(--duracion-1) var(--curva);
+    }
+
+        .perfil-accesos a:hover {
+            border-color: var(--color-borde-control);
+            background: var(--color-fondo-alterno);
+            color: var(--color-texto);
+        }
+
+        .perfil-accesos a strong {
+            display: block;
+            color: var(--color-titulo);
+        }
+
+        .perfil-accesos a span span {
+            color: var(--color-texto-3);
+            font-size: var(--texto-sm);
+        }
+
+    .perfil-accesos .panel-metrica__icono {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+.perfil-accesos__flecha {
+    color: var(--color-texto-3);
+}
+
+.perfil-consejos .datos-icono {
+    margin-bottom: var(--e-4);
+}
+
+/* Detalle de compra: detalle y pagos a la izquierda; cómo pagar y comprobante a la derecha */
+.factura-estado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e-2) var(--e-3);
+}
+
+.factura-columnas {
+    display: grid;
+    gap: var(--e-5);
+    align-items: start;
+}
+
+.factura-columnas__principal,
+.factura-columnas__lateral {
+    display: grid;
+    gap: var(--e-5);
+    min-width: 0;
+}
+
+    .factura-columnas__lateral:not(:has(> *)) {
+        display: none;
+    }
+
+@media (min-width: 1200px) {
+    .factura-columnas:has(.factura-columnas__lateral > *) {
+        grid-template-columns: minmax(0, 1.5fr) minmax(20rem, 1fr);
+    }
+}

@@ -1,19 +1,20 @@
-﻿@model List<STAT_Academy.Web.Models.Cursos.CursoCompradoResponse>
+@model List<STAT_Academy.Web.Models.Cursos.CursoCompradoResponse>
 
 @{
     ViewData["Title"] = "Mis cursos";
     var hoy = STAT_Academy.Web.Helpers.Formato.AhoraCostaRica.Date;
 }
 
-<section class="encabezado-pagina">
-    <div class="container">
-        <h1>Mis cursos</h1>
-        <p>Cursos en los que está matriculado: avance, fechas y acceso al aula.</p>
-    </div>
-</section>
+<div class="container admin-shell admin-shell--perfil">
+    <partial name="_PerfilNav" />
 
-<section class="section section--compacta">
-    <div class="container">
+    <div class="perfil-contenido">
+        <div class="perfil-encabezado">
+            <span class="eyebrow">Aprendizaje</span>
+            <h1>Mis cursos</h1>
+            <p>Cursos en los que está matriculado: avance, fechas y acceso al aula.</p>
+        </div>
+
         @if (!Model.Any())
         {
             <div class="vacio">
@@ -83,4 +84,4 @@
             </div>
         }
     </div>
-</section>
+</div>

@@ -1,7 +1,7 @@
 @model STAT_Academy.Web.Models.Contrasena.CambiarContrasenaViewModel
 
 @{
-    ViewData["Title"] = "Cambiar contraseña";
+    ViewData["Title"] = "Seguridad";
 }
 
 <div class="container admin-shell admin-shell--perfil">
@@ -9,44 +9,63 @@
 
     <div class="perfil-contenido">
         <div class="perfil-encabezado">
-            <span class="eyebrow">Seguridad de la cuenta</span>
-            <h1>Cambiar contraseña</h1>
-            <p>Escriba su contraseña actual y después la nueva.</p>
+            <span class="eyebrow">Mi cuenta</span>
+            <h1>Seguridad</h1>
+            <p>Cambie la contraseña con la que ingresa a STAT Academy.</p>
         </div>
 
-        <div class="card perfil-card">
-            <form asp-action="Contrasena" method="post" class="perfil-form">
-                <div asp-validation-summary="ModelOnly" class="aviso aviso--error"></div>
+        <div class="perfil-columnas">
+            <section class="panel-tarjeta" aria-labelledby="seguridad-contrasena">
+                <h2 id="seguridad-contrasena" class="panel-tarjeta__titulo">Cambiar contraseña</h2>
 
-                <div class="form-group mb-3">
-                    <label asp-for="contrasenaActual"></label>
-                    <div class="campo-contrasena">
-                        <input asp-for="contrasenaActual" autocomplete="current-password" />
-                        <partial name="_BotonVerContrasena" />
+                <form asp-action="Contrasena" method="post" class="perfil-form-ancho" novalidate data-un-solo-envio>
+                    <div asp-validation-summary="ModelOnly" class="aviso aviso--error"></div>
+
+                    <div class="form-group">
+                        <label asp-for="contrasenaActual"></label>
+                        <div class="campo-contrasena">
+                            <input asp-for="contrasenaActual" class="form-control" autocomplete="current-password" />
+                            <partial name="_BotonVerContrasena" />
+                        </div>
+                        <span asp-validation-for="contrasenaActual" class="text-danger"></span>
                     </div>
-                    <span asp-validation-for="contrasenaActual" class="text-danger"></span>
-                </div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="nuevaContrasena"></label>
-                    <div class="campo-contrasena">
-                        <input asp-for="nuevaContrasena" autocomplete="new-password" />
-                        <partial name="_BotonVerContrasena" />
+                    <div class="perfil-form-ancho__campos">
+                        <div class="form-group">
+                            <label asp-for="nuevaContrasena"></label>
+                            <div class="campo-contrasena">
+                                <input asp-for="nuevaContrasena" class="form-control" autocomplete="new-password" aria-describedby="contrasena-ayuda" />
+                                <partial name="_BotonVerContrasena" />
+                            </div>
+                            <span id="contrasena-ayuda" class="form-text">Al menos 8 caracteres.</span>
+                            <span asp-validation-for="nuevaContrasena" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="confirmarContrasena"></label>
+                            <div class="campo-contrasena">
+                                <input asp-for="confirmarContrasena" class="form-control" autocomplete="new-password" />
+                                <partial name="_BotonVerContrasena" />
+                            </div>
+                            <span asp-validation-for="confirmarContrasena" class="text-danger"></span>
+                        </div>
                     </div>
-                    <span asp-validation-for="nuevaContrasena" class="text-danger"></span>
-                </div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="confirmarContrasena"></label>
-                    <div class="campo-contrasena">
-                        <input asp-for="confirmarContrasena" autocomplete="new-password" />
-                        <partial name="_BotonVerContrasena" />
+                    <div class="formulario__acciones">
+                        <button class="btn btn-primary" type="submit">@Html.Icono("candado", "icono--sm")Cambiar contraseña</button>
                     </div>
-                    <span asp-validation-for="confirmarContrasena" class="text-danger"></span>
-                </div>
+                </form>
+            </section>
 
-                <button class="btn btn-primary" type="submit">Cambiar contraseña</button>
-            </form>
+            <aside class="panel-tarjeta perfil-consejos" aria-labelledby="seguridad-consejos">
+                <h2 id="seguridad-consejos" class="panel-tarjeta__titulo">Antes de cambiarla</h2>
+                <ul class="datos-icono datos-icono--grande">
+                    <li>@Html.Icono("check")<span>Use al menos 8 caracteres; una frase corta es más fácil de recordar.</span></li>
+                    <li>@Html.Icono("check")<span>No repita una contraseña que use en otros sitios.</span></li>
+                    <li>@Html.Icono("info")<span>Al cambiarla se cierran las sesiones abiertas en otros dispositivos.</span></li>
+                </ul>
+                <p class="form-text mb-0">¿Olvidó la contraseña actual? Cierre la sesión y use «¿Olvidó su contraseña?» en la página de ingreso.</p>
+            </aside>
         </div>
     </div>
 </div>

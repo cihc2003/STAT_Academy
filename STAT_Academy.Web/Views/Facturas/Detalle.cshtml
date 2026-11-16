@@ -10,17 +10,24 @@
     var tieneCursos = Model.lineas.Any(l => l.tipo == "CURSO");
 }
 
-<section class="section section--compacta">
-    <div class="container contenedor-angosto">
+<div class="container admin-shell admin-shell--perfil">
+    <partial name="_PerfilNav" />
+
+    <div class="perfil-contenido">
         <a class="enlace-volver no-print" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Facturas y pedidos</a>
 
-        <div class="section-heading mt-3">
-            <span class="eyebrow">Comprobante de compra</span>
-            <h1>Compra #@Model.id</h1>
-            <p>
-                @EstadoPago.Fecha(Model.fecha)
-                <span class="status-pill @estadoClase">@estadoTexto</span>
-            </p>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Comprobante de compra</span>
+                <h1>Compra #@Model.id</h1>
+                <p class="factura-estado">
+                    <span>@EstadoPago.Fecha(Model.fecha)</span>
+                    <span class="status-pill @estadoClase">@estadoTexto</span>
+                </p>
+            </div>
+            <div class="panel-encabezado__acciones no-print">
+                <button class="btn btn-secundario" type="button" data-imprimir>@Html.Icono("imprimir", "icono--sm")Imprimir comprobante</button>
+            </div>
         </div>
 
         @* Mensaje según el estado del pago *@
@@ -53,15 +60,58 @@
                 break;
         }
 
-        <div class="card p-4">
-            <h2 class="h5">Detalle de la compra</h2>
+        <div class="factura-columnas">
+        <div class="factura-columnas__principal">
+        <section class="panel-tarjeta" aria-labelledby="factura-detalle">
+            <h2 id="factura-detalle" class="panel-tarjeta__titulo">Detalle de la compra</h2>
             <partial name="_FacturaLineas" model="Model" />
+        </section>
+
+        @if (Model.pagos.Count > 0)
+        {
+            <section class="panel-tarjeta">
+                <h2 class="panel-tarjeta__titulo">Pagos enviados</h2>
+                <ul class="list-unstyled mb-0">
+                    @foreach (var p in Model.pagos)
+                    {
+                        var (texto, clase) = EstadoPago.Comprobante(p.estado);
+                        <li class="py-2 border-bottom">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <span>
+                                    <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
+                                    <div class="small text-muted">
+                                        Enviado el @EstadoPago.Fecha(p.fechaEnvio)
+                                        @if (!string.IsNullOrWhiteSpace(p.referencia))
+                                        {
+                                            <text>, ref. @p.referencia</text>
+                                        }
+                                        @if (p.fechaRevision is DateTime revision)
+                                        {
+                                            <text>, revisado el @EstadoPago.Fecha(revision)</text>
+                                        }
+                                    </div>
+                                    @if (p.estado == "RECHAZADO" && !string.IsNullOrWhiteSpace(p.observacion))
+                                    {
+                                        <div class="small text-danger">Motivo: @p.observacion</div>
+                                    }
+                                </span>
+                                <span class="d-flex align-items-start gap-2">
+                                    <span class="status-pill @clase">@texto</span>
+                                    <a class="btn btn-sm btn-secundario no-print" asp-action="Comprobante" asp-route-id="@p.id" target="_blank" rel="noopener">Ver comprobante</a>
+                                </span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
         </div>
 
+        <div class="factura-columnas__lateral">
         @if (!Model.pagada)
         {
-            <div class="card p-4 mt-4">
-                <h2 class="h5">Cómo pagar</h2>
+            <section class="panel-tarjeta">
+                <h2 class="panel-tarjeta__titulo">Cómo pagar</h2>
                 <p class="mb-3">
                     Pague <strong>@Formato.Colones(Model.total)</strong> con una de estas opciones e indique
                     <strong>Compra #@Model.id</strong> en el detalle de la transferencia.
@@ -86,13 +136,13 @@
                         </p>
                     </div>
                 </div>
-            </div>
+            </section>
         }
 
         @if (Model.puedeEnviarComprobante)
         {
-            <div class="card p-4 mt-4 no-print">
-                <h2 class="h5">Enviar comprobante de pago</h2>
+            <section class="panel-tarjeta no-print">
+                <h2 class="panel-tarjeta__titulo">Enviar comprobante de pago</h2>
                 <p class="text-muted">
                     Suba la captura o el PDF del comprobante (imagen JPG, PNG o WEBP de hasta 5 MB, o PDF de hasta 10 MB).
                 </p>
@@ -126,51 +176,10 @@
 
                     <button class="btn btn-primary" type="submit">Enviar comprobante</button>
                 </form>
-            </div>
+            </section>
         }
 
-        @if (Model.pagos.Count > 0)
-        {
-            <div class="card p-4 mt-4">
-                <h2 class="h5">Pagos enviados</h2>
-                <ul class="list-unstyled mb-0">
-                    @foreach (var p in Model.pagos)
-                    {
-                        var (texto, clase) = EstadoPago.Comprobante(p.estado);
-                        <li class="py-2 border-bottom">
-                            <div class="d-flex flex-wrap justify-content-between gap-2">
-                                <span>
-                                    <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
-                                    <div class="small text-muted">
-                                        Enviado el @EstadoPago.Fecha(p.fechaEnvio)
-                                        @if (!string.IsNullOrWhiteSpace(p.referencia))
-                                        {
-                                            <text>, ref. @p.referencia</text>
-                                        }
-                                        @if (p.fechaRevision is DateTime revision)
-                                        {
-                                            <text>, revisado el @EstadoPago.Fecha(revision)</text>
-                                        }
-                                    </div>
-                                    @if (p.estado == "RECHAZADO" && !string.IsNullOrWhiteSpace(p.observacion))
-                                    {
-                                        <div class="small text-danger">Motivo: @p.observacion</div>
-                                    }
-                                </span>
-                                <span class="d-flex align-items-start gap-2">
-                                    <span class="status-pill @clase">@texto</span>
-                                    <a class="btn btn-sm btn-outline-secondary no-print" asp-action="Comprobante" asp-route-id="@p.id" target="_blank" rel="noopener">Ver comprobante</a>
-                                </span>
-                            </div>
-                        </li>
-                    }
-                </ul>
-            </div>
-        }
-
-        <div class="d-flex flex-wrap gap-2 mt-4 no-print">
-            <a class="btn btn-outline-primary" asp-action="Index">Volver a mis facturas</a>
-            <button class="btn btn-outline-secondary" type="button" data-imprimir>Imprimir comprobante</button>
+        </div>
         </div>
     </div>
-</section>
+</div>

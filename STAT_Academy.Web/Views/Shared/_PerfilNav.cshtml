@@ -1,22 +1,35 @@
 @{
-    // Menú lateral del perfil, con el mismo diseño que el de Administración (.admin-sidebar):
-    // Mis datos, Contraseña y, para clientes, Facturas y pedidos.
+    // Menú del perfil (mismo componente que el panel): lateral en escritorio y tira
+    // desplazable bajo la cabecera en tabletas y teléfonos.
+    // Mi cuenta (datos y seguridad) para todos; aprendizaje y compras solo para estudiantes;
+    // acceso a su zona de trabajo para administradores y tutores.
     var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
     var accion = ViewContext.RouteData.Values["action"]?.ToString();
     var esCliente = User.IsInRole("Cliente");
+    var esAdmin = User.IsInRole("Admin");
+    var esTutor = User.IsInRole("Tutor");
 
     var nombre = User.Identity?.Name ?? "";
     var inicial = string.IsNullOrWhiteSpace(nombre) ? "?" : nombre.Trim()[..1].ToUpperInvariant();
     var correo = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
 
-    var opciones = new List<(string grupo, string controlador, string accion, string texto, string icono)>
+    var opciones = new List<(string grupo, string controlador, string accion, string texto, string icono, bool activo)>
     {
-        ("Mi cuenta", "Perfil", "Index", "Mis datos", "usuario"),
-        ("Mi cuenta", "Perfil", "Contrasena", "Contraseña", "candado")
+        ("Mi cuenta", "Perfil", "Index", "Mis datos", "usuario", controlador == "Perfil" && accion == "Index"),
+        ("Mi cuenta", "Perfil", "Contrasena", "Seguridad", "escudo", controlador == "Perfil" && accion == "Contrasena")
     };
     if (esCliente)
     {
-        opciones.Add(("Compras", "Facturas", "Index", "Facturas y pedidos", "factura"));
+        opciones.Add(("Aprendizaje", "Curso", "MisCursos", "Mis cursos", "libro", controlador == "Curso" && accion == "MisCursos"));
+        opciones.Add(("Compras", "Facturas", "Index", "Facturas y pedidos", "factura", controlador == "Facturas"));
+    }
+    if (esAdmin)
+    {
+        opciones.Add(("Trabajo", "Admin", "Dashboard", "Administración", "panel", false));
+    }
+    else if (esTutor)
+    {
+        opciones.Add(("Trabajo", "Tutor", "Index", "Panel del tutor", "pizarra", false));
     }
 }
 
@@ -29,16 +42,15 @@
         </div>
     </div>
 
-    <nav class="admin-sidebar__nav">
+    <nav class="admin-sidebar__nav" aria-label="Secciones de mi cuenta">
         @foreach (var grupo in opciones.GroupBy(o => o.grupo))
         {
             <p class="admin-sidebar__grupo">@grupo.Key</p>
             @foreach (var o in grupo)
             {
-                var activo = controlador == o.controlador && accion == o.accion;
                 <a asp-controller="@o.controlador" asp-action="@o.accion"
-                   class="admin-sidebar__link @(activo ? "admin-sidebar__link--activo" : "")"
-                   aria-current="@(activo ? "page" : null)">
+                   class="admin-sidebar__link @(o.activo ? "admin-sidebar__link--activo" : "")"
+                   aria-current="@(o.activo ? "page" : null)">
                     @Html.Icono(o.icono, "admin-sidebar__icono")
                     <span>@o.texto</span>
                 </a>
