@@ -12,7 +12,7 @@ namespace STAT_Academy.Web.Helpers
     public static class Iconos
     {
         /// <summary>Cambiar al editar iconos.svg para que el navegador no use la copia vieja.</summary>
-        public const string Sprite = "/img/iconos.svg?v=1";
+        public const string Sprite = "/img/iconos.svg?v=2";
 
         /// <summary>
         /// Ícono decorativo (oculto para lectores de pantalla). Si el ícono es lo único que

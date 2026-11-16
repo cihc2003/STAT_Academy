@@ -154,9 +154,11 @@
         --duracion-3: 0ms;
     }
 
-    *,
-    *::before,
-    *::after {
+    /* Excepciones (.animacion-esencial y botones cargando): indicadores de carga y el pulso
+       de la portada, que se mantienen siempre; el pulso tiene su propio botón de pausa. */
+    *:not(.animacion-esencial):not(.btn[aria-busy="true"]),
+    *:not(.animacion-esencial):not(.btn[aria-busy="true"])::before,
+    *:not(.animacion-esencial):not(.btn[aria-busy="true"])::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
@@ -5002,6 +5004,7 @@ h3.panel-form__seccion {
 
 /* Trazo de electrocardiograma a lo ancho, al pie del hero */
 .inicio-hero__pulso {
+    contain: strict;
     position: absolute;
     left: 0;
     right: 0;
@@ -5036,16 +5039,29 @@ h3.panel-form__seccion {
     z-index: 1;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .inicio-hero__pulso-linea {
-        stroke-dasharray: 1;
-        animation: pulso-trazo 2.4s cubic-bezier(0.45, 0, 0.2, 1) 0.2s both;
-    }
+/* El pulso se anima siempre (también con "reducir movimiento"): es lento, sin destellos,
+   ocupa una franja estrecha y se puede pausar con su botón. */
+.inicio-hero__pulso-linea {
+    stroke-dasharray: 1;
+    animation: pulso-trazo 2.4s cubic-bezier(0.45, 0, 0.2, 1) 0.2s both;
+}
 
-    .inicio-hero__pulso-luz {
-        opacity: 0.9;
-        animation: pulso-recorrido 4s linear 2.6s infinite both;
-    }
+.inicio-hero__pulso-luz {
+    opacity: 0.9;
+    animation: pulso-recorrido 4s linear 2.6s infinite both;
+}
+
+/* Pausado por el visitante o fuera de la vista: no se dibuja ningún cuadro */
+.inicio-hero--pausado .inicio-hero__pulso path,
+.inicio-hero--fuera .inicio-hero__pulso path {
+    animation-play-state: paused;
+}
+
+.inicio-hero--pausado .inicio-hero__pulso-luz {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
 
     .inicio-hero__marca,
     .inicio-hero__titulo,
@@ -5282,4 +5298,43 @@ h3.panel-form__seccion {
 
 .factura-columnas li:last-child.border-bottom {
     border-bottom: 0 !important;
+}
+
+/* Botón para pausar o reanudar el pulso (WCAG 2.2.2: movimiento de más de 5 s) */
+.pulso-control {
+    position: absolute;
+    right: var(--margen);
+    bottom: var(--e-3);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-2);
+    min-height: 2.25rem;
+    padding: var(--e-1) var(--e-3);
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-total);
+    background: var(--color-superficie);
+    color: var(--color-texto-2);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-semi);
+    cursor: pointer;
+}
+
+    .pulso-control:hover {
+        border-color: var(--color-borde-control);
+        color: var(--color-titulo);
+    }
+
+    .pulso-control .icono--reproducir,
+    .inicio-hero--pausado .pulso-control .icono--pausa {
+        display: none;
+    }
+
+    .inicio-hero--pausado .pulso-control .icono--reproducir {
+        display: inline-block;
+    }
+
+/* Espacio al pie del hero para el pulso y su botón */
+.inicio-hero__grid {
+    padding-bottom: clamp(5rem, 7vw, var(--e-20));
 }

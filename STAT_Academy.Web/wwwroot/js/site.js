@@ -473,3 +473,42 @@ window.addEventListener("pageshow", function (e) {
         setTimeout(function () { requestAnimationFrame(paso); }, 350);
     });
 })();
+
+// Pulso de la portada: botón para pausarlo o reanudarlo (se recuerda en este navegador)
+// y pausa automática cuando el hero no está a la vista, para no gastar batería en
+// teléfonos y equipos poco potentes.
+(function () {
+    "use strict";
+
+    var hero = document.querySelector("[data-pulso]");
+    if (!hero) return;
+
+    var boton = hero.querySelector("[data-pulso-control]");
+    var texto = hero.querySelector("[data-pulso-texto]");
+    var CLAVE = "stat-pulso-pausado";
+
+    function aplicar(pausado) {
+        hero.classList.toggle("inicio-hero--pausado", pausado);
+        if (!boton) return;
+        boton.setAttribute("aria-pressed", pausado ? "true" : "false");
+        if (texto) texto.textContent = pausado ? "Reanudar animación" : "Pausar animación";
+    }
+
+    var guardado = false;
+    try { guardado = localStorage.getItem(CLAVE) === "1"; } catch (e) { /* sin almacenamiento */ }
+    aplicar(guardado);
+
+    if (boton) {
+        boton.addEventListener("click", function () {
+            var pausado = !hero.classList.contains("inicio-hero--pausado");
+            aplicar(pausado);
+            try { localStorage.setItem(CLAVE, pausado ? "1" : "0"); } catch (e) { /* sin almacenamiento */ }
+        });
+    }
+
+    if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entradas) {
+            hero.classList.toggle("inicio-hero--fuera", !entradas[0].isIntersecting);
+        }).observe(hero);
+    }
+})();
