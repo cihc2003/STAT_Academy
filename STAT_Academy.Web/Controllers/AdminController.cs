@@ -70,7 +70,9 @@ namespace STAT_Academy.Web.Controllers
                 duracionSemanas = c.duracionSemanas,
                 estado = c.estado,
                 fechaInicio = c.fechaInicio,
-                fechaFin = c.fechaFin
+                fechaFin = c.fechaFin,
+                tipo = c.tipo,
+                prerrequisitos = c.prerrequisitos
             }).ToList();
 
             ViewBag.TotalCursos = rows.Count;
@@ -79,7 +81,8 @@ namespace STAT_Academy.Web.Controllers
             {
                 rows = rows.Where(c =>
                     Busqueda.Coincide(c.nombre, search) ||
-                    Busqueda.Coincide(c.descripcion, search)).ToList();
+                    Busqueda.Coincide(c.descripcion, search) ||
+                    Busqueda.Coincide(c.tipo, search)).ToList();
             }
 
             if (estado != null)
@@ -158,6 +161,8 @@ namespace STAT_Academy.Web.Controllers
                 estado = curso.estado,
                 fechaInicio = curso.fechaInicio,
                 fechaFin = curso.fechaFin,
+                tipo = curso.tipo,
+                prerrequisitos = curso.prerrequisitos,
                 ImagenPortadaActual = curso.imagenPortada
             };
 

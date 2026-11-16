@@ -98,6 +98,8 @@ namespace STAT_Academy.Api.Services
             curso.precio = request.precio;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
+            curso.tipo = CursoCreateRequest.Limpiar(request.tipo);
+            curso.prerrequisitos = CursoCreateRequest.Limpiar(request.prerrequisitos);
             curso.estado = true;
 
             _context.Curso.Add(curso);
@@ -120,6 +122,8 @@ namespace STAT_Academy.Api.Services
             curso.precio = request.precio;
             curso.fechaInicio = request.fechaInicio;
             curso.fechaFin = request.fechaFin;
+            curso.tipo = CursoCreateRequest.Limpiar(request.tipo);
+            curso.prerrequisitos = CursoCreateRequest.Limpiar(request.prerrequisitos);
 
             await _context.SaveChangesAsync();
 
@@ -266,6 +270,8 @@ namespace STAT_Academy.Api.Services
                 estado = c.estado,
                 fechaInicio = c.fechaInicio,
                 fechaFin = c.fechaFin,
+                tipo = c.tipo,
+                prerrequisitos = c.prerrequisitos,
                 tutorNombre = tutores.GetValueOrDefault(c.fk_tutor),
                 imagenPortada = portadas.TryGetValue(c.id, out var blob) ? _blob.ObtenerUrlPublica(blob) : null,
                 inscripcionAbierta = c.inscripcionAbierta

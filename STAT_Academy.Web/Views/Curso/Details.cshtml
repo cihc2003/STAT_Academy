@@ -10,6 +10,10 @@
     <div class="container detalle-hero__grid">
         <div class="detalle-hero__texto">
             <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Cursos</a>
+            @if (!string.IsNullOrWhiteSpace(Model.Tipo))
+            {
+                <span class="etiqueta detalle-hero__tipo">@Model.Tipo</span>
+            }
             <h1>@Model.Nombre</h1>
             <ul class="datos-icono datos-icono--fila datos-icono--grande">
                 <li>@Html.Icono("calendario")<span>Inicia el @Formato.FechaLarga(Model.Fecha_Inicio)</span></li>
@@ -31,6 +35,12 @@
         <article class="detalle-cuerpo__texto">
             <h2>Sobre el curso</h2>
             <p class="texto-largo">@Model.Descripcion</p>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Prerrequisitos))
+            {
+                <h2>Prerrequisitos</h2>
+                <p class="texto-largo">@Model.Prerrequisitos</p>
+            }
         </article>
 
         <aside class="compra-caja" aria-labelledby="compra-titulo">
@@ -38,6 +48,13 @@
             <p class="compra-caja__precio">@Formato.PrecioCurso(Model.Precio_Base)</p>
 
             <dl class="lista-datos">
+                @if (!string.IsNullOrWhiteSpace(Model.Tipo))
+                {
+                    <div>
+                        <dt>Tipo</dt>
+                        <dd>@Model.Tipo</dd>
+                    </div>
+                }
                 <div>
                     <dt>Inicio</dt>
                     <dd>@Formato.FechaLarga(Model.Fecha_Inicio)</dd>

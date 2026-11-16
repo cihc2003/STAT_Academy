@@ -33,7 +33,7 @@
                 <label class="panel-filtros__etiqueta" for="search">Buscar</label>
                 @Html.Icono("buscar", "panel-filtros__lupa")
                 <input class="form-control" id="search" name="search" type="search" value="@buscar"
-                       placeholder="Nombre o descripción del curso" maxlength="100" />
+                       placeholder="Nombre, tipo o descripción del curso" maxlength="100" />
             </div>
             <div class="panel-filtros__campo">
                 <label class="panel-filtros__etiqueta" for="periodo">Periodo</label>
@@ -112,6 +112,10 @@
                                     <span class="panel-celda__icono">@Html.Icono("birrete")</span>
                                     <div class="panel-celda__texto">
                                         <a class="panel-celda__nombre" asp-action="CourseForm" asp-route-id="@curso.id">@curso.nombre</a>
+                                        @if (!string.IsNullOrWhiteSpace(curso.tipo))
+                                        {
+                                            <span class="etiqueta">@curso.tipo</span>
+                                        }
                                         <span class="panel-celda__sub">@curso.descripcion</span>
                                     </div>
                                 </div>

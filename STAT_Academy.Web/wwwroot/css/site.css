@@ -2997,6 +2997,17 @@ a.chip--activo,
     letter-spacing: var(--tracking-display);
 }
 
+/* Tipo del curso sobre el título (en bloque, para que no quede junto a "Cursos") */
+.detalle-hero__tipo {
+    display: flex;
+    margin-bottom: var(--e-3);
+}
+
+/* Secciones siguientes del cuerpo (p. ej. "Prerrequisitos" después de "Sobre el curso") */
+.detalle-cuerpo__texto .texto-largo + h2 {
+    margin-top: var(--e-8);
+}
+
 .detalle-hero__media {
     aspect-ratio: 16 / 9;
     overflow: hidden;

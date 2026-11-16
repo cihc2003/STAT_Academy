@@ -37,6 +37,14 @@ namespace STAT_Academy.Web.Models
         [JsonPropertyName("fechaFin")]
         public DateTime Fecha_Fin { get; set; }
 
+        /// <summary>Tipo de curso (texto libre, p. ej. "Virtual"); null si no se indicó.</summary>
+        [JsonPropertyName("tipo")]
+        public string? Tipo { get; set; }
+
+        /// <summary>Conocimientos o cursos previos recomendados; null si no hay.</summary>
+        [JsonPropertyName("prerrequisitos")]
+        public string? Prerrequisitos { get; set; }
+
         [JsonPropertyName("tutorNombre")]
         public string? TutorNombre { get; set; }
 

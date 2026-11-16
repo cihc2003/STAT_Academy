@@ -148,6 +148,8 @@ CREATE TABLE CURSO
     Estado BIT,
     Fecha_Inicio DATETIME,
     Fecha_Fin DATETIME,
+    Tipo NVARCHAR(50) NULL,              -- Database/Scripts/2026-11-16_curso_tipo_prerrequisitos.sql
+    Prerrequisitos NVARCHAR(500) NULL,
 
     CONSTRAINT FK_CURSO_TUTOR
     FOREIGN KEY (FK_Tutor)

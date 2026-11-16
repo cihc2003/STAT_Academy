@@ -14,6 +14,8 @@ namespace STAT_Academy.Web.Models.Admin
         public bool estado { get; set; }
         public DateTime fechaInicio { get; set; }
         public DateTime fechaFin { get; set; }
+        public string? tipo { get; set; }
+        public string? prerrequisitos { get; set; }
         public string? imagenPortada { get; set; }
     }
 
@@ -48,6 +50,17 @@ namespace STAT_Academy.Web.Models.Admin
         public DateTime fechaFin { get; set; }
 
         public bool estado { get; set; } = true;
+
+        [Display(Name = "Tipo")]
+        [StringLength(50, ErrorMessage = "El tipo admite como máximo 50 caracteres.")]
+        public string? tipo { get; set; }
+
+        [Display(Name = "Prerrequisitos")]
+        [StringLength(500, ErrorMessage = "Los prerrequisitos admiten como máximo 500 caracteres.")]
+        public string? prerrequisitos { get; set; }
+
+        /// <summary>Sugerencias para el campo Tipo (es texto libre: se puede escribir otro).</summary>
+        public static readonly string[] TiposSugeridos = ["Virtual", "Presencial", "Híbrido", "Taller", "Certificación"];
 
         /// <summary>Nueva portada (opcional): al guardar reemplaza la actual.</summary>
         [Display(Name = "Imagen de portada")]
