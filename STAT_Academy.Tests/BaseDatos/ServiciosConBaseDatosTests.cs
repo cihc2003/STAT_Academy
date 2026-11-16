@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -204,6 +205,53 @@ public sealed class ServiciosConBaseDatosTests : IDisposable
     // ------------------------------------------------------------------
     // Usuarios y perfil
     // ------------------------------------------------------------------
+
+    private static RegisterUsuarioRequest Registro(bool acepta = true, string version = "2026-11-16") => new()
+    {
+        email = "registro@correo.cr", nombre = "Persona Registro", password = "Clave123!",
+        aceptaTerminos = acepta, versionTerminos = version
+    };
+
+    [Fact]
+    public async Task Registro_guarda_version_y_fecha_de_aceptacion_de_terminos()
+    {
+        var antes = DateTime.UtcNow.AddSeconds(-1);
+
+        var usuario = await Usuarios(Contexto()).RegisterUsuarioAsync(Registro());
+
+        var aceptacion = await Contexto().UsuarioTerminos.SingleAsync();
+        Assert.Equal(usuario.id, aceptacion.fk_Usuario);
+        Assert.Equal("2026-11-16", aceptacion.version_Terminos);
+        Assert.InRange(aceptacion.fecha_Aceptacion, antes, DateTime.UtcNow.AddSeconds(1));
+    }
+
+    [Theory]
+    [InlineData(false, "2026-11-16")]
+    [InlineData(true, "")]
+    public async Task Registro_sin_aceptar_terminos_falla_y_no_crea_la_cuenta(bool acepta, string version)
+    {
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Usuarios(Contexto()).RegisterUsuarioAsync(Registro(acepta, version)));
+
+        Assert.Equal(RegisterUsuarioRequest.MensajeTerminos, error.Message);
+        Assert.False(await Contexto().Usuario.AnyAsync());
+        Assert.False(await Contexto().UsuarioTerminos.AnyAsync());
+    }
+
+    [Fact]
+    public void Validacion_del_registro_exige_aceptar_los_terminos()
+    {
+        static List<ValidationResult> Errores(RegisterUsuarioRequest r)
+        {
+            var errores = new List<ValidationResult>();
+            Validator.TryValidateObject(r, new ValidationContext(r), errores, validateAllProperties: true);
+            return errores;
+        }
+
+        Assert.Contains(Errores(Registro(acepta: false)), e => e.ErrorMessage == RegisterUsuarioRequest.MensajeTerminos
+                                      && e.MemberNames.Contains(nameof(RegisterUsuarioRequest.aceptaTerminos)));
+        Assert.Empty(Errores(Registro()));
+    }
 
     [Fact]
     public async Task Crear_usuario_con_correo_repetido_falla()

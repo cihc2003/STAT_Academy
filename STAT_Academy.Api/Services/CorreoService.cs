@@ -14,6 +14,16 @@ namespace STAT_Academy.Api.Services
     /// </summary>
     public class CorreoService
     {
+        public const string CorreoContacto = "info@statmedicalcr.com";
+        public const string SitioWeb = "https://statmedicalcr.com/";
+
+        /// <summary>Pie común de todos los correos con los datos de contacto.</summary>
+        private const string PieContacto = $"""
+            <hr>
+            <p><small>STATMEDICAL · STAT Academy<br>
+            Consultas: <a href="mailto:{CorreoContacto}">{CorreoContacto}</a> · <a href="{SitioWeb}">statmedicalcr.com</a></small></p>
+            """;
+
         private readonly IConfiguration _configuration;
         private readonly ILogger<CorreoService> _logger;
 
@@ -395,9 +405,11 @@ namespace STAT_Academy.Api.Services
         {
             var mensaje = new MimeMessage();
             mensaje.From.Add(new MailboxAddress("STAT Academy", configuracion.Remitente));
+            // Las respuestas llegan al buzón de contacto, no a la cuenta que envía.
+            mensaje.ReplyTo.Add(new MailboxAddress("STATMEDICAL", CorreoContacto));
             mensaje.To.Add(MailboxAddress.Parse(destino));
             mensaje.Subject = asunto;
-            mensaje.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
+            mensaje.Body = new BodyBuilder { HtmlBody = html + PieContacto }.ToMessageBody();
 
             using var cliente = new SmtpClient { Timeout = 20_000 };
 

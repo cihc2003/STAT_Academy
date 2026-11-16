@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace STAT_Academy.Web.Models.Cuenta
 {
     /// <summary>
-    /// Formulario público de registro. Solo nombre, email y password viajan a la API
-    /// (como RegisterUsuarioRequest); la confirmación se valida aquí y no se envía.
+    /// Formulario público de registro. Nombre, email, password y la aceptación de los términos
+    /// viajan a la API (como RegisterUsuarioRequest); la confirmación se valida aquí y no se envía.
     /// </summary>
     public class RegistroViewModel
     {
@@ -29,5 +29,11 @@ namespace STAT_Academy.Web.Models.Cuenta
         [Compare(nameof(password), ErrorMessage = "Las contraseñas no coinciden.")]
         [Display(Name = "Confirmar contraseña")]
         public string confirmarPassword { get; set; } = string.Empty;
+
+        /// <summary>Desmarcada por defecto; sin ella el registro se rechaza también en el servidor.</summary>
+        // Required solo fija el mensaje en español de la validación del navegador; DebeMarcarse exige true en el servidor.
+        [Required(ErrorMessage = "Para crear la cuenta debe aceptar los términos y condiciones y la política de cookies.")]
+        [DebeMarcarse(ErrorMessage = "Para crear la cuenta debe aceptar los términos y condiciones y la política de cookies.")]
+        public bool aceptaTerminos { get; set; }
     }
 }

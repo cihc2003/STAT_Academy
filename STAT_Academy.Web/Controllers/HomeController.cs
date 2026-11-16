@@ -90,6 +90,16 @@ namespace STAT_Academy.Web.Controllers
             return View();
         }
 
+        public IActionResult Terminos()
+        {
+            return View();
+        }
+
+        public IActionResult Cookies()
+        {
+            return View();
+        }
+
         private async Task<List<CursoModel>?> CargarCursos()
         {
             try

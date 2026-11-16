@@ -512,3 +512,36 @@ window.addEventListener("pageshow", function (e) {
         }).observe(hero);
     }
 })();
+
+// Casilla obligatoria (aceptar términos): <input type="checkbox" data-habilita-envio> deja el botón
+// de envío de su formulario deshabilitado mientras no esté marcada. Un [data-ayuda-envio] del mismo
+// formulario explica por qué. El servidor también lo valida; sin JavaScript el botón queda activo.
+(function () {
+    "use strict";
+
+    var casillas = document.querySelectorAll("input[type=checkbox][data-habilita-envio]");
+    if (!casillas.length) return;
+
+    function sincronizar(casilla) {
+        var form = casilla.form;
+        if (!form) return;
+        var boton = form.querySelector("button[type=submit]");
+        var ayuda = form.querySelector("[data-ayuda-envio]");
+        var marcadas = Array.prototype.every.call(
+            form.querySelectorAll("input[type=checkbox][data-habilita-envio]"),
+            function (c) { return c.checked; });
+
+        if (boton && boton.getAttribute("aria-busy") !== "true") boton.disabled = !marcadas;
+        if (ayuda) ayuda.hidden = marcadas;
+    }
+
+    casillas.forEach(function (casilla) {
+        sincronizar(casilla);
+        casilla.addEventListener("change", function () { sincronizar(casilla); });
+    });
+
+    // Al volver con "Atrás" el navegador puede restaurar la casilla marcada o desmarcada.
+    window.addEventListener("pageshow", function () {
+        casillas.forEach(sincronizar);
+    });
+})();

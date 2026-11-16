@@ -27,6 +27,7 @@ namespace STAT_Academy.Api.Data
         public DbSet<CursoImagenModel> CursoImagen { get; set; }
         public DbSet<NotaFinalModel> NotaFinal { get; set; }
         public DbSet<UsuarioBloqueoModel> UsuarioBloqueo { get; set; }
+        public DbSet<UsuarioTerminosModel> UsuarioTerminos { get; set; }
         public DbSet<TareaArchivoModel> TareaArchivo { get; set; }
         public DbSet<PagoModel> Pago { get; set; }
         public DbSet<FacturaModel> Factura { get; set; }

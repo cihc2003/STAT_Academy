@@ -1,0 +1,112 @@
+@using STAT_Academy.Web.Models.Cuenta
+@{
+    ViewData["Title"] = "Términos y condiciones";
+}
+@*
+    Texto base para revisión del negocio y de su asesoría legal. Las secciones marcadas con
+    "REVISAR" dependen de decisiones comerciales (razón social, cédula jurídica, plazos, devoluciones).
+    Al cambiar el texto, actualice TerminosVigentes.Version y TerminosVigentes.FechaVisible:
+    la API guarda con cada registro la versión aceptada.
+*@
+
+<section class="encabezado-pagina">
+    <div class="container">
+        <h1>Términos y condiciones</h1>
+        <p>Condiciones de uso de STAT Academy: cursos en línea y tienda de insumos médicos de STATMEDICAL.</p>
+    </div>
+</section>
+
+<section class="section section--compacta">
+    <div class="container contenedor-lectura documento-legal">
+        <p class="documento-legal__fecha">Última actualización: @TerminosVigentes.FechaVisible</p>
+
+        <nav class="documento-legal__indice" aria-labelledby="terminos-indice">
+            <h2 id="terminos-indice" class="h5">En esta página</h2>
+            <ol>
+                <li><a href="#t-aceptacion">Aceptación</a></li>
+                <li><a href="#t-cuenta">Cuenta de usuario</a></li>
+                <li><a href="#t-cursos">Cursos</a></li>
+                <li><a href="#t-tienda">Tienda de insumos médicos</a></li>
+                <li><a href="#t-pagos">Precios y pagos</a></li>
+                <li><a href="#t-envios">Entregas, cambios y devoluciones</a></li>
+                <li><a href="#t-propiedad">Propiedad intelectual</a></li>
+                <li><a href="#t-uso">Uso aceptable</a></li>
+                <li><a href="#t-datos">Datos personales y cookies</a></li>
+                <li><a href="#t-responsabilidad">Responsabilidad</a></li>
+                <li><a href="#t-cambios">Cambios en estos términos</a></li>
+                <li><a href="#t-ley">Ley aplicable y contacto</a></li>
+            </ol>
+        </nav>
+
+        @* REVISAR: razón social completa y cédula jurídica de STATMEDICAL. *@
+        <h2 id="t-aceptacion">1. Aceptación</h2>
+        <p>STAT Academy es la plataforma de cursos y tienda en línea de STATMEDICAL, con domicilio en San José, Costa Rica. Al crear una cuenta, comprar o usar el sitio, usted declara que leyó y acepta estos términos y la <a asp-controller="Home" asp-action="Cookies">política de cookies</a>. Si no está de acuerdo, no use la plataforma.</p>
+        <p>Para registrarse debe ser mayor de edad o contar con la autorización de su madre, padre o representante legal.</p>
+
+        <h2 id="t-cuenta">2. Cuenta de usuario</h2>
+        <ul>
+            <li>Los datos que registre deben ser verdaderos y estar actualizados.</li>
+            <li>La cuenta es personal. Usted es responsable de mantener su contraseña en secreto y de lo que se haga con su cuenta.</li>
+            <li>Si sospecha que alguien más usa su cuenta, cambie la contraseña y avísenos de inmediato.</li>
+            <li>Podemos suspender o cerrar una cuenta que incumpla estos términos, avisándole por correo cuando sea posible.</li>
+        </ul>
+
+        @* REVISAR: si los cursos otorgan certificados, con qué aval y en qué condiciones. *@
+        <h2 id="t-cursos">3. Cursos</h2>
+        <ul>
+            <li>Al matricular un curso obtiene acceso personal e intransferible a sus materiales, tareas y evaluaciones mientras el curso esté disponible en la plataforma.</li>
+            <li>Algunos cursos pueden requerir conocimientos o cursos previos, que se indican en su descripción. La nota final se calcula según los criterios que el tutor indica en cada curso.</li>
+            <li>Los contenidos tienen fines educativos y de actualización profesional. No sustituyen la formación académica oficial, la colegiatura ni el criterio clínico de un profesional de la salud.</li>
+            <li>Podemos actualizar los contenidos, los tutores o las fechas de un curso para mantenerlo vigente.</li>
+        </ul>
+
+        @* REVISAR: productos con restricciones de venta (uso profesional, registro sanitario del Ministerio de Salud). *@
+        <h2 id="t-tienda">4. Tienda de insumos médicos</h2>
+        <ul>
+            <li>Las fotografías y descripciones son de referencia; el producto puede variar en empaque o presentación sin cambiar sus características esenciales.</li>
+            <li>La disponibilidad depende de las existencias. Si un producto se agota después de su compra, le ofreceremos un cambio o la devolución de lo pagado.</li>
+            <li>Algunos insumos son de uso profesional. Usted es responsable de usarlos según las indicaciones del fabricante y la normativa sanitaria vigente.</li>
+            <li>La información de la tienda no constituye consejo médico.</li>
+        </ul>
+
+        @* REVISAR: medios de pago aceptados y plazo para confirmar el pago. *@
+        <h2 id="t-pagos">5. Precios y pagos</h2>
+        <ul>
+            <li>Los precios se muestran en colones costarricenses e incluyen los impuestos que correspondan, salvo que se indique otra cosa.</li>
+            <li>Los pagos se hacen por SINPE Móvil o transferencia bancaria. El pedido o la matrícula se confirma cuando verificamos el comprobante.</li>
+            <li>Por cada compra confirmada emitimos la factura correspondiente, que puede consultar en su cuenta.</li>
+            <li>Si encontramos un error evidente en un precio, le avisaremos antes de confirmar el pedido para que decida si continúa.</li>
+        </ul>
+
+        @* REVISAR: zonas y costos de envío, plazos de entrega y política de devoluciones. *@
+        <h2 id="t-envios">6. Entregas, cambios y devoluciones</h2>
+        <ul>
+            <li>Le informaremos el costo y el plazo estimado de entrega antes de confirmar su pedido.</li>
+            <li>Conforme a la Ley de Promoción de la Competencia y Defensa Efectiva del Consumidor (Ley 7472) y su reglamento, en las compras a distancia usted puede retractarse dentro de los 8 días hábiles siguientes a la entrega, siempre que el producto esté sin usar y en su empaque original.</li>
+            <li>Por razones de higiene y seguridad, no se aceptan devoluciones de insumos estériles o de un solo uso cuyo empaque se haya abierto, salvo defecto de fábrica.</li>
+            <li>Si un producto llega dañado o con defectos, escríbanos con fotografías dentro de los 8 días hábiles siguientes a la entrega.</li>
+            <li>En los cursos, el derecho de retracto aplica mientras no haya accedido a los contenidos.</li>
+        </ul>
+
+        <h2 id="t-propiedad">7. Propiedad intelectual</h2>
+        <p>Los cursos, videos, documentos, textos, marcas y logotipos de STAT Academy y STATMEDICAL están protegidos por la legislación de propiedad intelectual. Puede usarlos para su aprendizaje personal, pero no copiarlos, venderlos, publicarlos ni compartirlos con terceros sin autorización escrita.</p>
+        <p>Los trabajos que entregue en los cursos siguen siendo suyos; nos autoriza a guardarlos y mostrarlos a su tutor para calificarlos.</p>
+
+        <h2 id="t-uso">8. Uso aceptable</h2>
+        <p>No está permitido usar la plataforma para actividades ilegales, suplantar a otras personas, subir archivos con virus o contenido ofensivo, intentar acceder a cuentas o datos ajenos, ni interferir con el funcionamiento del sitio.</p>
+
+        <h2 id="t-datos">9. Datos personales y cookies</h2>
+        <p>Tratamos sus datos personales conforme a la Ley de Protección de la Persona frente al Tratamiento de sus Datos Personales (Ley 8968), solo para gestionar su cuenta, sus cursos y sus compras. Puede solicitar el acceso, la rectificación o la eliminación de sus datos escribiendo a <a href="mailto:info@@statmedicalcr.com">info@@statmedicalcr.com</a>. Más detalles en la <a asp-controller="Home" asp-action="Privacy">política de privacidad</a> y la <a asp-controller="Home" asp-action="Cookies">política de cookies</a>.</p>
+
+        @* REVISAR: alcance de la limitación de responsabilidad con la asesoría legal. *@
+        <h2 id="t-responsabilidad">10. Responsabilidad</h2>
+        <p>Procuramos que la plataforma funcione sin interrupciones y que la información sea correcta, pero puede haber pausas por mantenimiento o fallas ajenas a nosotros. En la medida que lo permita la ley, STATMEDICAL no responde por daños derivados del mal uso de la plataforma, de los contenidos o de los productos. Nada en estos términos limita los derechos que la ley le reconoce como consumidor.</p>
+
+        <h2 id="t-cambios">11. Cambios en estos términos</h2>
+        <p>Podemos actualizar estos términos. Publicaremos la nueva versión en esta página con su fecha y, si el cambio es importante, se lo avisaremos por correo o al iniciar sesión.</p>
+
+        <h2 id="t-ley">12. Ley aplicable y contacto</h2>
+        <p>Estos términos se rigen por las leyes de la República de Costa Rica. Cualquier reclamo puede presentarlo ante nosotros, ante la Comisión Nacional del Consumidor del MEIC o ante los tribunales de Costa Rica.</p>
+        <p>Para consultas sobre estos términos, escríbanos a <a href="mailto:info@@statmedicalcr.com">info@@statmedicalcr.com</a> o visite <a href="https://statmedicalcr.com/" rel="noopener">statmedicalcr.com</a>.</p>
+    </div>
+</section>

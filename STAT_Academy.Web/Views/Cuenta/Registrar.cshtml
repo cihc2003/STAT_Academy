@@ -55,7 +55,21 @@
                     <span asp-validation-for="confirmarPassword" class="text-danger"></span>
                 </div>
 
-                <button class="btn btn-primary btn-lg w-100" type="submit">Registrarme</button>
+                <div class="form-group registro-terminos">
+                    <div class="form-check">
+                        <input asp-for="aceptaTerminos" class="form-check-input" data-habilita-envio />
+                        <label asp-for="aceptaTerminos" class="form-check-label">
+                            He leído y acepto los
+                            <a asp-controller="Home" asp-action="Terminos" target="_blank" rel="noopener" data-sin-carga>términos y condiciones<span class="visually-hidden"> (se abre en una pestaña nueva)</span></a>
+                            y la
+                            <a asp-controller="Home" asp-action="Cookies" target="_blank" rel="noopener" data-sin-carga>política de cookies<span class="visually-hidden"> (se abre en una pestaña nueva)</span></a>.
+                        </label>
+                    </div>
+                    <span asp-validation-for="aceptaTerminos" class="text-danger"></span>
+                    <p id="registro-terminos-ayuda" class="form-text" data-ayuda-envio hidden>Marque la casilla para habilitar el botón de registro.</p>
+                </div>
+
+                <button class="btn btn-primary btn-lg w-100" type="submit" aria-describedby="registro-terminos-ayuda">Registrarme</button>
             </form>
 
             <div class="auth-form__enlaces">

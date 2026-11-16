@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using STAT_Academy.Api.Auth;
 using STAT_Academy.Api.Data;
 using STAT_Academy.DTOs.Usuarios;
@@ -18,12 +20,15 @@ namespace STAT_Academy.Api.Services
         private readonly AuditoriaService _auditoria;
         private readonly ValidadorSesion _validadorSesion;
         private readonly PasswordHasher<UsuarioModel> _passwordHasher;
+        private readonly ILogger<UsuarioService> _logger;
 
-        public UsuarioService(ApplicationDbContext context, AuditoriaService auditoria, ValidadorSesion validadorSesion)
+        public UsuarioService(ApplicationDbContext context, AuditoriaService auditoria, ValidadorSesion validadorSesion,
+            ILogger<UsuarioService>? logger = null)
         {
             _context = context;
             _auditoria = auditoria;
             _validadorSesion = validadorSesion;
+            _logger = logger ?? NullLogger<UsuarioService>.Instance;
             _passwordHasher = new PasswordHasher<UsuarioModel>();
         }
 
@@ -148,6 +153,10 @@ namespace STAT_Academy.Api.Services
         /// <summary>Registro público: siempre crea un Cliente.</summary>
         public async Task<UsuarioResponse> RegisterUsuarioAsync(RegisterUsuarioRequest request)
         {
+            // El controlador ya valida el DTO; se repite aquí para que ningún llamador lo salte.
+            if (!request.aceptaTerminos || string.IsNullOrWhiteSpace(request.versionTerminos))
+                throw new InvalidOperationException(RegisterUsuarioRequest.MensajeTerminos);
+
             bool emailExiste = await _context.Usuario.AnyAsync(u => u.email == request.email);
 
             if (emailExiste)
@@ -167,9 +176,38 @@ namespace STAT_Academy.Api.Services
             _context.Usuario.Add(usuario);
             await _context.SaveChangesAsync();
 
+            await GuardarAceptacionTerminosAsync(usuario.id, request.versionTerminos.Trim());
+
             await _auditoria.RegistrarAsync(Entidad, "CREATE", $"Usuario {usuario.email} registrado", "sistema", usuario.id);
 
             return (await GetUsuarioByIdAsync(usuario.id))!;
+        }
+
+        /// <summary>
+        /// Guarda la versión y la fecha/hora (UTC) en que el usuario aceptó los términos.
+        /// Si aún no existe la tabla (falta 2026-11-16_usuario_terminos.sql) el registro sigue y queda aviso en el log.
+        /// </summary>
+        private async Task GuardarAceptacionTerminosAsync(int usuarioId, string version)
+        {
+            var aceptacion = new UsuarioTerminosModel
+            {
+                fk_Usuario = usuarioId,
+                version_Terminos = version,
+                fecha_Aceptacion = DateTime.UtcNow
+            };
+
+            _context.UsuarioTerminos.Add(aceptacion);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 208 })
+            {
+                _context.Entry(aceptacion).State = EntityState.Detached;
+                _logger.LogWarning("No existe la tabla USUARIO_TERMINOS (falta 2026-11-16_usuario_terminos.sql); " +
+                    "no se guardó la aceptación de términos del usuario {UsuarioId}.", usuarioId);
+            }
         }
 
         // ==================================================================
