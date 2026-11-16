@@ -4943,3 +4943,9 @@ h3.panel-form__seccion {
 .panel-aviso p:has(> .icono) {
     display: flex;
 }
+
+/* Mensajes de error vacíos (los llena el validador o site.js): sin ícono ni espacio */
+.invalid-feedback:empty,
+.field-validation-error:empty {
+    display: none !important;
+}

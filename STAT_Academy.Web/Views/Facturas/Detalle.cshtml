@@ -10,7 +10,7 @@
     var tieneCursos = Model.lineas.Any(l => l.tipo == "CURSO");
 }
 
-<section class="section">
+<section class="section section--compacta">
     <div class="container contenedor-angosto">
         <a class="enlace-volver no-print" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Facturas y pedidos</a>
 
@@ -18,7 +18,7 @@
             <span class="eyebrow">Comprobante de compra</span>
             <h1>Compra #@Model.id</h1>
             <p>
-                @EstadoPago.Fecha(Model.fecha) ·
+                @EstadoPago.Fecha(Model.fecha)
                 <span class="status-pill @estadoClase">@estadoTexto</span>
             </p>
         </div>
@@ -81,7 +81,7 @@
                             A nombre de @i.cuentaTitular
                             @if (!string.IsNullOrWhiteSpace(i.cedulaJuridica))
                             {
-                                <text>· Cédula jurídica @i.cedulaJuridica</text>
+                                <text>, cédula jurídica @i.cedulaJuridica</text>
                             }
                         </p>
                     </div>
@@ -145,11 +145,11 @@
                                         Enviado el @EstadoPago.Fecha(p.fechaEnvio)
                                         @if (!string.IsNullOrWhiteSpace(p.referencia))
                                         {
-                                            <text>· Ref. @p.referencia</text>
+                                            <text>, ref. @p.referencia</text>
                                         }
                                         @if (p.fechaRevision is DateTime revision)
                                         {
-                                            <text>· Revisado el @EstadoPago.Fecha(revision)</text>
+                                            <text>, revisado el @EstadoPago.Fecha(revision)</text>
                                         }
                                     </div>
                                     @if (p.estado == "RECHAZADO" && !string.IsNullOrWhiteSpace(p.observacion))

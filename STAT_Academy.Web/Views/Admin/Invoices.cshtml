@@ -183,7 +183,7 @@
                                 <td data-label="Total" class="text-end"><span class="panel-dato">@Formato.Colones(f.total)</span></td>
                                 <td data-label="Estado"><span class="status-pill @clase">@texto</span></td>
                                 <td class="panel-tabla__acciones">
-                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Invoice" asp-route-id="@f.id">Ver</a>
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Invoice" asp-route-id="@f.id">Ver<span class="visually-hidden"> compra #@f.id</span></a>
                                 </td>
                             </tr>
                         }

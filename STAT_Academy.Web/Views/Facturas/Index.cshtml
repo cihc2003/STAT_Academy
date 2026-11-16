@@ -57,14 +57,14 @@
                 <noscript><button class="btn btn-sm btn-secundario" type="submit">Aplicar</button></noscript>
             </form>
 
-            <div class="table-card">
+            <div class="table-card panel-tabla">
                 <table class="table align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Compra</th>
-                            <th>Detalle</th>
-                            <th class="text-end">Total</th>
-                            <th>Estado</th>
+                            <th scope="col">Compra</th>
+                            <th scope="col">Detalle</th>
+                            <th scope="col" class="text-end">Total</th>
+                            <th scope="col">Estado</th>
                             <th><span class="visually-hidden">Acciones</span></th>
                         </tr>
                     </thead>
@@ -74,17 +74,17 @@
                             var (texto, clase) = EstadoPago.Factura(f.estado);
                             var pendiente = f.estado is "PENDIENTE_PAGO" or "RECHAZADA";
                             <tr>
-                                <td>
-                                    <strong>#@f.id</strong>
+                                <td class="panel-tabla__principal">
+                                    <strong>Compra #@f.id</strong>
                                     <div class="text-muted small">@EstadoPago.Fecha(f.fecha)</div>
                                 </td>
-                                <td>@f.descripcion</td>
-                                <td class="text-end text-nowrap">@Formato.Colones(f.total)</td>
-                                <td><span class="status-pill @clase">@texto</span></td>
-                                <td class="text-end">
-                                    <a class="btn btn-sm @(pendiente ? "btn-primary" : "btn-outline-primary")"
+                                <td data-label="Detalle" class="panel-tabla__texto">@f.descripcion</td>
+                                <td data-label="Total" class="text-end text-nowrap">@Formato.Colones(f.total)</td>
+                                <td data-label="Estado"><span class="status-pill @clase">@texto</span></td>
+                                <td class="panel-tabla__acciones">
+                                    <a class="btn btn-sm @(pendiente ? "btn-primary" : "btn-secundario")"
                                        asp-action="Detalle" asp-route-id="@f.id">
-                                        @(pendiente ? "Pagar" : "Ver")
+                                        @(pendiente ? "Pagar" : "Ver")<span class="visually-hidden"> compra #@f.id</span>
                                     </a>
                                 </td>
                             </tr>
