@@ -267,15 +267,14 @@
     text-align: center;
 }
 
+/* El nombre del archivo se muestra completo: pasa a otra línea en lugar de recortarse con «…» */
 .lista-archivos__nombre,
 .blog-documentos a {
     flex: 1 1 auto;
     min-width: 0;
-    overflow: hidden;
     color: var(--color-titulo);
     font-weight: var(--peso-medio);
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 
 .lista-archivos__icono {
@@ -537,9 +536,8 @@
 
 .blog-adjunto__nombre,
 .tarea-adjuntos__nombre {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .blog-seleccion {

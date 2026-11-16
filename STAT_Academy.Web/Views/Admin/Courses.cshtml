@@ -24,7 +24,7 @@
                 <p>Oferta académica: precios, fechas, tutores y portadas.</p>
             </div>
             <div class="panel-encabezado__acciones">
-                <a class="btn btn-primary" asp-action="CourseForm">@Html.Icono("mas")Agregar curso</a>
+                <a class="btn btn-primary" asp-action="CourseForm">@Html.Icono("mas")Nuevo curso</a>
             </div>
         </div>
 
@@ -99,7 +99,7 @@
                         <tr>
                             <td colspan="5" class="panel-tabla__vacio">
                                 <strong>No se encontraron cursos.</strong>
-                                @(!hayFiltros ? "Agregue el primero con el botón «Agregar curso»." : "Pruebe con otros filtros.")
+                                @(!hayFiltros ? "Agregue el primero con el botón «Nuevo curso»." : "Pruebe con otros filtros.")
                             </td>
                         </tr>
                     }
