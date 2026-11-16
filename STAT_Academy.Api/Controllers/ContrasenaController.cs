@@ -44,7 +44,7 @@ namespace STAT_Academy.Api.Controllers
             // Pasado el límite por dirección no se genera ni envía nada, pero la respuesta es la misma
             // (así no se puede usar para saber qué correos existen ni para inundar un buzón).
             var token = _limitador.PermitirRecuperacion(request.email)
-                ? _contrasenaService.GenerarTokenRecuperacion(request.email)
+                ? await _contrasenaService.GenerarTokenRecuperacionAsync(request.email)
                 : null;
 
             if (token != null)
@@ -75,11 +75,11 @@ namespace STAT_Academy.Api.Controllers
         [AllowAnonymous]
         [HttpPost("restablecer")]
         [EnableRateLimiting(LimitesSolicitudes.Anonimo)]
-        public IActionResult RestablecerContrasena(
+        public async Task<IActionResult> RestablecerContrasena(
             RestablecerContrasenaRequest request)
         {
-            var resultado = _contrasenaService
-                .RestablecerContrasena(request);
+            var resultado = await _contrasenaService
+                .RestablecerContrasenaAsync(request);
 
             if (!resultado)
             {
@@ -102,8 +102,8 @@ namespace STAT_Academy.Api.Controllers
             CambiarContrasenaRequest request)
         {
             // Solo se puede cambiar la contraseña propia: el id sale del token.
-            var resultado = _contrasenaService
-                .CambiarContrasena(UsuarioActualId, request);
+            var resultado = await _contrasenaService
+                .CambiarContrasenaAsync(UsuarioActualId, request);
 
             if (!resultado.exitoso)
             {
@@ -129,7 +129,7 @@ namespace STAT_Academy.Api.Controllers
 
             // El cambio revoca los tokens anteriores (ver ValidadorSesion), incluido el de esta
             // sesión: se devuelve uno nuevo para que el cliente siga conectado.
-            var sesion = _loginService.SesionDe(UsuarioActualId);
+            var sesion = await _loginService.SesionDeAsync(UsuarioActualId);
             if (sesion == null)
                 return Ok(new { message = resultado.mensaje });
 

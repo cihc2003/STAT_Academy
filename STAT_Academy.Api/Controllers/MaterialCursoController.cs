@@ -24,13 +24,13 @@ namespace STAT_Academy.Api.Controllers
             if (!await PuedeVerCurso(cursoId))
                 return Forbid();
 
-            return Ok(_service.ObtenerPorCurso(cursoId));
+            return Ok(await _service.ObtenerPorCursoAsync(cursoId));
         }
 
         [HttpGet("{id}/descargar")]
         public async Task<IActionResult> Descargar(int id, CancellationToken ct)
         {
-            var cursoId = _tutor.CursoDeMaterial(id);
+            var cursoId = await _tutor.CursoDeMaterialAsync(id);
             if (cursoId == null)
                 return NotFound(new { message = "El material no existe." });
 
@@ -48,7 +48,7 @@ namespace STAT_Academy.Api.Controllers
         private async Task<bool> PuedeVerCurso(int cursoId)
         {
             if (EsAdmin) return true;
-            var (existe, tutorId) = _tutor.TutorDelCurso(cursoId);
+            var (existe, tutorId) = await _tutor.TutorDelCursoAsync(cursoId);
             return existe && (EsTutor(tutorId) || await _tutor.PuedeVerComoEstudianteAsync(cursoId, UsuarioActualId));
         }
     }

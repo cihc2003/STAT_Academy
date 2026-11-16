@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 using STAT_Academy.Api.Data;
@@ -132,10 +133,10 @@ namespace STAT_Academy.Api.Errores
                         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                         var correo = scope.ServiceProvider.GetRequiredService<CorreoService>();
 
-                        var administradores = context.Usuario
+                        var administradores = await context.Usuario
                             .Where(u => u.fk_Tipo_Usuario == 1 && u.estado && u.email != null)
                             .Select(u => u.email!)
-                            .ToList();
+                            .ToListAsync(stoppingToken);
 
                         if (administradores.Count == 0)
                         {

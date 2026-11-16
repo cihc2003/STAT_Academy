@@ -29,27 +29,27 @@ namespace STAT_Academy.Api.Controllers
 
         /// <summary>Cursos asignados al tutor (Admin: todos).</summary>
         [HttpGet("cursos")]
-        public IActionResult Cursos() =>
-            Ok(_service.CursosAsignados(EsAdmin ? null : UsuarioActualId));
+        public async Task<IActionResult> Cursos() =>
+            Ok(await _service.CursosAsignadosAsync(EsAdmin ? null : UsuarioActualId));
 
         [HttpGet("cursos/{cursoId}")]
-        public IActionResult Curso(int cursoId) =>
-            ConCurso(cursoId, () => Ok(_service.Curso(cursoId)));
+        public async Task<IActionResult> Curso(int cursoId) =>
+            await ConCurso(cursoId, async () => Ok(await _service.CursoAsync(cursoId)));
 
         [HttpGet("cursos/{cursoId}/estudiantes")]
-        public IActionResult Estudiantes(int cursoId) =>
-            ConCurso(cursoId, () => Ok(_service.Estudiantes(cursoId)));
+        public async Task<IActionResult> Estudiantes(int cursoId) =>
+            await ConCurso(cursoId, async () => Ok(await _service.EstudiantesAsync(cursoId)));
 
         [HttpGet("cursos/{cursoId}/calificaciones")]
-        public IActionResult Calificaciones(int cursoId) =>
-            ConCurso(cursoId, () => Ok(_service.Calificaciones(cursoId)));
+        public async Task<IActionResult> Calificaciones(int cursoId) =>
+            await ConCurso(cursoId, async () => Ok(await _service.CalificacionesAsync(cursoId)));
 
         /// <summary>Ajusta la nota final del estudiante; con nota = null vuelve a la calculada.</summary>
         [HttpPut("cursos/{cursoId}/estudiantes/{estudianteId}/nota-final")]
-        public IActionResult AjustarNotaFinal(int cursoId, int estudianteId, TutorNotaFinalRequest request) =>
-            ConCurso(cursoId, () =>
+        public async Task<IActionResult> AjustarNotaFinal(int cursoId, int estudianteId, TutorNotaFinalRequest request) =>
+            await ConCurso(cursoId, async () =>
             {
-                var (exitoso, mensaje) = _service.AjustarNotaFinal(cursoId, estudianteId, request, UsuarioActualId, UsuarioActualEmail);
+                var (exitoso, mensaje) = await _service.AjustarNotaFinalAsync(cursoId, estudianteId, request, UsuarioActualId, UsuarioActualEmail);
                 return exitoso ? Ok(new { message = mensaje }) : BadRequest(new { message = mensaje });
             });
 
@@ -58,43 +58,43 @@ namespace STAT_Academy.Api.Controllers
         // ---------------------------------------------------------------
 
         [HttpGet("cursos/{cursoId}/tareas")]
-        public IActionResult Tareas(int cursoId) =>
-            ConCurso(cursoId, () => Ok(_service.Tareas(cursoId)));
+        public async Task<IActionResult> Tareas(int cursoId) =>
+            await ConCurso(cursoId, async () => Ok(await _service.TareasAsync(cursoId)));
 
         [HttpPost("cursos/{cursoId}/tareas")]
-        public IActionResult CrearTarea(int cursoId, TutorTareaRequest request) =>
-            ConCurso(cursoId, () =>
+        public async Task<IActionResult> CrearTarea(int cursoId, TutorTareaRequest request) =>
+            await ConCurso(cursoId, async () =>
             {
                 if (request.fechaLimite < request.fechaInicio)
                     return BadRequest(new { message = "La fecha límite no puede ser anterior a la fecha de inicio." });
 
-                var tarea = _service.CrearTarea(cursoId, request, UsuarioActualId, UsuarioActualEmail);
+                var tarea = await _service.CrearTareaAsync(cursoId, request, UsuarioActualId, UsuarioActualEmail);
                 return Ok(tarea);
             });
 
         [HttpPut("tareas/{tareaId}")]
-        public IActionResult EditarTarea(int tareaId, TutorTareaRequest request) =>
-            ConCurso(_service.CursoDeTarea(tareaId), () =>
+        public async Task<IActionResult> EditarTarea(int tareaId, TutorTareaRequest request) =>
+            await ConCurso(await _service.CursoDeTareaAsync(tareaId), async () =>
             {
                 if (request.fechaLimite < request.fechaInicio)
                     return BadRequest(new { message = "La fecha límite no puede ser anterior a la fecha de inicio." });
 
-                return Ok(_service.EditarTarea(tareaId, request, UsuarioActualEmail));
+                return Ok(await _service.EditarTareaAsync(tareaId, request, UsuarioActualEmail));
             }, "La tarea no existe.");
 
         [HttpPatch("tareas/{tareaId}/desactivar")]
-        public IActionResult DesactivarTarea(int tareaId) =>
-            ConCurso(_service.CursoDeTarea(tareaId), () =>
+        public async Task<IActionResult> DesactivarTarea(int tareaId) =>
+            await ConCurso(await _service.CursoDeTareaAsync(tareaId), async () =>
             {
-                _service.CambiarEstadoTarea(tareaId, false, UsuarioActualEmail);
+                await _service.CambiarEstadoTareaAsync(tareaId, false, UsuarioActualEmail);
                 return Ok(new { message = "La tarea quedó oculta para los estudiantes." });
             }, "La tarea no existe.");
 
         [HttpPatch("tareas/{tareaId}/activar")]
-        public IActionResult ActivarTarea(int tareaId) =>
-            ConCurso(_service.CursoDeTarea(tareaId), () =>
+        public async Task<IActionResult> ActivarTarea(int tareaId) =>
+            await ConCurso(await _service.CursoDeTareaAsync(tareaId), async () =>
             {
-                _service.CambiarEstadoTarea(tareaId, true, UsuarioActualEmail);
+                await _service.CambiarEstadoTareaAsync(tareaId, true, UsuarioActualEmail);
                 return Ok(new { message = "La tarea vuelve a estar visible para los estudiantes." });
             }, "La tarea no existe.");
 
@@ -103,14 +103,14 @@ namespace STAT_Academy.Api.Controllers
         // ---------------------------------------------------------------
 
         [HttpGet("tareas/{tareaId}/entregas")]
-        public IActionResult Entregas(int tareaId) =>
-            ConCurso(_service.CursoDeTarea(tareaId), () =>
+        public async Task<IActionResult> Entregas(int tareaId) =>
+            await ConCurso(await _service.CursoDeTareaAsync(tareaId), async () =>
             {
-                var respuesta = _service.Entregas(tareaId);
+                var respuesta = await _service.EntregasAsync(tareaId);
                 if (respuesta == null)
                     return NotFound(new { message = "La tarea no existe." });
 
-                respuesta.adjuntos = _adjuntos.Listar(tareaId);
+                respuesta.adjuntos = await _adjuntos.ListarAsync(tareaId);
                 respuesta.adjuntosDisponible = _adjuntos.Disponible;
                 return Ok(respuesta);
             }, "La tarea no existe.");
@@ -129,7 +129,7 @@ namespace STAT_Academy.Api.Controllers
             [FromForm] IFormFile? archivo,
             [FromForm] string? enlace)
         {
-            var error = Verificar(_service.CursoDeTarea(tareaId), "La tarea no existe.");
+            var error = await VerificarAsync(await _service.CursoDeTareaAsync(tareaId), "La tarea no existe.");
             if (error != null)
                 return error;
 
@@ -140,7 +140,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpDelete("adjuntos/{adjuntoId}")]
         public async Task<IActionResult> QuitarAdjunto(int adjuntoId)
         {
-            var error = Verificar(_adjuntos.CursoDeAdjunto(adjuntoId), "El documento no existe.");
+            var error = await VerificarAsync(await _adjuntos.CursoDeAdjuntoAsync(adjuntoId), "El documento no existe.");
             if (error != null)
                 return error;
 
@@ -152,7 +152,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpGet("adjuntos/{adjuntoId}/descargar")]
         public async Task<IActionResult> DescargarAdjunto(int adjuntoId, CancellationToken ct)
         {
-            var error = Verificar(_adjuntos.CursoDeAdjunto(adjuntoId), "El documento no existe.");
+            var error = await VerificarAsync(await _adjuntos.CursoDeAdjuntoAsync(adjuntoId), "El documento no existe.");
             if (error != null)
                 return error;
 
@@ -165,17 +165,17 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPut("entregas/{entregaId}/calificacion")]
-        public IActionResult Calificar(int entregaId, TutorCalificarRequest request) =>
-            ConCurso(_service.CursoDeEntrega(entregaId), () =>
+        public async Task<IActionResult> Calificar(int entregaId, TutorCalificarRequest request) =>
+            await ConCurso(await _service.CursoDeEntregaAsync(entregaId), async () =>
             {
-                var (exitoso, mensaje) = _service.Calificar(entregaId, request, UsuarioActualEmail);
+                var (exitoso, mensaje) = await _service.CalificarAsync(entregaId, request, UsuarioActualEmail);
                 return exitoso ? Ok(new { message = mensaje }) : BadRequest(new { message = mensaje });
             }, "La entrega no existe.");
 
         [HttpGet("entregas/archivos/{archivoId}/descargar")]
         public async Task<IActionResult> DescargarArchivoEntrega(int archivoId, CancellationToken ct)
         {
-            var error = Verificar(_service.CursoDeArchivoEntrega(archivoId), "El archivo no existe.");
+            var error = await VerificarAsync(await _service.CursoDeArchivoEntregaAsync(archivoId), "El archivo no existe.");
             if (error != null)
                 return error;
 
@@ -192,8 +192,8 @@ namespace STAT_Academy.Api.Controllers
         // ---------------------------------------------------------------
 
         [HttpGet("cursos/{cursoId}/material")]
-        public IActionResult Material(int cursoId) =>
-            ConCurso(cursoId, () => Ok(_service.Material(cursoId)));
+        public async Task<IActionResult> Material(int cursoId) =>
+            await ConCurso(cursoId, async () => Ok(await _service.MaterialAsync(cursoId)));
 
         /// <summary>Agrega material: un archivo (campo "archivo") o un enlace (campo "enlace").</summary>
         [HttpPost("cursos/{cursoId}/material")]
@@ -205,7 +205,7 @@ namespace STAT_Academy.Api.Controllers
             [FromForm] IFormFile? archivo,
             [FromForm] string? enlace)
         {
-            var error = Verificar(cursoId);
+            var error = await VerificarAsync(cursoId);
             if (error != null)
                 return error;
 
@@ -218,7 +218,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpDelete("material/{materialId}")]
         public async Task<IActionResult> QuitarMaterial(int materialId)
         {
-            var error = Verificar(_service.CursoDeMaterial(materialId), "El material no existe.");
+            var error = await VerificarAsync(await _service.CursoDeMaterialAsync(materialId), "El material no existe.");
             if (error != null)
                 return error;
 
@@ -232,12 +232,12 @@ namespace STAT_Academy.Api.Controllers
         // ---------------------------------------------------------------
 
         /// <summary>null si el usuario puede gestionar el curso; si no, la respuesta de error.</summary>
-        private IActionResult? Verificar(int? cursoId, string noExiste = "El curso no existe.")
+        private async Task<IActionResult?> VerificarAsync(int? cursoId, string noExiste = "El curso no existe.")
         {
             if (cursoId == null)
                 return NotFound(new { message = noExiste });
 
-            var (existe, tutorId) = _service.TutorDelCurso(cursoId.Value);
+            var (existe, tutorId) = await _service.TutorDelCursoAsync(cursoId.Value);
 
             if (!existe)
                 return NotFound(new { message = "El curso no existe." });
@@ -249,7 +249,7 @@ namespace STAT_Academy.Api.Controllers
             return null;
         }
 
-        private IActionResult ConCurso(int? cursoId, Func<IActionResult> accion, string noExiste = "El curso no existe.") =>
-            Verificar(cursoId, noExiste) ?? accion();
+        private async Task<IActionResult> ConCurso(int? cursoId, Func<Task<IActionResult>> accion, string noExiste = "El curso no existe.") =>
+            await VerificarAsync(cursoId, noExiste) ?? await accion();
     }
 }

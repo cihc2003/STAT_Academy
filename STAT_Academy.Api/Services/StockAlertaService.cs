@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 
@@ -27,21 +28,21 @@ namespace STAT_Academy.Api.Services
             _logger = logger;
         }
 
-        public async Task Notificar(IReadOnlyCollection<ProductoModel> productos)
+        public async Task NotificarAsync(IReadOnlyCollection<ProductoModel> productos)
         {
             if (productos.Count == 0)
                 return;
 
             foreach (var p in productos)
             {
-                _auditoria.Registrar("PRODUCTO", "STOCK_BAJO",
+                await _auditoria.RegistrarAsync("PRODUCTO", "STOCK_BAJO",
                     $"Stock bajo: {p.nombre} tiene {p.stock} (mínimo {p.min_stock})", "sistema", p.id);
             }
 
-            var administradores = _context.Usuario
+            var administradores = await _context.Usuario
                 .Where(u => u.fk_Tipo_Usuario == 1 && u.estado && u.email != null)
                 .Select(u => u.email!)
-                .ToList();
+                .ToListAsync();
 
             if (administradores.Count == 0)
             {

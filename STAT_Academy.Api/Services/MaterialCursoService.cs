@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.DTOs.MaterialCurso;
 
@@ -12,12 +13,15 @@ namespace STAT_Academy.Api.Services
             _context = context;
         }
 
-        public List<MaterialCursoResponse> ObtenerPorCurso(int cursoId)
+        public async Task<List<MaterialCursoResponse>> ObtenerPorCursoAsync(int cursoId)
         {
-            return _context.MaterialCurso
+            var materiales = await _context.MaterialCurso
+                .AsNoTracking()
                 .Where(m => m.fk_Curso == cursoId && m.estado == true)
                 .OrderBy(m => m.id)
-                .AsEnumerable()
+                .ToListAsync();
+
+            return materiales
                 .Select(m => new MaterialCursoResponse
                 {
                     Id = m.id,

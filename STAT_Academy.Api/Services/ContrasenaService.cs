@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using STAT_Academy.Api.Auth;
@@ -30,11 +31,11 @@ namespace STAT_Academy.Api.Services
             _passwordHasher = new PasswordHasher<UsuarioModel>();
         }
 
-        public string? GenerarTokenRecuperacion(string email)
+        public async Task<string?> GenerarTokenRecuperacionAsync(string email)
         {
             var correoNormalizado = email.Trim().ToLower();
 
-            var usuario = _context.Usuario.FirstOrDefault(
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(
                 u => u.email != null
                      && u.email.ToLower() == correoNormalizado
                      && u.estado
@@ -52,9 +53,9 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_expiracion = DateTime.UtcNow.AddMinutes(30);
             usuario.reset_token_usado = false;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar(
+            await _auditoria.RegistrarAsync(
                 "USUARIO",
                 "PASSWORD_RESET_REQUEST",
                 $"Se solicitó recuperación de contraseña para {usuario.email}",
@@ -64,7 +65,7 @@ namespace STAT_Academy.Api.Services
             return token;
         }
 
-        public bool RestablecerContrasena(
+        public async Task<bool> RestablecerContrasenaAsync(
             RestablecerContrasenaRequest request)
         {
             if (request.nuevaContrasena != request.confirmarContrasena)
@@ -74,7 +75,7 @@ namespace STAT_Academy.Api.Services
 
             var hashToken = CalcularHashToken(request.token);
 
-            var usuario = _context.Usuario.FirstOrDefault(
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(
                 u => u.reset_token_hash == hashToken
                      && !u.reset_token_usado
                      && u.reset_token_expiracion != null
@@ -97,12 +98,12 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_expiracion = null;
             usuario.intentos_login = 0;
             // Quien demuestra tener el correo recupera el acceso aunque la cuenta estuviera bloqueada.
-            _loginService.Desbloquear(usuario.id);
+            await _loginService.DesbloquearAsync(usuario.id);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _validadorSesion.Invalidar(usuario.id); // revoca los tokens emitidos con la contraseña anterior
 
-            _auditoria.Registrar(
+            await _auditoria.RegistrarAsync(
                 "USUARIO",
                 "PASSWORD_RESET",
                 $"La contraseña de {usuario.email} fue restablecida",
@@ -116,7 +117,7 @@ namespace STAT_Academy.Api.Services
         /// Cambia la contraseña del usuario autenticado.
         /// Devuelve el motivo exacto cuando no se puede cambiar.
         /// </summary>
-        public ResultadoCambioContrasena CambiarContrasena(
+        public async Task<ResultadoCambioContrasena> CambiarContrasenaAsync(
             int usuarioId,
             CambiarContrasenaRequest request)
         {
@@ -132,7 +133,7 @@ namespace STAT_Academy.Api.Services
                     "La contraseña nueva debe ser diferente de la actual.");
             }
 
-            var usuario = _context.Usuario.FirstOrDefault(
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(
                 u => u.id == usuarioId && u.estado
             );
 
@@ -165,10 +166,10 @@ namespace STAT_Academy.Api.Services
             usuario.reset_token_usado = true;
             usuario.intentos_login = 0;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             _validadorSesion.Invalidar(usuario.id); // revoca los tokens emitidos con la contraseña anterior
 
-            _auditoria.Registrar(
+            await _auditoria.RegistrarAsync(
                 "USUARIO",
                 "PASSWORD_CHANGE",
                 $"El usuario {usuario.email} cambió su contraseña",

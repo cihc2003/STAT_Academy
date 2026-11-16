@@ -26,16 +26,16 @@ namespace STAT_Academy.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            return Ok(_service.GetBlogs(incluirInactivos: EsAdmin));
+            return Ok(await _service.GetBlogsAsync(incluirInactivos: EsAdmin));
         }
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var blog = _service.GetBlogById(id, incluirInactivos: EsAdmin);
+            var blog = await _service.GetBlogByIdAsync(id, incluirInactivos: EsAdmin);
 
             if (blog == null)
                 return NotFound(new { message = "La entrada no existe o no está disponible." });
@@ -45,9 +45,9 @@ namespace STAT_Academy.Api.Controllers
 
         [Authorize(Roles = Roles.Admin)]
         [HttpPost]
-        public IActionResult Create(CreateBlogRequest request)
+        public async Task<IActionResult> Create(CreateBlogRequest request)
         {
-            var (blog, error) = _service.CrearBlog(request, UsuarioActualId, UsuarioActualEmail);
+            var (blog, error) = await _service.CrearBlogAsync(request, UsuarioActualId, UsuarioActualEmail);
 
             if (blog == null)
                 return BadRequest(new { message = error });
@@ -56,13 +56,13 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, UpdateBlogRequest request)
+        public async Task<IActionResult> Update(int id, UpdateBlogRequest request)
         {
-            var permiso = SoloAutor(id);
+            var permiso = await SoloAutorAsync(id);
             if (permiso != null)
                 return permiso;
 
-            var (blog, error) = _service.ActualizarBlog(id, request, UsuarioActualEmail);
+            var (blog, error) = await _service.ActualizarBlogAsync(id, request, UsuarioActualEmail);
 
             if (error != null)
                 return BadRequest(new { message = error });
@@ -85,27 +85,27 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPatch("{id}/desactivar")]
-        public IActionResult Desactivar(int id)
+        public async Task<IActionResult> Desactivar(int id)
         {
-            var permiso = AutorOAdmin(id);
+            var permiso = await AutorOAdminAsync(id);
             if (permiso != null)
                 return permiso;
 
-            _service.DesactivarBlog(id, UsuarioActualEmail);
+            await _service.DesactivarBlogAsync(id, UsuarioActualEmail);
 
             return Ok(new { message = "La entrada fue desactivada y ya no es visible para los clientes." });
         }
 
         [HttpPatch("{id}/activar")]
-        public IActionResult Activar(int id)
+        public async Task<IActionResult> Activar(int id)
         {
-            var permiso = AutorOAdmin(id);
+            var permiso = await AutorOAdminAsync(id);
             if (permiso != null)
                 return permiso;
 
-            var actual = _service.GetBlogById(id, incluirInactivos: true)!;
+            var actual = (await _service.GetBlogByIdAsync(id, incluirInactivos: true))!;
 
-            _service.ActualizarBlog(id, new UpdateBlogRequest
+            await _service.ActualizarBlogAsync(id, new UpdateBlogRequest
             {
                 titulo = actual.titulo,
                 contenido = actual.contenido,
@@ -142,7 +142,7 @@ namespace STAT_Academy.Api.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = BlogArchivoValidador.MaxBytesPeticion)]
         public async Task<IActionResult> SubirArchivos(int id, [FromForm] List<IFormFile> archivos)
         {
-            var permiso = SoloAutor(id);
+            var permiso = await SoloAutorAsync(id);
             if (permiso != null)
                 return permiso;
 
@@ -163,7 +163,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpDelete("{id}/archivos/{archivoId}")]
         public async Task<IActionResult> QuitarArchivo(int id, int archivoId)
         {
-            var permiso = SoloAutor(id);
+            var permiso = await SoloAutorAsync(id);
             if (permiso != null)
                 return permiso;
 
@@ -174,13 +174,13 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPatch("{id}/archivos/{archivoId}/principal")]
-        public IActionResult MarcarPrincipal(int id, int archivoId)
+        public async Task<IActionResult> MarcarPrincipal(int id, int archivoId)
         {
-            var permiso = SoloAutor(id);
+            var permiso = await SoloAutorAsync(id);
             if (permiso != null)
                 return permiso;
 
-            var (exitoso, mensaje) = _service.MarcarPrincipal(id, archivoId);
+            var (exitoso, mensaje) = await _service.MarcarPrincipalAsync(id, archivoId);
 
             return exitoso
                 ? Ok(new { message = mensaje })
@@ -190,9 +190,9 @@ namespace STAT_Academy.Api.Controllers
         // ---------------------------------------------------------------
 
         /// <summary>null si el usuario es el autor; si no, la respuesta de error.</summary>
-        private IActionResult? SoloAutor(int blogId)
+        private async Task<IActionResult?> SoloAutorAsync(int blogId)
         {
-            var autorId = _service.ObtenerAutorId(blogId);
+            var autorId = await _service.ObtenerAutorIdAsync(blogId);
 
             if (autorId == null)
                 return NotFound(new { message = "La entrada no existe." });
@@ -204,9 +204,9 @@ namespace STAT_Academy.Api.Controllers
             return null;
         }
 
-        private IActionResult? AutorOAdmin(int blogId)
+        private async Task<IActionResult?> AutorOAdminAsync(int blogId)
         {
-            var autorId = _service.ObtenerAutorId(blogId);
+            var autorId = await _service.ObtenerAutorIdAsync(blogId);
 
             if (autorId == null)
                 return NotFound(new { message = "La entrada no existe." });

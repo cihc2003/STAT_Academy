@@ -65,7 +65,7 @@ namespace STAT_Academy.Api.Services
                 .Select(m => (int?)m.IdMatricula)
                 .FirstOrDefaultAsync();
 
-            var ajuste = matriculaId == null ? null : _notaFinal.Ajuste(matriculaId.Value);
+            var ajuste = matriculaId == null ? null : await _notaFinal.AjusteAsync(matriculaId.Value);
 
             return new AulaCursoResponse
             {
@@ -105,7 +105,7 @@ namespace STAT_Academy.Api.Services
 
         public async Task<(ArchivoDescarga contenido, string nombre)?> AbrirArchivo(int archivoId, CancellationToken ct)
         {
-            var archivo = _context.EntregaTareaArchivo.AsNoTracking().FirstOrDefault(a => a.id == archivoId && a.estado);
+            var archivo = await _context.EntregaTareaArchivo.AsNoTracking().FirstOrDefaultAsync(a => a.id == archivoId && a.estado, ct);
             if (archivo == null)
                 return null;
 
@@ -132,15 +132,15 @@ namespace STAT_Academy.Api.Services
             int tareaId, int estudianteId, string estudianteEmail,
             IReadOnlyList<IFormFile> archivos, string? enlace, bool quitarEnlace, CancellationToken ct)
         {
-            var tarea = _context.Tarea.AsNoTracking().FirstOrDefault(t => t.ID == tareaId && t.Estado != false);
+            var tarea = await _context.Tarea.AsNoTracking().FirstOrDefaultAsync(t => t.ID == tareaId && t.Estado != false, ct);
             if (tarea?.CursoId == null)
                 return (null, "La tarea no existe.");
 
-            var entrega = _context.EntregaTarea
+            var entrega = await _context.EntregaTarea
                 .Include(e => e.Archivos.Where(a => a.estado))
                 .Where(e => e.fk_Tarea == tareaId && e.fk_Estudiante == estudianteId)
                 .OrderByDescending(e => e.id)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync(ct);
 
             if (entrega?.calificacion != null)
                 return (null, "La tarea ya fue calificada; la entrega no se puede modificar.");
@@ -178,7 +178,7 @@ namespace STAT_Academy.Api.Services
                 entrega.estado = null;
                 await _context.SaveChangesAsync(ct);
 
-                _auditoria.Registrar("ENTREGA_TAREA", "DISABLE",
+                await _auditoria.RegistrarAsync("ENTREGA_TAREA", "DISABLE",
                     $"Entrega retirada de la tarea {Recortar(tarea.Titulo ?? "")}", estudianteEmail, entrega.id);
 
                 return (await TareaAsync(tareaId, estudianteId), null);
@@ -251,11 +251,11 @@ namespace STAT_Academy.Api.Services
                 return (null, "No se pudo registrar la entrega. Inténtelo de nuevo.");
             }
 
-            _auditoria.Registrar("ENTREGA_TAREA", primeraVez ? "CREATE" : "UPDATE",
+            await _auditoria.RegistrarAsync("ENTREGA_TAREA", primeraVez ? "CREATE" : "UPDATE",
                 $"Entrega de la tarea {Recortar(tarea.Titulo ?? "")} ({subidos.Count} archivo(s){(TutorService.EsEnlace(enlaceNuevo) ? " y enlace" : "")})",
                 estudianteEmail, entrega.id);
 
-            AvisarTutor(tarea, estudianteId, primeraVez);
+            await AvisarTutorAsync(tarea, estudianteId, primeraVez);
 
             return (await TareaAsync(tareaId, estudianteId), null);
         }
@@ -263,12 +263,12 @@ namespace STAT_Academy.Api.Services
         /// <summary>Quita un archivo de la entrega propia (si no está calificada).</summary>
         public async Task<(bool exitoso, string mensaje, int? tareaId)> QuitarArchivo(int archivoId, int estudianteId, string estudianteEmail)
         {
-            var archivo = _context.EntregaTareaArchivo.FirstOrDefault(a => a.id == archivoId && a.estado);
+            var archivo = await _context.EntregaTareaArchivo.FirstOrDefaultAsync(a => a.id == archivoId && a.estado);
             var entrega = archivo == null
                 ? null
-                : _context.EntregaTarea
+                : await _context.EntregaTarea
                     .Include(e => e.Archivos.Where(a => a.estado))
-                    .FirstOrDefault(e => e.id == archivo.fk_Entrega_Tarea && e.fk_Estudiante == estudianteId);
+                    .FirstOrDefaultAsync(e => e.id == archivo.fk_Entrega_Tarea && e.fk_Estudiante == estudianteId);
 
             if (archivo == null || entrega == null)
                 return (false, "El archivo no existe.", null);
@@ -287,10 +287,10 @@ namespace STAT_Academy.Api.Services
                 entrega.estado = null;
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             await BorrarBlobs([archivo.archivo_URL]);
 
-            _auditoria.Registrar("ENTREGA_TAREA_ARCHIVO", "DISABLE",
+            await _auditoria.RegistrarAsync("ENTREGA_TAREA_ARCHIVO", "DISABLE",
                 $"Archivo quitado de la entrega: {Recortar(archivo.nombre_Archivo ?? "")}", estudianteEmail, archivo.id);
 
             return (true, retirada ? "Archivo quitado. La tarea quedó sin entregar." : "Archivo quitado de la entrega.", entrega.fk_Tarea);
@@ -361,22 +361,22 @@ namespace STAT_Academy.Api.Services
         }
 
         /// <summary>Correo al tutor del curso, en segundo plano. Es complementario: si falla, la entrega ya quedó guardada.</summary>
-        private void AvisarTutor(TareaModel tarea, int estudianteId, bool primeraVez)
+        private async Task AvisarTutorAsync(TareaModel tarea, int estudianteId, bool primeraVez)
         {
             try
             {
-                var datos = (from c in _context.Curso
+                var datos = await (from c in _context.Curso
                              join u in _context.Usuario on c.fk_tutor equals u.id
                              where c.id == tarea.CursoId
                              select new { curso = c.nombre, u.email, u.nombre })
                             .AsNoTracking()
-                            .FirstOrDefault();
+                            .FirstOrDefaultAsync();
 
                 if (string.IsNullOrWhiteSpace(datos?.email))
                     return;
 
-                var estudiante = _context.Usuario.Where(u => u.id == estudianteId)
-                    .Select(u => u.nombre ?? u.email).FirstOrDefault() ?? "Un estudiante";
+                var estudiante = await _context.Usuario.Where(u => u.id == estudianteId)
+                    .Select(u => u.nombre ?? u.email).FirstOrDefaultAsync() ?? "Un estudiante";
 
                 CorreoService.EnSegundoPlano(_logger, $"la entrega de la tarea {tarea.ID}", () =>
                     _correo.EnviarEntregaRecibida(datos.email, datos.nombre ?? "", estudiante,

@@ -51,9 +51,9 @@ namespace STAT_Academy.Api.Controllers
 
         /// <summary>Comprobante de una compra propia (Admin: cualquiera).</summary>
         [HttpGet("{facturaId:int}")]
-        public IActionResult Obtener(int facturaId)
+        public async Task<IActionResult> Obtener(int facturaId)
         {
-            var compra = _service.ObtenerCompra(facturaId, UsuarioActualId, EsAdmin);
+            var compra = await _service.ObtenerCompraAsync(facturaId, UsuarioActualId, EsAdmin);
             return compra == null ? NotFound(new { message = "La compra no existe." }) : Ok(compra);
         }
     }

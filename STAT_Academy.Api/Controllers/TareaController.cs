@@ -23,12 +23,12 @@ namespace STAT_Academy.Api.Controllers
         {
             if (!EsAdmin)
             {
-                var (existe, tutorId) = _tutor.TutorDelCurso(cursoId);
+                var (existe, tutorId) = await _tutor.TutorDelCursoAsync(cursoId);
                 if (!existe || (!EsTutor(tutorId) && !await _tutor.PuedeVerComoEstudianteAsync(cursoId, UsuarioActualId)))
                     return Forbid();
             }
 
-            return Ok(_service.ObtenerPorCurso(cursoId));
+            return Ok(await _service.ObtenerPorCursoAsync(cursoId));
         }
     }
 }

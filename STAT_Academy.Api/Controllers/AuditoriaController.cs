@@ -18,9 +18,9 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var data = _service.GetAll();
+            var data = await _service.GetAllAsync();
 
             if (data == null || data.Count == 0)
                 return NoContent();
@@ -29,9 +29,9 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("accion/{accion}")]
-        public IActionResult FiltrarPorAccion(string accion)
+        public async Task<IActionResult> FiltrarPorAccion(string accion)
         {
-            var data = _service.FiltrarPorAccion(accion);
+            var data = await _service.FiltrarPorAccionAsync(accion);
 
             if (!data.Any())
                 return NotFound("No hay registros con esa acción");
@@ -40,9 +40,9 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("entidad/{entidad}")]
-        public IActionResult FiltrarPorEntidad(string entidad)
+        public async Task<IActionResult> FiltrarPorEntidad(string entidad)
         {
-            var data = _service.FiltrarPorEntidad(entidad);
+            var data = await _service.FiltrarPorEntidadAsync(entidad);
 
             if (!data.Any())
                 return NotFound("No hay registros para esa entidad");
@@ -50,9 +50,9 @@ namespace STAT_Academy.Api.Controllers
             return Ok(data);
         }
         [HttpGet("producto/{id}")]
-        public IActionResult PorProducto(int id)
+        public async Task<IActionResult> PorProducto(int id)
         {
-            return Ok(_service.FiltrarPorProducto(id));
+            return Ok(await _service.FiltrarPorProductoAsync(id));
         }
     }
 }

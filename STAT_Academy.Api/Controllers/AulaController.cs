@@ -41,7 +41,7 @@ namespace STAT_Academy.Api.Controllers
             if (tarea == null)
                 return NotFound(new { message = "La tarea no existe." });
 
-            tarea.adjuntos = _adjuntos.Listar(tareaId);
+            tarea.adjuntos = await _adjuntos.ListarAsync(tareaId);
             return Ok(tarea);
         }
 
@@ -49,7 +49,7 @@ namespace STAT_Academy.Api.Controllers
         [HttpGet("adjuntos/{adjuntoId}/descargar")]
         public async Task<IActionResult> DescargarAdjunto(int adjuntoId, CancellationToken ct)
         {
-            var cursoId = _adjuntos.TareaActiva(adjuntoId) ? _adjuntos.CursoDeAdjunto(adjuntoId) : null;
+            var cursoId = await _adjuntos.TareaActivaAsync(adjuntoId) ? await _adjuntos.CursoDeAdjuntoAsync(adjuntoId) : null;
             var error = await Verificar(cursoId, "El documento no existe.");
             if (error != null)
                 return error;

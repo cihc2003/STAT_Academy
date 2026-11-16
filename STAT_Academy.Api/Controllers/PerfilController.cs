@@ -21,19 +21,19 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<PerfilResponse> Obtener()
+        public async Task<ActionResult<PerfilResponse>> Obtener()
         {
-            var perfil = _usuarioService.ObtenerPerfil(UsuarioActualId);
+            var perfil = await _usuarioService.ObtenerPerfilAsync(UsuarioActualId);
             return perfil == null ? NotFound(new { message = "La cuenta no existe." }) : Ok(perfil);
         }
 
         /// <summary>Cambia el nombre propio (2–150 caracteres).</summary>
         [HttpPut]
-        public ActionResult<PerfilResponse> Actualizar(ActualizarPerfilRequest request)
+        public async Task<ActionResult<PerfilResponse>> Actualizar(ActualizarPerfilRequest request)
         {
             try
             {
-                var perfil = _usuarioService.ActualizarNombrePropio(UsuarioActualId, request.nombre, UsuarioActualEmail);
+                var perfil = await _usuarioService.ActualizarNombrePropioAsync(UsuarioActualId, request.nombre, UsuarioActualEmail);
                 return perfil == null ? NotFound(new { message = "La cuenta no existe o está desactivada." }) : Ok(perfil);
             }
             catch (InvalidOperationException ex)

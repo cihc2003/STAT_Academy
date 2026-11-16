@@ -27,15 +27,15 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<UsuarioResponse>> GetUsuario()
+        public async Task<ActionResult<IEnumerable<UsuarioResponse>>> GetUsuario()
         {
-            return Ok(_usuarioService.GetUsuarios());
+            return Ok(await _usuarioService.GetUsuariosAsync());
         }
         /// <summary>Lista paginada y filtrada para el panel de administración.</summary>
         /// <param name="texto">Busca en el nombre y el correo.</param>
         /// <param name="orden">nombre, nombre_desc, registro, registro_desc, login o login_desc.</param>
         [HttpGet("buscar")]
-        public ActionResult<UsuarioPaginaResponse> Buscar(
+        public async Task<ActionResult<UsuarioPaginaResponse>> Buscar(
             [FromQuery] string? texto,
             [FromQuery] int? tipo,
             [FromQuery] bool? estado,
@@ -43,25 +43,25 @@ namespace STAT_Academy.Api.Controllers
             [FromQuery] int pagina = 1,
             [FromQuery] int tamano = 10)
         {
-            return Ok(_usuarioService.Buscar(texto, tipo, estado, orden, pagina, tamano));
+            return Ok(await _usuarioService.BuscarAsync(texto, tipo, estado, orden, pagina, tamano));
         }
 
         [HttpGet("tipo/{tipo}")]
-        public IActionResult FiltrarPorTipo(int tipo)
+        public async Task<IActionResult> FiltrarPorTipo(int tipo)
         {
-            return Ok(_usuarioService.FiltrarPorTipo(tipo));
+            return Ok(await _usuarioService.FiltrarPorTipoAsync(tipo));
         }
 
         [HttpGet("activos")]
-        public IActionResult Activos()
+        public async Task<IActionResult> Activos()
         {
-            return Ok(_usuarioService.UsuariosActivos());
+            return Ok(await _usuarioService.UsuariosActivosAsync());
         }
 
         [HttpGet("{id}")]
-        public ActionResult<UsuarioResponse> GetUsuarioById(int id)
+        public async Task<ActionResult<UsuarioResponse>> GetUsuarioById(int id)
         {
-            var usuario = _usuarioService.GetUsuarioById(id);
+            var usuario = await _usuarioService.GetUsuarioByIdAsync(id);
 
             if (usuario == null)
             {
@@ -72,11 +72,11 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPost]
-        public ActionResult<UsuarioResponse> CreateUsuario(CreateUsuarioRequest request)
+        public async Task<ActionResult<UsuarioResponse>> CreateUsuario(CreateUsuarioRequest request)
         {
             try
             {
-                var newUsuario = _usuarioService.CreateUsuario(request, UsuarioActualEmail);
+                var newUsuario = await _usuarioService.CreateUsuarioAsync(request, UsuarioActualEmail);
 
                 return CreatedAtAction(
                     nameof(GetUsuarioById),
@@ -98,7 +98,7 @@ namespace STAT_Academy.Api.Controllers
 
             try
             {
-                newUsuario = _usuarioService.RegisterUsuario(request);
+                newUsuario = await _usuarioService.RegisterUsuarioAsync(request);
             }
             catch (InvalidOperationException ex)
             {
@@ -126,11 +126,11 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public ActionResult<UsuarioResponse> UpdateUsuario(int id, UpdateUsuarioRequest request)
+        public async Task<ActionResult<UsuarioResponse>> UpdateUsuario(int id, UpdateUsuarioRequest request)
         {
             try
             {
-                var usuarioActualizado = _usuarioService.UpdateUsuario(id, request, UsuarioActualId, UsuarioActualEmail);
+                var usuarioActualizado = await _usuarioService.UpdateUsuarioAsync(id, request, UsuarioActualId, UsuarioActualEmail);
 
                 if (usuarioActualizado == null)
                 {
@@ -146,16 +146,16 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPatch("{id}/desactivar")]
-        public ActionResult<UsuarioResponse> DesactivarUsuario(int id) => CambiarEstado(id, false);
+        public Task<ActionResult<UsuarioResponse>> DesactivarUsuario(int id) => CambiarEstado(id, false);
 
         [HttpPatch("{id}/activar")]
-        public ActionResult<UsuarioResponse> ActivarUsuario(int id) => CambiarEstado(id, true);
+        public Task<ActionResult<UsuarioResponse>> ActivarUsuario(int id) => CambiarEstado(id, true);
 
-        private ActionResult<UsuarioResponse> CambiarEstado(int id, bool activo)
+        private async Task<ActionResult<UsuarioResponse>> CambiarEstado(int id, bool activo)
         {
             try
             {
-                var usuario = _usuarioService.CambiarEstado(id, activo, UsuarioActualId, UsuarioActualEmail);
+                var usuario = await _usuarioService.CambiarEstadoAsync(id, activo, UsuarioActualId, UsuarioActualEmail);
 
                 return usuario == null
                     ? NotFound(new { message = "Usuario no encontrado." })

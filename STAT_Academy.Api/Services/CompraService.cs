@@ -147,10 +147,10 @@ namespace STAT_Academy.Api.Services
             if (compra == null)
                 return (null, error ?? "No se pudo completar la compra.");
 
-            _auditoria.Registrar("FACTURA", "CREATE",
+            await _auditoria.RegistrarAsync("FACTURA", "CREATE",
                 $"Compra de {compra.lineas.Sum(l => l.cantidad)} artículo(s) por {compra.total:0.00}", usuarioEmail, compra.facturaId);
 
-            await _alertas.Notificar(cruzaronMinimo);
+            await _alertas.NotificarAsync(cruzaronMinimo);
             await _facturas.EnviarComprobanteDeCompra(compra.facturaId);
 
             return (compra, null);
@@ -210,7 +210,7 @@ namespace STAT_Academy.Api.Services
             _context.Factura.Add(factura);
             await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("FACTURA", "CREATE",
+            await _auditoria.RegistrarAsync("FACTURA", "CREATE",
                 $"Compra del curso \"{curso.nombre}\" por {curso.precio:0.00}", usuarioEmail, factura.id);
 
             await _facturas.EnviarComprobanteDeCompra(factura.id);
@@ -219,18 +219,18 @@ namespace STAT_Academy.Api.Services
         }
 
         /// <summary>Una compra del usuario (o cualquiera, si es Admin).</summary>
-        public CompraResponse? ObtenerCompra(int facturaId, int usuarioId, bool esAdmin)
+        public async Task<CompraResponse?> ObtenerCompraAsync(int facturaId, int usuarioId, bool esAdmin)
         {
-            var factura = _context.Factura
+            var factura = await _context.Factura
                 .AsNoTracking()
                 .Include(f => f.Detalles)
-                .FirstOrDefault(f => f.id == facturaId && (esAdmin || f.fk_Usuario == usuarioId));
+                .FirstOrDefaultAsync(f => f.id == facturaId && (esAdmin || f.fk_Usuario == usuarioId));
 
             if (factura == null)
                 return null;
 
             var ids = factura.Detalles.Where(d => d.fk_Producto != null).Select(d => d.fk_Producto!.Value).ToList();
-            var nombres = _context.Producto.Where(p => ids.Contains(p.id)).ToDictionary(p => p.id, p => p.nombre);
+            var nombres = await _context.Producto.Where(p => ids.Contains(p.id)).ToDictionaryAsync(p => p.id, p => p.nombre);
 
             return new CompraResponse
             {

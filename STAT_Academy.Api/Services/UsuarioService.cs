@@ -31,17 +31,14 @@ namespace STAT_Academy.Api.Services
         // Consultas
         // ==================================================================
 
-        public List<UsuarioResponse> GetUsuarios()
-        {
-            return ConFechas(_context.Usuario.AsNoTracking())
-                .AsEnumerable()
+        public async Task<List<UsuarioResponse>> GetUsuariosAsync() =>
+            (await ConFechas(_context.Usuario.AsNoTracking()).ToListAsync())
                 .Select(Map)
                 .ToList();
-        }
 
-        public UsuarioResponse? GetUsuarioById(int id)
+        public async Task<UsuarioResponse?> GetUsuarioByIdAsync(int id)
         {
-            var fila = ConFechas(_context.Usuario.AsNoTracking().Where(u => u.id == id)).FirstOrDefault();
+            var fila = await ConFechas(_context.Usuario.AsNoTracking().Where(u => u.id == id)).FirstOrDefaultAsync();
             return fila == null ? null : Map(fila);
         }
 
@@ -50,7 +47,7 @@ namespace STAT_Academy.Api.Services
         /// </summary>
         /// <param name="texto">Busca en el nombre y en el correo.</param>
         /// <param name="orden">nombre, nombre_desc, registro, registro_desc, login o login_desc.</param>
-        public UsuarioPaginaResponse Buscar(string? texto, int? tipo, bool? estado, string? orden, int pagina, int tamano)
+        public async Task<UsuarioPaginaResponse> BuscarAsync(string? texto, int? tipo, bool? estado, string? orden, int pagina, int tamano)
         {
             tamano = Math.Clamp(tamano, 1, TamanoPaginaMaximo);
             pagina = Math.Max(pagina, 1);
@@ -71,7 +68,7 @@ namespace STAT_Academy.Api.Services
             if (estado != null)
                 consulta = consulta.Where(u => u.estado == estado);
 
-            var total = consulta.Count();
+            var total = await consulta.CountAsync();
             var totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamano));
             pagina = Math.Min(pagina, totalPaginas);
 
@@ -87,10 +84,10 @@ namespace STAT_Academy.Api.Services
                 _ => conFechas.OrderBy(f => f.nombre).ThenBy(f => f.id)
             };
 
-            var items = conFechas
-                .Skip((pagina - 1) * tamano)
-                .Take(tamano)
-                .AsEnumerable()
+            var items = (await conFechas
+                    .Skip((pagina - 1) * tamano)
+                    .Take(tamano)
+                    .ToListAsync())
                 .Select(Map)
                 .ToList();
 
@@ -101,37 +98,31 @@ namespace STAT_Academy.Api.Services
                 tamano = tamano,
                 total = total,
                 totalPaginas = totalPaginas,
-                resumen = Resumen()
+                resumen = await ResumenAsync()
             };
         }
 
-        public List<UsuarioResponse> FiltrarPorTipo(int tipo)
-        {
-            // Nunca devolver la entidad: incluye el hash de la contraseña y tokens.
-            return ConFechas(_context.Usuario.AsNoTracking().Where(u => u.fk_Tipo_Usuario == tipo))
-                .AsEnumerable()
+        // Nunca devolver la entidad: incluye el hash de la contraseña y tokens.
+        public async Task<List<UsuarioResponse>> FiltrarPorTipoAsync(int tipo) =>
+            (await ConFechas(_context.Usuario.AsNoTracking().Where(u => u.fk_Tipo_Usuario == tipo)).ToListAsync())
                 .Select(Map)
                 .ToList();
-        }
 
-        public List<UsuarioResponse> UsuariosActivos()
-        {
-            return ConFechas(_context.Usuario.AsNoTracking().Where(u => u.estado))
-                .AsEnumerable()
+        public async Task<List<UsuarioResponse>> UsuariosActivosAsync() =>
+            (await ConFechas(_context.Usuario.AsNoTracking().Where(u => u.estado)).ToListAsync())
                 .Select(Map)
                 .ToList();
-        }
 
         // ==================================================================
         // Altas
         // ==================================================================
 
         /// <summary>Alta hecha por un Admin: respeta el tipo elegido.</summary>
-        public UsuarioResponse CreateUsuario(CreateUsuarioRequest request, string actorEmail)
+        public async Task<UsuarioResponse> CreateUsuarioAsync(CreateUsuarioRequest request, string actorEmail)
         {
             var email = request.email.Trim();
 
-            if (_context.Usuario.Any(u => u.email == email))
+            if (await _context.Usuario.AnyAsync(u => u.email == email))
                 throw new InvalidOperationException("El correo ya está registrado.");
 
             var usuario = new UsuarioModel
@@ -146,18 +137,18 @@ namespace STAT_Academy.Api.Services
             usuario.password = _passwordHasher.HashPassword(usuario, request.password);
 
             _context.Usuario.Add(usuario);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             // La fecha de registro sale de este registro de auditoría.
-            _auditoria.Registrar(Entidad, "CREATE", $"Usuario {usuario.email} creado", actorEmail, usuario.id);
+            await _auditoria.RegistrarAsync(Entidad, "CREATE", $"Usuario {usuario.email} creado", actorEmail, usuario.id);
 
-            return GetUsuarioById(usuario.id)!;
+            return (await GetUsuarioByIdAsync(usuario.id))!;
         }
 
         /// <summary>Registro público: siempre crea un Cliente.</summary>
-        public UsuarioResponse RegisterUsuario(RegisterUsuarioRequest request)
+        public async Task<UsuarioResponse> RegisterUsuarioAsync(RegisterUsuarioRequest request)
         {
-            bool emailExiste = _context.Usuario.Any(u => u.email == request.email);
+            bool emailExiste = await _context.Usuario.AnyAsync(u => u.email == request.email);
 
             if (emailExiste)
                 throw new InvalidOperationException("El correo ya está registrado.");
@@ -174,11 +165,11 @@ namespace STAT_Academy.Api.Services
             usuario.password = _passwordHasher.HashPassword(usuario, request.password);
 
             _context.Usuario.Add(usuario);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar(Entidad, "CREATE", $"Usuario {usuario.email} registrado", "sistema", usuario.id);
+            await _auditoria.RegistrarAsync(Entidad, "CREATE", $"Usuario {usuario.email} registrado", "sistema", usuario.id);
 
-            return GetUsuarioById(usuario.id)!;
+            return (await GetUsuarioByIdAsync(usuario.id))!;
         }
 
         // ==================================================================
@@ -187,9 +178,9 @@ namespace STAT_Academy.Api.Services
 
         /// <summary>Activa o desactiva. Un Admin no puede desactivarse a sí mismo.</summary>
         /// <exception cref="InvalidOperationException">Si el Admin intenta desactivarse.</exception>
-        public UsuarioResponse? CambiarEstado(int id, bool activo, int actorId, string actorEmail)
+        public async Task<UsuarioResponse?> CambiarEstadoAsync(int id, bool activo, int actorId, string actorEmail)
         {
-            var usuario = _context.Usuario.FirstOrDefault(u => u.id == id);
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(u => u.id == id);
 
             if (usuario == null)
                 return null;
@@ -200,23 +191,23 @@ namespace STAT_Academy.Api.Services
             if (usuario.estado != activo)
             {
                 usuario.estado = activo;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 _validadorSesion.Invalidar(usuario.id); // desactivar revoca sus tokens al instante
 
-                _auditoria.Registrar(Entidad, activo ? "ENABLE" : "DISABLE",
+                await _auditoria.RegistrarAsync(Entidad, activo ? "ENABLE" : "DISABLE",
                     $"Usuario {usuario.email} {(activo ? "activado" : "desactivado")}", actorEmail, usuario.id);
             }
 
-            return GetUsuarioById(id);
+            return await GetUsuarioByIdAsync(id);
         }
 
         /// <summary>
         /// Edita nombre, tipo y (opcionalmente) estado. El correo no se modifica aquí.
         /// Un Admin no puede quitarse el rol de administrador ni desactivarse a sí mismo.
         /// </summary>
-        public UsuarioResponse? UpdateUsuario(int id, UpdateUsuarioRequest request, int actorId, string actorEmail)
+        public async Task<UsuarioResponse?> UpdateUsuarioAsync(int id, UpdateUsuarioRequest request, int actorId, string actorEmail)
         {
-            var usuario = _context.Usuario.FirstOrDefault(u => u.id == id);
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(u => u.id == id);
 
             if (usuario == null)
                 return null;
@@ -246,23 +237,23 @@ namespace STAT_Academy.Api.Services
                 if (request.estado != null)
                     usuario.estado = request.estado.Value;
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 _validadorSesion.Invalidar(usuario.id); // un cambio de rol o estado revoca sus tokens
 
                 var detalle = Recortar($"Usuario {usuario.email} actualizado ({string.Join(", ", cambios)})");
-                _auditoria.Registrar(Entidad, "UPDATE", detalle, actorEmail, usuario.id);
+                await _auditoria.RegistrarAsync(Entidad, "UPDATE", detalle, actorEmail, usuario.id);
             }
 
-            return GetUsuarioById(id);
+            return await GetUsuarioByIdAsync(id);
         }
 
         // ==================================================================
         // Perfil propio (la identidad la pone el controlador desde el token)
         // ==================================================================
 
-        public PerfilResponse? ObtenerPerfil(int usuarioId)
+        public async Task<PerfilResponse?> ObtenerPerfilAsync(int usuarioId)
         {
-            var u = GetUsuarioById(usuarioId);
+            var u = await GetUsuarioByIdAsync(usuarioId);
             return u == null ? null : new PerfilResponse
             {
                 nombre = u.nombre,
@@ -278,26 +269,26 @@ namespace STAT_Academy.Api.Services
         /// así que sus sesiones siguen válidas.
         /// </summary>
         /// <exception cref="InvalidOperationException">Si el nombre no es válido.</exception>
-        public PerfilResponse? ActualizarNombrePropio(int usuarioId, string? nombre, string actorEmail)
+        public async Task<PerfilResponse?> ActualizarNombrePropioAsync(int usuarioId, string? nombre, string actorEmail)
         {
             var (limpio, error) = NombreUsuario.Normalizar(nombre);
             if (limpio == null)
                 throw new InvalidOperationException(error);
 
-            var usuario = _context.Usuario.FirstOrDefault(u => u.id == usuarioId && u.estado);
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(u => u.id == usuarioId && u.estado);
             if (usuario == null)
                 return null;
 
             if (usuario.nombre != limpio)
             {
                 usuario.nombre = limpio;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
-                _auditoria.Registrar(Entidad, "UPDATE",
+                await _auditoria.RegistrarAsync(Entidad, "UPDATE",
                     Recortar($"Usuario {usuario.email} actualizado (nombre, desde su perfil)"), actorEmail, usuario.id);
             }
 
-            return ObtenerPerfil(usuarioId);
+            return await ObtenerPerfilAsync(usuarioId);
         }
 
         // ==================================================================
@@ -351,12 +342,12 @@ namespace STAT_Academy.Api.Services
                     .Max(a => (DateTime?)a.fecha)
             });
 
-        private UsuarioResumenResponse Resumen()
+        private async Task<UsuarioResumenResponse> ResumenAsync()
         {
-            var porTipo = _context.Usuario
+            var porTipo = await _context.Usuario
                 .GroupBy(u => u.fk_Tipo_Usuario)
                 .Select(g => new { tipo = g.Key, cantidad = g.Count(), inactivos = g.Count(u => !u.estado) })
-                .ToList();
+                .ToListAsync();
 
             return new UsuarioResumenResponse
             {

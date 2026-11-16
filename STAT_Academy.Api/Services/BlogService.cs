@@ -41,32 +41,28 @@ namespace STAT_Academy.Api.Services
         // ------------------------------------------------------------------
 
         /// <param name="incluirInactivos">Solo para administradores: los clientes ven únicamente entradas activas.</param>
-        public List<BlogResponse> GetBlogs(bool incluirInactivos)
-        {
-            return ConsultaConDetalle()
+        public async Task<List<BlogResponse>> GetBlogsAsync(bool incluirInactivos) =>
+            (await ConsultaConDetalle()
                 .Where(b => incluirInactivos || b.estado)
                 .OrderByDescending(b => b.fecha_Creacion)
-                .AsEnumerable()
-                .Select(Map)
-                .ToList();
-        }
+                .ToListAsync())
+            .Select(Map)
+            .ToList();
 
-        public BlogResponse? GetBlogById(int id, bool incluirInactivos)
+        public async Task<BlogResponse?> GetBlogByIdAsync(int id, bool incluirInactivos)
         {
-            var blog = ConsultaConDetalle()
-                .FirstOrDefault(b => b.id == id && (incluirInactivos || b.estado));
+            var blog = await ConsultaConDetalle()
+                .FirstOrDefaultAsync(b => b.id == id && (incluirInactivos || b.estado));
 
             return blog == null ? null : Map(blog);
         }
 
         /// <summary>Autor de la entrada (activa o no), o null si no existe.</summary>
-        public int? ObtenerAutorId(int id)
-        {
-            return _context.EntradaBlog
+        public Task<int?> ObtenerAutorIdAsync(int id) =>
+            _context.EntradaBlog
                 .Where(b => b.id == id)
                 .Select(b => (int?)b.fk_Autor)
-                .FirstOrDefault();
-        }
+                .FirstOrDefaultAsync();
 
         // ------------------------------------------------------------------
         // Entradas
@@ -74,7 +70,7 @@ namespace STAT_Academy.Api.Services
 
         private const string ContenidoVacio = "El contenido no puede estar vacío.";
 
-        public (BlogResponse? blog, string? error) CrearBlog(CreateBlogRequest request, int autorId, string autorEmail)
+        public async Task<(BlogResponse? blog, string? error)> CrearBlogAsync(CreateBlogRequest request, int autorId, string autorEmail)
         {
             // El HTML del editor se limpia ANTES de guardarlo (lista blanca, sin scripts).
             var contenido = _contenido.Limpiar(request.contenido);
@@ -92,17 +88,17 @@ namespace STAT_Academy.Api.Services
             };
 
             _context.EntradaBlog.Add(blog);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("BLOG", "CREATE", $"Blog creado: {Recortar(blog.titulo)}", autorEmail, blog.id);
+            await _auditoria.RegistrarAsync("BLOG", "CREATE", $"Blog creado: {Recortar(blog.titulo)}", autorEmail, blog.id);
 
-            return (GetBlogById(blog.id, incluirInactivos: true), null);
+            return (await GetBlogByIdAsync(blog.id, incluirInactivos: true), null);
         }
 
         /// <returns>(null, null) si la entrada no existe; (null, error) si el contenido no es válido.</returns>
-        public (BlogResponse? blog, string? error) ActualizarBlog(int id, UpdateBlogRequest request, string usuarioEmail)
+        public async Task<(BlogResponse? blog, string? error)> ActualizarBlogAsync(int id, UpdateBlogRequest request, string usuarioEmail)
         {
-            var blog = _context.EntradaBlog.FirstOrDefault(x => x.id == id);
+            var blog = await _context.EntradaBlog.FirstOrDefaultAsync(x => x.id == id);
 
             if (blog == null)
                 return (null, null);
@@ -116,11 +112,11 @@ namespace STAT_Academy.Api.Services
             blog.estado = request.estado;
             blog.fecha_Edicion = DateTime.UtcNow;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("BLOG", "UPDATE", $"Blog actualizado: {Recortar(blog.titulo)}", usuarioEmail, blog.id);
+            await _auditoria.RegistrarAsync("BLOG", "UPDATE", $"Blog actualizado: {Recortar(blog.titulo)}", usuarioEmail, blog.id);
 
-            return (GetBlogById(id, incluirInactivos: true), null);
+            return (await GetBlogByIdAsync(id, incluirInactivos: true), null);
         }
 
         /// <summary>
@@ -155,9 +151,9 @@ namespace STAT_Academy.Api.Services
             }
         }
 
-        public BlogResponse? DesactivarBlog(int id, string usuarioEmail)
+        public async Task<BlogResponse?> DesactivarBlogAsync(int id, string usuarioEmail)
         {
-            var blog = _context.EntradaBlog.FirstOrDefault(x => x.id == id);
+            var blog = await _context.EntradaBlog.FirstOrDefaultAsync(x => x.id == id);
 
             if (blog == null)
                 return null;
@@ -165,11 +161,11 @@ namespace STAT_Academy.Api.Services
             blog.estado = false;
             blog.fecha_Edicion = DateTime.UtcNow;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("BLOG", "DISABLE", $"Blog desactivado: {Recortar(blog.titulo)}", usuarioEmail, blog.id);
+            await _auditoria.RegistrarAsync("BLOG", "DISABLE", $"Blog desactivado: {Recortar(blog.titulo)}", usuarioEmail, blog.id);
 
-            return GetBlogById(id, incluirInactivos: true);
+            return await GetBlogByIdAsync(id, incluirInactivos: true);
         }
 
         // ------------------------------------------------------------------
@@ -189,9 +185,9 @@ namespace STAT_Academy.Api.Services
             if (archivos.Count > BlogArchivoValidador.MaxArchivosPorSubida)
                 return (null, [$"Puede subir como máximo {BlogArchivoValidador.MaxArchivosPorSubida} archivos a la vez."]);
 
-            var existentes = _context.EntradaBlogArchivo
+            var existentes = await _context.EntradaBlogArchivo
                 .Where(a => a.fk_Entrada_Blog == blogId && a.estado)
-                .ToList();
+                .ToListAsync();
 
             if (existentes.Count + archivos.Count > BlogArchivoValidador.MaxArchivosPorEntrada)
                 return (null, [$"Una entrada admite como máximo {BlogArchivoValidador.MaxArchivosPorEntrada} archivos (ya tiene {existentes.Count})."]);
@@ -236,7 +232,7 @@ namespace STAT_Academy.Api.Services
                     });
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (ArchivoInvalidoException ex)
             {
@@ -251,15 +247,15 @@ namespace STAT_Academy.Api.Services
                 return (null, ["No se pudieron guardar los archivos. Intente nuevamente."]);
             }
 
-            _auditoria.Registrar("BLOG", "UPLOAD", $"{validados.Count} archivo(s) agregado(s)", usuarioEmail, blogId);
+            await _auditoria.RegistrarAsync("BLOG", "UPLOAD", $"{validados.Count} archivo(s) agregado(s)", usuarioEmail, blogId);
 
-            return (GetBlogById(blogId, incluirInactivos: true), errores);
+            return (await GetBlogByIdAsync(blogId, incluirInactivos: true), errores);
         }
 
         public async Task<bool> QuitarArchivo(int blogId, int archivoId, string usuarioEmail)
         {
-            var archivo = _context.EntradaBlogArchivo
-                .FirstOrDefault(a => a.id == archivoId && a.fk_Entrada_Blog == blogId && a.estado);
+            var archivo = await _context.EntradaBlogArchivo
+                .FirstOrDefaultAsync(a => a.id == archivoId && a.fk_Entrada_Blog == blogId && a.estado);
 
             if (archivo == null)
                 return false;
@@ -271,30 +267,30 @@ namespace STAT_Academy.Api.Services
             // Si se quitó la portada, la siguiente imagen pasa a ser la principal.
             if (eraPrincipal)
             {
-                var siguiente = _context.EntradaBlogArchivo
+                var siguiente = await _context.EntradaBlogArchivo
                     .Where(a => a.fk_Entrada_Blog == blogId && a.estado && a.id != archivoId
                                 && a.tipo_Archivo != null && a.tipo_Archivo.StartsWith("image/"))
                     .OrderBy(a => a.id)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
 
                 if (siguiente != null)
                     siguiente.es_Principal = true;
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             await EliminarDelAlmacenamiento([(Contenedor(archivo), archivo.archivo_URL)]);
 
-            _auditoria.Registrar("BLOG", "REMOVE_FILE", $"Archivo quitado: {Recortar(archivo.nombre_Archivo ?? "")}", usuarioEmail, blogId);
+            await _auditoria.RegistrarAsync("BLOG", "REMOVE_FILE", $"Archivo quitado: {Recortar(archivo.nombre_Archivo ?? "")}", usuarioEmail, blogId);
 
             return true;
         }
 
-        public (bool exitoso, string mensaje) MarcarPrincipal(int blogId, int archivoId)
+        public async Task<(bool exitoso, string mensaje)> MarcarPrincipalAsync(int blogId, int archivoId)
         {
-            var archivos = _context.EntradaBlogArchivo
+            var archivos = await _context.EntradaBlogArchivo
                 .Where(a => a.fk_Entrada_Blog == blogId && a.estado)
-                .ToList();
+                .ToListAsync();
 
             var elegido = archivos.FirstOrDefault(a => a.id == archivoId);
 
@@ -307,7 +303,7 @@ namespace STAT_Academy.Api.Services
             foreach (var a in archivos)
                 a.es_Principal = a.id == archivoId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return (true, "Portada actualizada.");
         }
@@ -328,11 +324,11 @@ namespace STAT_Academy.Api.Services
         public async Task<(ArchivoDescarga contenido, string nombre)?> AbrirDocumento(
             int blogId, int archivoId, bool incluirInactivos, CancellationToken ct)
         {
-            var archivo = _context.EntradaBlogArchivo
+            var archivo = await _context.EntradaBlogArchivo
                 .AsNoTracking()
                 .Where(a => a.id == archivoId && a.fk_Entrada_Blog == blogId && a.estado)
                 .Where(a => _context.EntradaBlog.Any(b => b.id == blogId && (incluirInactivos || b.estado)))
-                .FirstOrDefault();
+                .FirstOrDefaultAsync(ct);
 
             if (archivo == null || archivo.EsImagen)
                 return null;
