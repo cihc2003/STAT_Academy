@@ -2626,11 +2626,9 @@ a.chip--activo,
     font-weight: var(--peso-medio);
 }
 
-    .inicio-hero__marca::before {
-        content: "";
-        width: var(--e-6);
-        height: 3px;
-        background: var(--color-accion);
+    .inicio-hero__marca .inicio-hero__logo {
+        width: 2rem;
+        height: 2rem;
     }
 
 .inicio-hero__titulo {
@@ -3162,11 +3160,13 @@ a.chip--activo,
     padding: var(--e-16) var(--margen);
 }
 
-    .auth-brand__contenido::before {
-        content: "";
-        width: var(--e-12);
-        height: 4px;
-        background: var(--color-accion);
+    /* Logo sobre placa blanca para conservar el rojo de la estrella sobre el azul */
+    .auth-brand__contenido .auth-brand__logo {
+        width: 3.5rem;
+        height: 3.5rem;
+        padding: var(--e-2);
+        border-radius: var(--radio-3);
+        background: var(--blanco);
     }
 
 .auth-brand__titulo {
@@ -5344,5 +5344,11 @@ h3.panel-form__seccion {
 .admin-sidebar__logo--marca {
     padding: var(--e-1);
     background: var(--blanco);
+    object-fit: contain;
+}
+
+/* Logotipo: nunca se deforma ni se recorta */
+.logo {
+    flex: 0 0 auto;
     object-fit: contain;
 }

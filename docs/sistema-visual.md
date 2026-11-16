@@ -94,3 +94,18 @@ Contraste verificado en las vistas públicas con un script de auditoría (sin fa
 uniforme (`:focus-visible`, 2 px), enlace "Saltar al contenido", un `h1` por página y niveles de
 encabezado sin saltos, etiquetas asociadas en todos los campos, objetivos táctiles de 44 px,
 textos alternativos, regiones vivas para resultados y notificaciones, y `prefers-reduced-motion`.
+
+## Logotipo
+
+El logotipo de la plataforma es la **estrella roja** recortada del logo oficial de STATMEDICAL
+(sin redibujar). Todas las rutas están en `Helpers/Marca.cs`; las vistas lo insertan con
+`@Html.Logo("clase", tamaño)`, que fija ancho y alto y usa `object-fit: contain` (sin deformar).
+
+| Archivo (`wwwroot/img/marca`) | Uso |
+|---|---|
+| `statmedical-estrella.png` (343 × 343, transparente) | Logo en cabecera, pie, landing, cuenta y menús de Admin y Tutor |
+| `statmedical-logo.png` (horizontal, transparente) | Logo oficial completo, reservado para impresos o documentos |
+| `/favicon.ico`, `favicon-32.png`, `icono-192.png`, `apple-touch-icon.png` | Favicon e íconos del navegador y del teléfono |
+
+Sobre fondos oscuros (pie, menús laterales, panel de las páginas de cuenta) la estrella va sobre
+una placa blanca para conservar el contraste del rojo.

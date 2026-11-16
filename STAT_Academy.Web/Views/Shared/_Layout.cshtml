@@ -24,10 +24,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#112945" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" href="/img/marca/favicon-32.png" type="image/png" sizes="32x32" />
-    <link rel="icon" href="/img/marca/icono-192.png" type="image/png" sizes="192x192" />
-    <link rel="apple-touch-icon" href="/img/marca/apple-touch-icon.png" />
+    <link rel="icon" href="@Marca.Favicon" sizes="any" />
+    <link rel="icon" href="@Marca.Favicon32" type="image/png" sizes="32x32" />
+    <link rel="icon" href="@Marca.Icono192" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="@Marca.IconoApple" />
     <title>@(string.IsNullOrWhiteSpace(titulo) ? "STAT Academy" : $"{titulo} | STAT Academy")</title>
     @* Instrument Sans (variable: peso 400–700 y ancho 75–100 %), con soporte completo de español. *@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -44,7 +44,7 @@
     <header class="site-header">
         <nav class="container menu" aria-label="Navegación principal">
             <a class="brand" asp-controller="Home" asp-action="Index" aria-label="STAT Academy, inicio">
-                <img class="brand__marca" src="/img/marca/icono-192.png" width="36" height="36" alt="" />
+                @Html.Logo("brand__marca")
                 <span class="brand__texto" aria-hidden="true">
                     <strong>STAT Academy</strong>
                     <small>por STATMEDICAL</small>
@@ -163,7 +163,7 @@
             <div class="footer-grid">
                 <div class="footer-marca">
                     <a class="brand" asp-controller="Home" asp-action="Index" aria-label="STAT Academy, inicio">
-                        <img class="brand__marca" src="/img/marca/icono-192.png" width="36" height="36" alt="" />
+                        @Html.Logo("brand__marca")
                         <span class="brand__texto" aria-hidden="true">
                             <strong>STAT Academy</strong>
                             <small>por STATMEDICAL</small>
