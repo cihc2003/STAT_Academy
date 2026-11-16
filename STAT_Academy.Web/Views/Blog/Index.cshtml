@@ -94,8 +94,8 @@
                             <li>@Html.Icono("calendario")<time datetime="@destacada.FechaCreacion.ToString("o")">@Formato.Fecha(destacada.FechaCreacion)</time></li>
                             <li>@Html.Icono("reloj")<span>@destacada.MinutosLectura min de lectura</span></li>
                         </ul>
-                        <div class="acciones-fila">
-                            <a asp-action="Details" asp-route-id="@destacada.Id" class="btn btn-primary btn-lg">Leer el artículo @Html.Icono("flecha-derecha", "icono--sm")</a>
+                        <a asp-action="Details" asp-route-id="@destacada.Id" class="btn btn-primary btn-lg blog-destacada__leer">Leer el artículo @Html.Icono("flecha-derecha", "icono--sm")</a>
+                        <div class="blog-gestion blog-gestion--oscura">
                             <partial name="_BlogAcciones" model="destacada" />
                         </div>
                     </div>
@@ -118,7 +118,7 @@
                     {
                         <div class="blog-rejilla__item">
                             <partial name="_BlogTarjeta" model="blog" />
-                            <div class="blog-rejilla__acciones">
+                            <div class="blog-gestion blog-rejilla__acciones">
                                 <partial name="_BlogAcciones" model="blog" />
                             </div>
                         </div>

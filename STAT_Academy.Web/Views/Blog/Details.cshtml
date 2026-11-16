@@ -54,7 +54,7 @@
                         <li>@Html.Icono("imagen")<a href="#blog-galeria">@galeria.Count @(galeria.Count == 1 ? "imagen en la galería" : "imágenes en la galería")</a></li>
                     }
                 </ul>
-                <div class="acciones-fila">
+                <div class="blog-gestion blog-gestion--ficha">
                     <button type="button" class="btn btn-secundario btn-sm" data-copiar-enlace>@Html.Icono("enlace", "icono--sm")<span data-copiar-texto>Copiar enlace</span></button>
                     <partial name="_BlogAcciones" model="Model" />
                 </div>
