@@ -1,22 +1,17 @@
 @model STAT_Academy.Web.Models.Productos.ProductoResponse
-@* Tarjeta escaneable de producto: imagen, categoría, nombre, disponibilidad, precio y acción.
-   Toda la tarjeta lleva al detalle (el enlace del título se extiende a la tarjeta). *@
+@* Tarjeta escaneable de producto, con la misma estructura que la de curso: portada, categoría, nombre,
+   disponibilidad, precio y acción. Toda la tarjeta lleva al detalle (el enlace del título se extiende a la tarjeta). *@
 @{
-    var (estado, claseEstado) = Model.agotado
-        ? ("Agotado", "estado--error")
-        : Model.stock <= 5 ? ("Últimas unidades", "estado--advertencia") : ("Disponible", "estado--exito");
+    var (icono, disponibilidad) = Model.agotado
+        ? ("error", "Agotado")
+        : Model.stock <= 5
+            ? ("advertencia", $"Últimas {Model.stock} {(Model.stock == 1 ? "unidad" : "unidades")}")
+            : ("exito", "Disponible");
 }
 
 <article class="tarjeta-item tarjeta-producto @(Model.agotado ? "tarjeta-item--apagada" : "")">
-    <div class="tarjeta-item__media tarjeta-producto__media">
-        @if (!string.IsNullOrEmpty(Model.imagen_principal))
-        {
-            <img src="@Model.imagen_principal" alt="" loading="lazy" />
-        }
-        else
-        {
-            <span class="tarjeta-item__sin-imagen">@Html.Icono("caja", "icono--xl")<span>Sin imagen</span></span>
-        }
+    <div class="tarjeta-item__media">
+        <partial name="_ProductoPortada" model="Model" />
     </div>
     <div class="tarjeta-item__cuerpo">
         @if (!string.IsNullOrWhiteSpace(Model.categoria))
@@ -26,7 +21,9 @@
         <h3 class="tarjeta-item__titulo">
             <a class="tarjeta-item__enlace" asp-controller="Products" asp-action="Details" asp-route-id="@Model.id">@Model.nombre</a>
         </h3>
-        <span class="estado @claseEstado">@estado</span>
+        <ul class="datos-icono">
+            <li>@Html.Icono(icono)<span>@disponibilidad</span></li>
+        </ul>
         <div class="tarjeta-item__pie">
             <span class="precio">@Formato.Colones(Model.precio_base)</span>
             <span class="tarjeta-item__accion" aria-hidden="true">Ver producto @Html.Icono("chevron-derecha", "icono--sm")</span>
