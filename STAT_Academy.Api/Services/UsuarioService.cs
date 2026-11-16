@@ -257,6 +257,50 @@ namespace STAT_Academy.Api.Services
         }
 
         // ==================================================================
+        // Perfil propio (la identidad la pone el controlador desde el token)
+        // ==================================================================
+
+        public PerfilResponse? ObtenerPerfil(int usuarioId)
+        {
+            var u = GetUsuarioById(usuarioId);
+            return u == null ? null : new PerfilResponse
+            {
+                nombre = u.nombre,
+                email = u.email,
+                tipo = u.tipo,
+                fecha_Registro = u.fecha_Registro,
+                ultimo_Login = u.ultimo_Login
+            };
+        }
+
+        /// <summary>
+        /// Cambia el nombre del propio usuario. No toca el sello: el nombre no da permisos,
+        /// así que sus sesiones siguen válidas.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Si el nombre no es válido.</exception>
+        public PerfilResponse? ActualizarNombrePropio(int usuarioId, string? nombre, string actorEmail)
+        {
+            var (limpio, error) = NombreUsuario.Normalizar(nombre);
+            if (limpio == null)
+                throw new InvalidOperationException(error);
+
+            var usuario = _context.Usuario.FirstOrDefault(u => u.id == usuarioId && u.estado);
+            if (usuario == null)
+                return null;
+
+            if (usuario.nombre != limpio)
+            {
+                usuario.nombre = limpio;
+                _context.SaveChanges();
+
+                _auditoria.Registrar(Entidad, "UPDATE",
+                    Recortar($"Usuario {usuario.email} actualizado (nombre, desde su perfil)"), actorEmail, usuario.id);
+            }
+
+            return ObtenerPerfil(usuarioId);
+        }
+
+        // ==================================================================
         // Ayudantes
         // ==================================================================
 

@@ -240,7 +240,7 @@ namespace STAT_Academy.Api.Services
 
                 <p>
                     Después, sube el comprobante en
-                    <a href="{enlace}">Mis facturas y pagos</a>.
+                    <a href="{enlace}">Facturas y pedidos</a> (menú de tu perfil).
                     Te avisaremos por correo cuando lo verifiquemos.
                 </p>
                 """);
@@ -314,7 +314,7 @@ namespace STAT_Academy.Api.Services
 
                 <p>
                     Puedes enviar un nuevo comprobante desde
-                    <a href="{enlace}">Mis facturas y pagos</a>.
+                    <a href="{enlace}">Facturas y pedidos</a> (menú de tu perfil).
                     Si crees que es un error, responde a este correo.
                 </p>
                 """);

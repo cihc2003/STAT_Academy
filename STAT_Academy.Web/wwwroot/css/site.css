@@ -5276,3 +5276,155 @@ a.panel-metrica:hover {
         width: 100%;
     }
 }
+
+/* ---------- Menú de perfil (encabezado) y páginas del perfil ---------- */
+.menu-perfil {
+    min-width: 260px;
+}
+
+.menu-perfil__cabecera {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px 6px;
+}
+
+.menu-perfil__avatar {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.05rem;
+}
+
+.menu-perfil__texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+    .menu-perfil__texto strong,
+    .menu-perfil__texto small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .menu-perfil__texto small {
+        color: var(--muted);
+    }
+
+.menu-perfil__rol {
+    align-self: flex-start;
+    margin-top: 4px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--light);
+    color: var(--navy-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.menu-perfil .dropdown-item.active,
+.menu-perfil .dropdown-item:active {
+    background: var(--light);
+    color: var(--electric);
+}
+
+/* Páginas del perfil: usan la estructura del panel (.admin-shell + .admin-sidebar) */
+.admin-sidebar__logo--usuario {
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--electric), var(--violet));
+}
+
+.admin-sidebar__usuario {
+    min-width: 0;
+}
+
+    .admin-sidebar__usuario strong,
+    .admin-sidebar__usuario small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+.perfil-contenido {
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.perfil-encabezado h1 {
+    margin: 4px 0 6px;
+}
+
+.perfil-encabezado p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.perfil-card {
+    padding: 24px;
+}
+
+.perfil-card__titulo {
+    margin: 0 0 16px;
+    font-size: 1.15rem;
+}
+
+.perfil-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+    margin: 0;
+}
+
+    .perfil-datos dt {
+        color: var(--muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .perfil-datos dd {
+        margin: 2px 0 0;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+.perfil-nota {
+    margin: 16px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.perfil-form {
+    max-width: 480px;
+}
+
+.perfil-orden {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+    .perfil-orden .form-select {
+        width: auto;
+    }
+
+@media (max-width: 560px) {
+    .perfil-datos {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-card {
+        padding: 18px;
+    }
+
+    .perfil-orden {
+        justify-content: flex-start;
+    }
+}

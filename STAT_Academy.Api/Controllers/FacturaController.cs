@@ -34,6 +34,15 @@ namespace STAT_Academy.Api.Controllers
         public async Task<IActionResult> MisFacturas() =>
             Ok(await _service.MisFacturas(UsuarioActualId));
 
+        /// <summary>Facturas del usuario autenticado, paginadas.</summary>
+        /// <param name="orden">recientes (por defecto), antiguas, total_desc o total.</param>
+        [HttpGet("mias/buscar")]
+        public async Task<ActionResult<FacturaPaginaResponse>> MisFacturasPaginadas(
+            [FromQuery] string? orden,
+            [FromQuery] int pagina = 1,
+            [FromQuery] int tamano = 10) =>
+            Ok(await _service.MisFacturasPaginadas(UsuarioActualId, orden, pagina, tamano));
+
         /// <summary>Detalle de una factura propia (Admin: cualquiera), con sus comprobantes.</summary>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Detalle(int id)

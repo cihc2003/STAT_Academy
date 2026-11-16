@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using STAT_Academy.Web.Helpers;
 using STAT_Academy.Web.Models.Facturas;
+using STAT_Academy.Web.Models.Perfil;
 using STAT_Academy.Web.Services;
 
 namespace STAT_Academy.Web.Controllers
 {
     /// <summary>
-    /// "Mis facturas y pagos": compras del usuario, datos para pagar y envío del comprobante.
+    /// "Facturas y pedidos" (menú de perfil): compras del usuario, datos para pagar y envío del comprobante.
     /// Qué factura puede ver cada quien lo decide la API con el token (no se envía el id del usuario).
     /// </summary>
     [Authorize]
@@ -19,10 +21,15 @@ namespace STAT_Academy.Web.Controllers
             _api = api;
         }
 
-        public async Task<IActionResult> Index()
+        /// <summary>"Facturas y pedidos": las compras propias, paginadas y ordenadas por la API.</summary>
+        /// <param name="orden">recientes (por defecto), antiguas, total_desc o total.</param>
+        public async Task<IActionResult> Index(string? orden, int pagina = 1, int tamano = 10)
         {
-            var facturas = await _api.MisFacturas() ?? [];
-            return View(facturas);
+            tamano = Paginacion.TamanosPagina.Contains(tamano) ? tamano : Paginacion.TamanosPagina[0];
+
+            var resultado = await _api.MisFacturasPaginadas(orden, pagina, tamano) ?? new FacturaPagina();
+            ViewBag.Paginacion = Paginacion.DesdeApi(resultado.pagina, tamano, resultado.total, "compras");
+            return View(resultado);
         }
 
         public async Task<IActionResult> Detalle(int id)

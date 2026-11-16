@@ -1,4 +1,5 @@
 using STAT_Academy.Web.Models.Facturas;
+using STAT_Academy.Web.Models.Perfil;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -20,6 +21,10 @@ namespace STAT_Academy.Web.Services
         // --- Usuario -------------------------------------------------------
 
         public Task<List<FacturaResumen>?> MisFacturas() => Get<List<FacturaResumen>>("api/Factura/mias");
+
+        /// <summary>Una página de las facturas propias (orden: recientes, antiguas, total_desc o total).</summary>
+        public Task<FacturaPagina?> MisFacturasPaginadas(string? orden, int pagina, int tamano) =>
+            Get<FacturaPagina>($"api/Factura/mias/buscar?orden={Uri.EscapeDataString(orden ?? "")}&pagina={pagina}&tamano={tamano}");
 
         public Task<FacturaDetalle?> Detalle(int facturaId) => Get<FacturaDetalle>($"api/Factura/{facturaId}");
 

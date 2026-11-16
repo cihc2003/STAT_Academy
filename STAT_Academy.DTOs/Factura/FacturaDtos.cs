@@ -28,6 +28,39 @@ namespace STAT_Academy.DTOs.Factura
         public int cantidadComprobantes { get; set; }
     }
 
+    /// <summary>Órdenes de la lista paginada de facturas del usuario.</summary>
+    public static class OrdenFacturas
+    {
+        public const string Recientes = "recientes";
+        public const string Antiguas = "antiguas";
+        public const string TotalMayor = "total_desc";
+        public const string TotalMenor = "total";
+
+        public static readonly string[] Todos = [Recientes, Antiguas, TotalMayor, TotalMenor];
+
+        /// <summary>Devuelve el orden pedido si es válido; si no, "recientes".</summary>
+        public static string Normalizar(string? orden)
+        {
+            var o = orden?.Trim().ToLowerInvariant();
+            return o != null && Array.IndexOf(Todos, o) >= 0 ? o : Recientes;
+        }
+    }
+
+    /// <summary>Una página de las facturas del usuario.</summary>
+    public class FacturaPaginaResponse
+    {
+        public List<FacturaResumenResponse> items { get; set; } = new();
+        public int pagina { get; set; }
+        public int tamano { get; set; }
+        /// <summary>Total de facturas del usuario.</summary>
+        public int total { get; set; }
+        public int totalPaginas { get; set; }
+        /// <summary>Orden aplicado (ver <see cref="OrdenFacturas"/>).</summary>
+        public string orden { get; set; } = OrdenFacturas.Recientes;
+        /// <summary>Facturas sin pagar y sin comprobante en revisión (en todas las páginas).</summary>
+        public int porPagar { get; set; }
+    }
+
     public class FacturaDetalleResponse : FacturaResumenResponse
     {
         public List<FacturaLineaResponse> lineas { get; set; } = new();
