@@ -39,9 +39,10 @@ Rama `auditoria-seguridad` (desde `origin/master` en `a1463bd`). Sin cambios de 
 |----|--------|----------------------|
 | B3 | Todos los servicios de la API con EF Core async: tutor, blog, productos, proveedores, carrito, compras, matrícula, material, tareas y adjuntos, usuarios y perfil, contraseña, nota final, auditoría (`RegistrarAsync`) y el aviso de errores por correo. Los controladores hacen `await`; las descargas pasan su `CancellationToken` a las consultas. Sin cambios de rutas, JSON ni esquema. | `Api/Services/*`, `Api/Controllers/*`, `Api/Errores/ErrorAlertaService.cs` |
 | CSP | Las vistas ya no usan `style=` (clases al final de `site.css`; las barras de progreso usan `data-progreso` en `site.js`). `style-src` sin `'unsafe-inline'`: no se aceptan bloques `<style>` en línea. Solo `style-src-attr 'unsafe-inline'`, porque el contenido del blog guarda colores como atributo (la API los sanea: solo `color` y `background-color`). En navegadores sin `style-src-attr` (anteriores a 2022/2023) esos colores no se aplican. | `Web/Program.cs`, `wwwroot/css/site.css`, `wwwroot/js/site.js`, vistas de Carrito, Curso, Facturas y Tutor |
+| B4 | Pruebas de servicios con base de datos: SQLite en memoria con el esquema del modelo de EF (`EnsureCreated`), sin tocar Azure. 18 pruebas de proveedores, carrito, productos, usuarios y perfil, y tutor (reglas de negocio, filtros y paginación, auditoría). En total 54 pruebas. | `STAT_Academy.Tests/BaseDatos/*` |
 
 ## Pendiente
 
 - **C1 (crítica, a cargo del responsable de Azure):** el historial público del repositorio contiene la contraseña del usuario SQL de Azure y dos claves de Supabase. Hay que rotar la contraseña (user-secrets y App Settings), revisar el firewall de Azure SQL y revocar las claves de Supabase. Reescribir el historial es opcional.
 - Aplicar `Database/Scripts/2026-11-16_usuario_bloqueo.sql` en Azure para activar el bloqueo persistente.
-- Ampliar las pruebas a servicios con base de datos (requiere una base de pruebas o el proveedor en memoria de EF).
+- Pruebas con base de datos: faltan compras, facturas y pagos (transacciones con estrategia de reintento y comprobantes en Blob Storage), blog, aula y entregas (necesitan simular Blob Storage).
