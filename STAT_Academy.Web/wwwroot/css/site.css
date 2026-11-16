@@ -404,17 +404,18 @@ hr {
     }
 
 .brand__marca {
-    display: grid;
-    place-items: center;
+    display: block;
+    flex: 0 0 auto;
     width: 2.25rem;
     height: 2.25rem;
+    object-fit: contain;
+}
+
+/* Sobre fondo oscuro la estrella va en una placa blanca para conservar su contraste */
+.footer-marca .brand__marca {
+    padding: var(--e-1);
     border-radius: var(--radio-2);
-    background: var(--color-accion);
-    color: var(--blanco);
-    font-size: var(--texto-md);
-    font-weight: var(--peso-fuerte);
-    font-stretch: var(--ancho-display);
-    letter-spacing: var(--tracking-titulo);
+    background: var(--blanco);
 }
 
 .brand__texto {
