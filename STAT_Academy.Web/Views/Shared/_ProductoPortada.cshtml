@@ -1,0 +1,16 @@
+@model STAT_Academy.Web.Models.Productos.ProductoResponse
+
+@* Imagen principal del producto o, si no tiene, el mismo respaldo sólido con iniciales que usan los cursos.
+   La foto se muestra completa (sin recorte): los productos suelen fotografiarse sobre fondo claro. *@
+<div class="curso-portada curso-portada--producto">
+    @if (!string.IsNullOrEmpty(Model.imagen_principal))
+    {
+        <img src="@Model.imagen_principal" alt="" loading="lazy" />
+    }
+    else
+    {
+        <div class="curso-portada__respaldo curso-portada__respaldo--@(Model.id % 4)" aria-hidden="true">
+            <span>@Formato.Iniciales(Model.nombre)</span>
+        </div>
+    }
+</div>
