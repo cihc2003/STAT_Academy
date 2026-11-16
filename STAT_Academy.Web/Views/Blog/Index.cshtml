@@ -7,9 +7,10 @@
     var total = ViewData["Total"] as int? ?? Model.Count;
     var filtrando = !string.IsNullOrWhiteSpace(buscar);
 
-    // La entrada más reciente se destaca arriba (solo cuando no se está buscando).
-    var destacada = !filtrando ? Model.FirstOrDefault() : null;
-    var resto = destacada == null ? Model : Model.Skip(1).ToList();
+    // La entrada publicada más reciente se destaca arriba (solo cuando no se está buscando);
+    // si todas están ocultas (solo las ve un Admin), se destaca la más reciente.
+    var destacada = !filtrando ? Model.FirstOrDefault(b => b.Estado) ?? Model.FirstOrDefault() : null;
+    var resto = destacada == null ? Model : Model.Where(b => b != destacada).ToList();
 }
 
 <section class="encabezado-pagina">
@@ -66,8 +67,8 @@
             {
                 var autor = string.IsNullOrWhiteSpace(destacada.Autor) ? "Equipo STAT Academy" : destacada.Autor;
 
-                <article class="blog-destacada @(destacada.Estado ? "" : "tarjeta-item--apagada")" aria-labelledby="blog-destacada-titulo">
-                    <div class="blog-destacada__portada tarjeta-item__media">
+                <article class="blog-destacada fondo-oscuro @(destacada.Estado ? "" : "blog-destacada--oculta")" aria-labelledby="blog-destacada-titulo">
+                    <a class="blog-destacada__portada" asp-action="Details" asp-route-id="@destacada.Id" tabindex="-1" aria-hidden="true">
                         @if (!string.IsNullOrEmpty(destacada.ImagenPrincipal))
                         {
                             <img src="@destacada.ImagenPrincipal" alt="" />
@@ -76,25 +77,25 @@
                         {
                             <span class="tarjeta-item__sin-imagen">@Html.Icono("articulo", "icono--xl")</span>
                         }
-                    </div>
+                    </a>
                     <div class="blog-destacada__cuerpo">
                         @if (destacada.Estado)
                         {
-                            <span class="etiqueta">Lo más reciente</span>
+                            <span class="blog-destacada__marca">Lo más reciente</span>
                         }
                         else
                         {
-                            <span class="estado estado--neutro">Oculta: solo la ven los administradores</span>
+                            <span class="blog-destacada__marca blog-destacada__marca--oculta">Oculta: solo la ven los administradores</span>
                         }
                         <h2 id="blog-destacada-titulo"><a asp-action="Details" asp-route-id="@destacada.Id">@destacada.Titulo</a></h2>
                         <p class="blog-destacada__resumen">@destacada.Resumen</p>
-                        <ul class="datos-icono datos-icono--fila">
+                        <ul class="datos-icono datos-icono--fila blog-destacada__datos">
                             <li>@Html.Icono("usuario")<span>@autor</span></li>
                             <li>@Html.Icono("calendario")<time datetime="@destacada.FechaCreacion.ToString("o")">@Formato.Fecha(destacada.FechaCreacion)</time></li>
                             <li>@Html.Icono("reloj")<span>@destacada.MinutosLectura min de lectura</span></li>
                         </ul>
                         <div class="acciones-fila">
-                            <a asp-action="Details" asp-route-id="@destacada.Id" class="btn btn-primary">Leer el artículo</a>
+                            <a asp-action="Details" asp-route-id="@destacada.Id" class="btn btn-primary btn-lg">Leer el artículo @Html.Icono("flecha-derecha", "icono--sm")</a>
                             <partial name="_BlogAcciones" model="destacada" />
                         </div>
                     </div>
