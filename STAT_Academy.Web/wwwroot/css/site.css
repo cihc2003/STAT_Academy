@@ -5339,3 +5339,10 @@ h3.panel-form__seccion {
 .inicio-hero__grid {
     padding-bottom: clamp(5rem, 7vw, var(--e-20));
 }
+
+/* Estrella de STATMEDICAL en los menús laterales (placa blanca sobre el azul) */
+.admin-sidebar__logo--marca {
+    padding: var(--e-1);
+    background: var(--blanco);
+    object-fit: contain;
+}
