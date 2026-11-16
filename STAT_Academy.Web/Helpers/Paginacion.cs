@@ -39,6 +39,21 @@ namespace STAT_Academy.Web.Helpers
             return (todos.Skip((info.Pagina - 1) * tamano).Take(tamano).ToList(), info);
         }
 
+        /// <summary>
+        /// Catálogos públicos (cursos, productos, blog): tamaño fijo elegido para que la rejilla
+        /// quede pareja; solo cambia la página.
+        /// </summary>
+        public static (List<T> items, Paginacion paginacion) Catalogo<T>(
+            IEnumerable<T> lista, int pagina, int tamano, string elementos)
+        {
+            var todos = lista as IList<T> ?? lista.ToList();
+            var total = Math.Max(1, (int)Math.Ceiling(todos.Count / (double)tamano));
+            var actual = Math.Clamp(pagina, 1, total);
+
+            return (todos.Skip((actual - 1) * tamano).Take(tamano).ToList(),
+                new Paginacion { Pagina = actual, Tamano = tamano, Total = todos.Count, Elementos = elementos });
+        }
+
         /// <summary>Para listas que la API ya devuelve paginadas (la página y el total vienen de la API).</summary>
         public static Paginacion DesdeApi(int pagina, int tamano, int total, string elementos) => new()
         {

@@ -24,14 +24,14 @@
                 <p>Oferta académica: precios, fechas, tutores y portadas.</p>
             </div>
             <div class="panel-encabezado__acciones">
-                <a class="btn btn-primary" asp-action="CourseForm">+ Agregar curso</a>
+                <a class="btn btn-primary" asp-action="CourseForm">@Html.Icono("mas")Agregar curso</a>
             </div>
         </div>
 
         <form class="panel-filtros" method="get" asp-action="Courses" role="search">
             <div class="panel-filtros__buscar">
                 <label class="panel-filtros__etiqueta" for="search">Buscar</label>
-                <svg class="panel-filtros__lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                @Html.Icono("buscar", "panel-filtros__lupa")
                 <input class="form-control" id="search" name="search" type="search" value="@buscar"
                        placeholder="Nombre o descripción del curso" maxlength="100" />
             </div>
@@ -66,15 +66,15 @@
             <span><strong>@cantidad</strong> de @totalCursos @(totalCursos == 1 ? "curso" : "cursos")</span>
             @if (buscar != null)
             {
-                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "search")" title="Quitar filtro">«@buscar» <span aria-hidden="true">×</span></a>
+                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "search")" >«@buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
             }
             @if (periodoTexto != null)
             {
-                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "periodo")" title="Quitar filtro">@periodoTexto <span aria-hidden="true">×</span></a>
+                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "periodo")" >@periodoTexto @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
             }
             @if (estado != null)
             {
-                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "estado")" title="Quitar filtro">@(estado == "true" ? "Activos" : "Inactivos") <span aria-hidden="true">×</span></a>
+                <a class="panel-chip" asp-action="Courses" asp-all-route-data="@FiltrosPanel.Sin(q, "estado")" >@(estado == "true" ? "Activos" : "Inactivos") @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
             }
             @if (hayFiltros)
             {
@@ -109,9 +109,7 @@
                         <tr class="@(curso.estado ? "" : "usuarios-fila--inactiva")">
                             <td class="panel-tabla__principal">
                                 <div class="panel-celda">
-                                    <span class="panel-celda__icono" aria-hidden="true">
-                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z" /><path d="M6 12v5c3 2 9 2 12 0v-5" /></svg>
-                                    </span>
+                                    <span class="panel-celda__icono">@Html.Icono("birrete")</span>
                                     <div class="panel-celda__texto">
                                         <a class="panel-celda__nombre" asp-action="CourseForm" asp-route-id="@curso.id">@curso.nombre</a>
                                         <span class="panel-celda__sub">@curso.descripcion</span>

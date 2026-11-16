@@ -91,7 +91,7 @@
 
         const quill = new Quill(contenedor, {
             theme: 'snow',
-            placeholder: 'Escribe aquí tu entrada… Usa la barra de arriba para dar formato e insertar imágenes.',
+            placeholder: 'Escriba aquí su entrada. Use la barra de arriba para dar formato e insertar imágenes.',
             modules: {
                 toolbar: { container: BARRA, handlers: { image: () => elegirImagen(quill) } },
                 history: { delay: 1000, maxStack: 200, userOnly: true }
@@ -116,7 +116,7 @@
             if (!estado) return;
             const palabras = quill.getText().trim().split(/\s+/).filter(Boolean).length;
             const minutos = Math.max(1, Math.round(palabras / 200));
-            estado.textContent = `${palabras} ${palabras === 1 ? 'palabra' : 'palabras'} · ~${minutos} min de lectura`;
+            estado.textContent = `${palabras} ${palabras === 1 ? 'palabra' : 'palabras'}, unos ${minutos} min de lectura`;
         };
         quill.on('text-change', actualizarEstado);
         actualizarEstado();

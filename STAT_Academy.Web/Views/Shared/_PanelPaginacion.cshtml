@@ -33,7 +33,7 @@
         <nav aria-label="Páginas">
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item @(Model.Pagina == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina - 1)" aria-label="Página anterior">‹</a>
+                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina - 1)" aria-label="Página anterior">@Html.Icono("chevron-izquierda", "icono--sm")</a>
                 </li>
 
                 @for (var i = 0; i < paginas.Count; i++)
@@ -50,7 +50,7 @@
                 }
 
                 <li class="page-item @(Model.Pagina == Model.TotalPaginas ? "disabled" : "")">
-                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina + 1)" aria-label="Página siguiente">›</a>
+                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina + 1)" aria-label="Página siguiente">@Html.Icono("chevron-derecha", "icono--sm")</a>
                 </li>
             </ul>
         </nav>
@@ -68,6 +68,6 @@
                 <option value="@t" selected="@(t == Model.Tamano)">@t</option>
             }
         </select>
-        <noscript><button class="btn btn-sm btn-outline-secondary" type="submit">Aplicar</button></noscript>
+        <noscript><button class="btn btn-sm btn-secundario" type="submit">Aplicar</button></noscript>
     </form>
 </div>

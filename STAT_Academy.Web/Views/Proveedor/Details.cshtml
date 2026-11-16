@@ -8,13 +8,11 @@
     <partial name="_AdminNav" />
 
     <section>
-        <a class="panel-volver" asp-action="Index">&larr; Proveedores</a>
+        <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Proveedores</a>
 
         <div class="panel-tarjeta">
             <div class="usuario-perfil__cabecera mb-4">
-                <span class="panel-celda__icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z" /><path d="M16 8h4l3 3v5h-7V8z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
-                </span>
+                <span class="panel-celda__icono">@Html.Icono("camion")</span>
                 <div class="usuario-perfil__titulo">
                     <span class="eyebrow">Proveedor</span>
                     <h1 class="mb-1">@Model.nombre</h1>

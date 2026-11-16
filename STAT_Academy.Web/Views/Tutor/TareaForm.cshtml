@@ -9,7 +9,7 @@
 
 <section class="section">
     <div class="container contenedor-formulario">
-        <a asp-action="Curso" asp-route-id="@Model.CursoId" class="text-link">← Volver a @Model.CursoNombre</a>
+        <a asp-action="Curso" asp-route-id="@Model.CursoId" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Volver a @Model.CursoNombre</a>
 
         <h1 class="mt-2">@(nueva ? "Nueva tarea" : "Editar tarea")</h1>
         <p class="text-muted">
@@ -21,7 +21,7 @@
             <input type="hidden" asp-for="CursoId" />
             <input type="hidden" asp-for="CursoNombre" />
 
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div asp-validation-summary="ModelOnly" class="aviso aviso--error"></div>
 
             <div class="mb-3">
                 <label asp-for="Titulo" class="form-label"></label>
@@ -51,7 +51,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">@(nueva ? "Crear tarea" : "Guardar cambios")</button>
-                <a asp-action="Curso" asp-route-id="@Model.CursoId" class="btn btn-secondary">Cancelar</a>
+                <a asp-action="Curso" asp-route-id="@Model.CursoId" class="btn btn-secundario">Cancelar</a>
             </div>
         </form>
 
@@ -66,9 +66,9 @@
             }
             else if (!Model.AdjuntosDisponible)
             {
-                <div class="alert alert-info small mb-0">
+                <aviso tipo="info" class="mb-0">
                     Los documentos de las tareas todavía no están habilitados en la base de datos.
-                </div>
+                </aviso>
             }
             else
             {

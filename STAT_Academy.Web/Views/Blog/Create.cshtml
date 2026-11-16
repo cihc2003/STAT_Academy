@@ -10,51 +10,74 @@
           integrity="sha384-ecIckRi4QlKYya/FQUbBUjS4qp65jF/J87Guw5uzTbO1C1Jfa/6kYmd6dXUF6D7i" crossorigin="anonymous" />
 }
 
-<section class="section">
+<section class="section section--compacta">
     <div class="container blog-editor-pagina">
-        <a asp-action="Index" class="text-link">&larr; Volver al blog</a>
+        <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Blog</a>
 
-        <div class="section-heading mt-3">
-            <span class="eyebrow">Blog académico</span>
+        <div class="section-heading">
             <h1>Nueva entrada</h1>
             <p>Usted quedará como autor y será la única persona que pueda editarla.</p>
         </div>
 
-        <form asp-action="Create" method="post" enctype="multipart/form-data" class="card blog-form card-body">
-            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        @* Los tres campos de archivos se envían como "Archivos" y en este orden: la portada va
+           primero, así la API la marca como imagen principal. *@
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="blog-form-rejilla" data-un-solo-envio>
+            <div class="formulario blog-form-rejilla__principal">
+                <div asp-validation-summary="All" class="aviso aviso--error"></div>
 
-            <div class="mb-4">
-                <label asp-for="Titulo" class="form-label fw-bold"></label>
-                <input asp-for="Titulo" class="form-control form-control-lg blog-titulo-input" maxlength="150"
-                       placeholder="Un título claro y llamativo" />
-                <span asp-validation-for="Titulo" class="text-danger"></span>
+                <div class="form-group">
+                    <label asp-for="Titulo" class="form-label"></label>
+                    <input asp-for="Titulo" class="form-control form-control-lg blog-titulo-input" maxlength="150"
+                           placeholder="Un título claro y descriptivo" />
+                    <span asp-validation-for="Titulo" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="form-label" id="contenido-etiqueta">Contenido</label>
+                    <partial name="_EditorContenido" model="Model.Contenido" />
+                    <span asp-validation-for="Contenido" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label for="portada" class="form-label fw-bold">Imagen de portada</label>
-                <input id="portada" name="Archivos" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp" data-blog-archivos />
-                <div class="form-text">Aparece en el listado del blog y arriba de la entrada. JPG, PNG, GIF o WEBP de hasta 5 MB.</div>
-                <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
-            </div>
+            <aside class="blog-form-rejilla__lateral">
+                <div class="formulario" data-portada-grupo>
+                    <h2 class="blog-form__titulo">Imagen de portada</h2>
+                    <p class="form-text mt-0 mb-3">Se muestra en el listado (a la izquierda) y a todo el ancho arriba de la entrada. Use una imagen horizontal, de al menos 1600 px de ancho.</p>
+                    <div class="portada-blog portada-blog--vacia" data-portada-campo>
+                        <div class="portada-blog__vista" data-portada-vista>
+                            <span class="portada-blog__vacio">@Html.Icono("imagen", "icono--xl")<span>Sin portada</span></span>
+                        </div>
+                    </div>
+                    <label for="portada" class="form-label mt-3">Elegir imagen</label>
+                    <input id="portada" name="Archivos" type="file" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp"
+                           data-portada-input data-blog-archivos aria-describedby="portada-ayuda" />
+                    <div id="portada-ayuda" class="form-text">JPG, PNG, GIF o WEBP de hasta 5 MB.</div>
+                    <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
+                </div>
 
-            <div class="mb-4">
-                <label class="form-label fw-bold">Contenido</label>
-                <partial name="_EditorContenido" model="Model.Contenido" />
-                <span asp-validation-for="Contenido" class="text-danger"></span>
-            </div>
+                <div class="formulario">
+                    <h2 class="blog-form__titulo">Galería <span class="text-muted fw-normal">(opcional)</span></h2>
+                    <label for="galeria" class="form-label">Imágenes</label>
+                    <input id="galeria" name="Archivos" type="file" class="form-control" multiple accept=".jpg,.jpeg,.png,.gif,.webp"
+                           data-blog-archivos aria-describedby="galeria-ayuda" />
+                    <div id="galeria-ayuda" class="form-text">Se muestran en una galería al final de la entrada. Si no eligió portada, la primera imagen se usa como portada.</div>
+                    <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
+                </div>
 
-            <div class="mb-4">
-                <label for="documentos" class="form-label fw-bold">Documentos adjuntos <span class="fw-normal text-muted">(opcional)</span></label>
-                <input id="documentos" name="Archivos" type="file" class="form-control" multiple
-                       accept=".pdf,.doc,.docx,.xlsx,.pptx,.txt,.csv" data-blog-archivos />
-                <div class="form-text">PDF, Word, Excel, PowerPoint, TXT o CSV de hasta 10 MB. Se listan al final de la entrada para descargar.</div>
-                <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
-            </div>
+                <div class="formulario">
+                    <h2 class="blog-form__titulo">Documentos <span class="text-muted fw-normal">(opcional)</span></h2>
+                    <label for="documentos" class="form-label">Archivos para descargar</label>
+                    <input id="documentos" name="Archivos" type="file" class="form-control" multiple
+                           accept=".pdf,.doc,.docx,.xlsx,.pptx,.txt,.csv" data-blog-archivos aria-describedby="documentos-ayuda" />
+                    <div id="documentos-ayuda" class="form-text">PDF, Word, Excel, PowerPoint, TXT o CSV de hasta 10 MB.</div>
+                    <ul class="blog-seleccion" data-blog-seleccion hidden></ul>
+                </div>
 
-            <div class="d-flex flex-wrap gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">Publicar entrada</button>
-                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Cancelar</a>
-            </div>
+                <div class="blog-form-rejilla__acciones">
+                    <button type="submit" class="btn btn-primary btn-lg">Publicar entrada</button>
+                    <a asp-action="Index" class="btn btn-secundario btn-lg">Cancelar</a>
+                </div>
+            </aside>
         </form>
     </div>
 </section>

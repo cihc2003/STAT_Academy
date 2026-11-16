@@ -8,13 +8,13 @@
     <partial name="_AdminNav" />
 
     <section>
-        <a class="panel-volver" asp-action="Courses">&larr; Cursos</a>
+        <a class="enlace-volver" asp-action="Courses">@Html.Icono("flecha-izquierda", "icono--sm")Cursos</a>
 
         <div class="panel-encabezado">
             <div>
                 <span class="eyebrow">Administración</span>
                 <h1>@(Model.id == null ? "Crear curso" : "Editar curso")</h1>
-                <p>Administra nombre, tutor, precio, fechas, portada y estado del curso.</p>
+                <p>Nombre, tutor, precio, fechas, portada y estado del curso.</p>
             </div>
         </div>
 
@@ -22,7 +22,7 @@
             @Html.AntiForgeryToken()
             <input asp-for="id" type="hidden" />
 
-            <div asp-validation-summary="All"></div>
+            <div asp-validation-summary="All" class="aviso aviso--error"></div>
 
             <h2 class="panel-form__seccion">Datos generales</h2>
             <div class="row g-3">

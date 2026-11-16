@@ -23,7 +23,7 @@ namespace STAT_Academy.Web.Controllers
         private int UsuarioId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         /// <param name="buscar">Texto a buscar en el nombre del curso (sin distinguir mayúsculas ni tildes).</param>
-        public async Task<IActionResult> Index(string? buscar)
+        public async Task<IActionResult> Index(string? buscar, int pagina = 1)
         {
             ViewData["Buscar"] = buscar?.Trim();
 
@@ -45,10 +45,12 @@ namespace STAT_Academy.Web.Controllers
             var visibles = cursos.Where(c => c.Estado && c.InscripcionAbierta).ToList();
             ViewData["Total"] = visibles.Count;
 
-            return View(visibles
+            var (items, paginacion) = Paginacion.Catalogo(visibles
                 .Where(c => Busqueda.Coincide(c.Nombre, buscar))
-                .OrderBy(c => c.Nombre)
-                .ToList());
+                .OrderBy(c => c.Nombre), pagina, 12, "cursos");
+            ViewBag.Paginacion = paginacion;
+
+            return View(items);
         }
 
         public async Task<IActionResult> Details(int id)

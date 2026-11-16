@@ -4,12 +4,6 @@
     var stockBajo = ViewBag.StockBajo as List<STAT_Academy.Web.Models.Productos.ProductoResponse> ?? new();
     var pagosPendientes = (int)(ViewBag.PagosPendientes ?? 0);
     var nombre = User.Identity?.Name ?? "";
-
-    const string IconoUsuarios = "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>";
-    const string IconoCursos = "<path d=\"M22 10 12 5 2 10l10 5 10-5z\"/><path d=\"M6 12v5c3 2 9 2 12 0v-5\"/>";
-    const string IconoProductos = "<path d=\"M21 8 12 3 3 8v8l9 5 9-5V8z\"/><path d=\"m3 8 9 5 9-5\"/><path d=\"M12 13v8\"/>";
-    const string IconoFacturas = "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13h8\"/><path d=\"M8 17h5\"/>";
-    const string IconoMas = "<path d=\"M12 5v14\"/><path d=\"M5 12h14\"/>";
 }
 
 <div class="container admin-shell">
@@ -25,28 +19,20 @@
         </div>
 
         <div class="panel-metricas">
-            <a class="panel-metrica panel-metrica--violeta" asp-controller="Usuario" asp-action="Index">
-                <span class="panel-metrica__icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">@Html.Raw(IconoUsuarios)</svg>
-                </span>
+            <a class="panel-metrica" asp-controller="Usuario" asp-action="Index">
+                <span class="panel-metrica__icono">@Html.Icono("usuarios", "icono--lg")</span>
                 <div><strong>@ViewBag.Users</strong><span>Usuarios</span></div>
             </a>
             <a class="panel-metrica" asp-action="Courses">
-                <span class="panel-metrica__icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">@Html.Raw(IconoCursos)</svg>
-                </span>
+                <span class="panel-metrica__icono">@Html.Icono("birrete", "icono--lg")</span>
                 <div><strong>@ViewBag.Courses</strong><span>Cursos</span></div>
             </a>
-            <a class="panel-metrica panel-metrica--cielo" asp-action="Products">
-                <span class="panel-metrica__icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">@Html.Raw(IconoProductos)</svg>
-                </span>
+            <a class="panel-metrica" asp-action="Products">
+                <span class="panel-metrica__icono">@Html.Icono("caja", "icono--lg")</span>
                 <div><strong>@ViewBag.Products</strong><span>Productos</span></div>
             </a>
-            <a class="panel-metrica panel-metrica--verde" asp-action="Invoices">
-                <span class="panel-metrica__icono" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">@Html.Raw(IconoFacturas)</svg>
-                </span>
+            <a class="panel-metrica @(pagosPendientes > 0 ? "panel-metrica--alerta" : "")" asp-action="Invoices">
+                <span class="panel-metrica__icono">@Html.Icono("factura", "icono--lg")</span>
                 <div><strong>@pagosPendientes</strong><span>Pagos por verificar</span></div>
             </a>
         </div>
@@ -58,7 +44,7 @@
                 @if (pagosPendientes == 0 && stockBajo.Count == 0)
                 {
                     <p class="panel-ok">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                        @Html.Icono("exito")
                         Todo al día: no hay pagos por verificar ni productos con stock bajo.
                     </p>
                 }
@@ -67,8 +53,8 @@
                 {
                     <div class="panel-aviso panel-aviso--info" role="status">
                         <p>
-                            <strong>@pagosPendientes @(pagosPendientes == 1 ? "comprobante de pago espera" : "comprobantes de pago esperan")</strong>
-                            su verificación.
+                            @Html.Icono("info")
+                            <span><strong>@pagosPendientes @(pagosPendientes == 1 ? "comprobante de pago espera" : "comprobantes de pago esperan")</strong> su verificación.</span>
                         </p>
                         <a class="btn btn-sm btn-primary" asp-action="Invoices">Revisar pagos</a>
                     </div>
@@ -76,9 +62,12 @@
 
                 @if (stockBajo.Count > 0)
                 {
-                    <div class="panel-aviso mb-2" role="status">
-                        <p><strong>@stockBajo.Count @(stockBajo.Count == 1 ? "producto tiene" : "productos tienen")</strong> stock bajo.</p>
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="Products" asp-route-stockBajo="true">Ver productos</a>
+                    <div class="panel-aviso" role="status">
+                        <p>
+                            @Html.Icono("advertencia")
+                            <span><strong>@stockBajo.Count @(stockBajo.Count == 1 ? "producto tiene" : "productos tienen")</strong> stock bajo.</span>
+                        </p>
+                        <a class="btn btn-sm btn-secundario" asp-action="Products" asp-route-stockBajo="true">Ver productos</a>
                     </div>
                     <ul class="panel-lista">
                         @foreach (var p in stockBajo.Take(5))
@@ -95,30 +84,12 @@
             <div class="panel-tarjeta">
                 <h2 class="panel-tarjeta__titulo">Accesos rápidos</h2>
                 <div class="panel-accesos">
-                    <a asp-controller="Usuario" asp-action="UserForm">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoMas)</svg>
-                        Nuevo usuario
-                    </a>
-                    <a asp-action="CourseForm">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoMas)</svg>
-                        Nuevo curso
-                    </a>
-                    <a asp-action="ProductForm">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoMas)</svg>
-                        Nuevo producto
-                    </a>
-                    <a asp-controller="Proveedor" asp-action="SupplierForm">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoMas)</svg>
-                        Nuevo proveedor
-                    </a>
-                    <a asp-action="Invoices" asp-route-vista="facturas">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoFacturas)</svg>
-                        Todas las facturas
-                    </a>
-                    <a asp-controller="Tutor" asp-action="Index">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">@Html.Raw(IconoCursos)</svg>
-                        Panel del tutor
-                    </a>
+                    <a asp-controller="Usuario" asp-action="UserForm">@Html.Icono("mas")Nuevo usuario</a>
+                    <a asp-action="CourseForm">@Html.Icono("mas")Nuevo curso</a>
+                    <a asp-action="ProductForm">@Html.Icono("mas")Nuevo producto</a>
+                    <a asp-controller="Proveedor" asp-action="SupplierForm">@Html.Icono("mas")Nuevo proveedor</a>
+                    <a asp-action="Invoices" asp-route-vista="facturas">@Html.Icono("factura")Todas las facturas</a>
+                    <a asp-controller="Tutor" asp-action="Index">@Html.Icono("pizarra")Panel del tutor</a>
                 </div>
             </div>
         </div>

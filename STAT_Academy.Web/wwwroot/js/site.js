@@ -176,7 +176,7 @@
     "use strict";
 
     document.querySelectorAll("[data-portada-input]").forEach(function (input) {
-        var campo = input.closest(".portada-campo");
+        var campo = input.closest(".portada-campo") || input.closest("[data-portada-grupo]");
         var vista = campo && campo.querySelector("[data-portada-vista]");
         if (!vista || !window.URL) return;
 
@@ -205,16 +205,47 @@
     });
 })();
 
-// Avisos de resultado (toast): los de éxito se ocultan solos; los de error quedan hasta cerrarlos.
+// Notificaciones flotantes (Shared/_Notificaciones): se vuelven a anunciar al cargar (los lectores
+// de pantalla no leen una región que ya tenía texto), las de éxito e información se ocultan a
+// los 6 s salvo que el mouse o el foco estén encima, y todas se pueden cerrar.
 (function () {
     "use strict";
 
-    if (!window.bootstrap || !window.bootstrap.Toast) return;
+    var DURACION_MS = 6000;
 
-    document.querySelectorAll(".aviso-toast").forEach(function (el) {
-        var toast = window.bootstrap.Toast.getOrCreateInstance(el);
-        toast.show();
-        el.addEventListener("hidden.bs.toast", function () { el.remove(); });
+    function cerrar(el) {
+        el.hidden = true;
+        el.remove();
+    }
+
+    document.querySelectorAll("[data-notificacion]").forEach(function (el) {
+        var texto = el.querySelector("[data-notificacion-texto]");
+        if (texto) {
+            var contenido = texto.textContent;
+            texto.textContent = "";
+            setTimeout(function () { texto.textContent = contenido; }, 150);
+        }
+
+        var boton = el.querySelector("[data-notificacion-cerrar]");
+        if (boton) boton.addEventListener("click", function () { cerrar(el); });
+
+        el.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") cerrar(el);
+        });
+
+        if (el.getAttribute("data-autocerrar") !== "true") return;
+
+        var temporizador = null;
+        function programar() { temporizador = setTimeout(function () { cerrar(el); }, DURACION_MS); }
+        function pausar() { clearTimeout(temporizador); }
+
+        el.addEventListener("mouseenter", pausar);
+        el.addEventListener("focusin", pausar);
+        el.addEventListener("mouseleave", programar);
+        el.addEventListener("focusout", function (e) {
+            if (!el.contains(e.relatedTarget)) programar();
+        });
+        programar();
     });
 })();
 
@@ -299,9 +330,18 @@
 (function () {
     // Formularios de pago/compra: el botón se desactiva al enviar para no duplicar la operación.
     document.querySelectorAll("form[data-un-solo-envio]").forEach(function (form) {
-        form.addEventListener("submit", function () {
+        form.addEventListener("submit", function (e) {
             var boton = form.querySelector("button[type=submit]") || form.querySelector("button");
-            if (boton) boton.disabled = true;
+            if (!boton) return;
+            // Se espera a que terminen los demás manejadores: si la validación del cliente
+            // canceló el envío, el botón sigue disponible para corregir y reintentar.
+            setTimeout(function () {
+                if (e.defaultPrevented) return;
+                // Estado "cargando": el botón queda inactivo y lo anuncia (aria-busy muestra el indicador).
+                boton.setAttribute("aria-busy", "true");
+                boton.setAttribute("aria-disabled", "true");
+                boton.disabled = true;
+            }, 0);
         });
     });
 
@@ -320,9 +360,10 @@
     document.querySelectorAll("[data-copiar-enlace]").forEach(function (boton) {
         boton.addEventListener("click", function () {
             navigator.clipboard.writeText(window.location.href).then(function () {
-                var original = boton.textContent;
-                boton.textContent = "¡Enlace copiado!";
-                setTimeout(function () { boton.textContent = original; }, 2000);
+                var etiqueta = boton.querySelector("[data-copiar-texto]") || boton;
+                var original = etiqueta.textContent;
+                etiqueta.textContent = "Enlace copiado";
+                setTimeout(function () { etiqueta.textContent = original; }, 2000);
             });
         });
     });
@@ -391,4 +432,83 @@
         const valor = Number(barra.dataset.progreso);
         barra.style.width = (Number.isFinite(valor) ? Math.min(Math.max(valor, 0), 100) : 0) + '%';
     });
+})();
+
+// Al volver con "Atrás" (caché del navegador), los botones de un solo envío recuperan su estado.
+window.addEventListener("pageshow", function (e) {
+    if (!e.persisted) return;
+    document.querySelectorAll("form[data-un-solo-envio] [aria-busy='true']").forEach(function (boton) {
+        boton.removeAttribute("aria-busy");
+        boton.removeAttribute("aria-disabled");
+        boton.disabled = false;
+    });
+});
+
+// Portada: las cifras cuentan desde 0 hasta su valor una sola vez (solo la parte visual;
+// el número real está en un texto oculto para lectores de pantalla). Sin animación si el
+// sistema pide reducir el movimiento.
+(function () {
+    "use strict";
+
+    var cifras = document.querySelectorAll("[data-contar]");
+    if (!cifras.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var DURACION = 1100;
+
+    cifras.forEach(function (el) {
+        var final = parseInt(el.getAttribute("data-contar"), 10);
+        if (!isFinite(final) || final <= 0) return;
+
+        var inicio = null;
+        el.textContent = "0";
+
+        function paso(t) {
+            if (inicio === null) inicio = t;
+            var avance = Math.min((t - inicio) / DURACION, 1);
+            var suavizado = 1 - Math.pow(1 - avance, 3);
+            el.textContent = String(Math.round(final * suavizado));
+            if (avance < 1) requestAnimationFrame(paso);
+        }
+
+        setTimeout(function () { requestAnimationFrame(paso); }, 350);
+    });
+})();
+
+// Pulso de la portada: botón para pausarlo o reanudarlo (se recuerda en este navegador)
+// y pausa automática cuando el hero no está a la vista, para no gastar batería en
+// teléfonos y equipos poco potentes.
+(function () {
+    "use strict";
+
+    var hero = document.querySelector("[data-pulso]");
+    if (!hero) return;
+
+    var boton = hero.querySelector("[data-pulso-control]");
+    var texto = hero.querySelector("[data-pulso-texto]");
+    var CLAVE = "stat-pulso-pausado";
+
+    function aplicar(pausado) {
+        hero.classList.toggle("inicio-hero--pausado", pausado);
+        if (!boton) return;
+        boton.setAttribute("aria-pressed", pausado ? "true" : "false");
+        if (texto) texto.textContent = pausado ? "Reanudar animación" : "Pausar animación";
+    }
+
+    var guardado = false;
+    try { guardado = localStorage.getItem(CLAVE) === "1"; } catch (e) { /* sin almacenamiento */ }
+    aplicar(guardado);
+
+    if (boton) {
+        boton.addEventListener("click", function () {
+            var pausado = !hero.classList.contains("inicio-hero--pausado");
+            aplicar(pausado);
+            try { localStorage.setItem(CLAVE, pausado ? "1" : "0"); } catch (e) { /* sin almacenamiento */ }
+        });
+    }
+
+    if ("IntersectionObserver" in window) {
+        new IntersectionObserver(function (entradas) {
+            hero.classList.toggle("inicio-hero--fuera", !entradas[0].isIntersecting);
+        }).observe(hero);
+    }
 })();

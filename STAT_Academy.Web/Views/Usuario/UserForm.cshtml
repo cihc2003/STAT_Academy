@@ -12,11 +12,11 @@
     <section class="usuarios">
         @if (Model.EsEdicion)
         {
-            <a class="text-link" asp-action="Details" asp-route-id="@Model.Id">← Volver al usuario</a>
+            <a class="enlace-volver" asp-action="Details" asp-route-id="@Model.Id">@Html.Icono("flecha-izquierda", "icono--sm")Volver al usuario</a>
         }
         else
         {
-            <a class="text-link" asp-action="Index">← Volver a usuarios</a>
+            <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Volver a usuarios</a>
         }
 
         <div class="form-card usuario-form mt-3">
@@ -29,7 +29,7 @@
             </p>
 
             <form asp-action="UserForm" asp-route-id="@Model.Id" method="post" novalidate>
-                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                <div asp-validation-summary="ModelOnly" class="aviso aviso--error" role="alert"></div>
 
                 <div class="row g-3">
                     <div class="col-md-6">

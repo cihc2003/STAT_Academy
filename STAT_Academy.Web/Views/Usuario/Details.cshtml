@@ -13,7 +13,7 @@
     <partial name="_AdminNav" />
 
     <section class="usuarios">
-        <a class="text-link" asp-action="Index">← Volver a usuarios</a>
+        <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Volver a usuarios</a>
 
         <div class="usuario-perfil mt-3">
             <div class="usuario-perfil__cabecera">
@@ -23,7 +23,7 @@
                         @Model.nombre
                         @if (esYo)
                         {
-                            <span class="usuario-yo">Tú</span>
+                            <span class="usuario-yo">(su cuenta)</span>
                         }
                     </h1>
                     <p class="text-muted mb-2">@Model.email</p>

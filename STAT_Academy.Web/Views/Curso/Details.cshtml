@@ -3,79 +3,93 @@
 @{
     ViewData["Title"] = Model.Nombre;
     var esPago = Model.Precio_Base > 0;
-    var semanas = Model.Duracion_Semanas;
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 
-<section class="curso-hero">
-    <div class="catalogo-ancho curso-hero__grid">
-        <div class="curso-hero__texto">
-            <a asp-action="Index" class="curso-hero__volver">← Cursos</a>
+<section class="detalle-hero">
+    <div class="container detalle-hero__grid">
+        <div class="detalle-hero__texto">
+            <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Cursos</a>
             <h1>@Model.Nombre</h1>
+            <ul class="datos-icono datos-icono--fila datos-icono--grande">
+                <li>@Html.Icono("calendario")<span>Inicia el @Formato.FechaLarga(Model.Fecha_Inicio)</span></li>
+                <li>@Html.Icono("reloj")<span>@Formato.Semanas(Model.Duracion_Semanas)</span></li>
+                @if (!string.IsNullOrWhiteSpace(Model.TutorNombre))
+                {
+                    <li>@Html.Icono("usuario")<span>Tutor: @Model.TutorNombre</span></li>
+                }
+            </ul>
         </div>
-        <partial name="_CursoPortada" model="Model" />
+        <div class="detalle-hero__media">
+            <partial name="_CursoPortada" model="Model" />
+        </div>
     </div>
 </section>
 
-<section class="catalogo-ancho curso-detalle">
-    <article class="curso-detalle__descripcion">
-        <h2>Sobre el curso</h2>
-        <p>@Model.Descripcion</p>
-    </article>
+<section class="section">
+    <div class="container detalle-cuerpo">
+        <article class="detalle-cuerpo__texto">
+            <h2>Sobre el curso</h2>
+            <p class="texto-largo">@Model.Descripcion</p>
+        </article>
 
-    <aside class="curso-compra" aria-label="Inscripción">
-        <div class="curso-compra__precio">@(esPago ? Formato.Colones(Model.Precio_Base) : "Gratis")</div>
+        <aside class="compra-caja" aria-labelledby="compra-titulo">
+            <h2 id="compra-titulo" class="visually-hidden">Inscripción</h2>
+            <p class="compra-caja__precio">@Formato.PrecioCurso(Model.Precio_Base)</p>
 
-        <dl class="curso-compra__datos">
-            <div>
-                <dt>Inicio</dt>
-                <dd>@Formato.FechaLarga(Model.Fecha_Inicio)</dd>
-            </div>
-            <div>
-                <dt>Fin</dt>
-                <dd>@Formato.FechaLarga(Model.Fecha_Fin)</dd>
-            </div>
-            <div>
-                <dt>Duración</dt>
-                <dd>@semanas @(semanas == 1 ? "semana" : "semanas")</dd>
-            </div>
-            @if (!string.IsNullOrWhiteSpace(Model.TutorNombre))
-            {
+            <dl class="lista-datos">
                 <div>
-                    <dt>Tutor</dt>
-                    <dd>@Model.TutorNombre</dd>
+                    <dt>Inicio</dt>
+                    <dd>@Formato.FechaLarga(Model.Fecha_Inicio)</dd>
                 </div>
-            }
-        </dl>
+                <div>
+                    <dt>Fin</dt>
+                    <dd>@Formato.FechaLarga(Model.Fecha_Fin)</dd>
+                </div>
+                <div>
+                    <dt>Duración</dt>
+                    <dd>@Formato.Semanas(Model.Duracion_Semanas)</dd>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.TutorNombre))
+                {
+                    <div>
+                        <dt>Tutor</dt>
+                        <dd>@Model.TutorNombre</dd>
+                    </div>
+                }
+            </dl>
 
-        @if (!Model.InscripcionAbierta)
-        {
-            <div class="curso-compra__aviso" role="status">
-                Este curso ya inició y no acepta nuevas inscripciones.
-            </div>
-        }
-        else if (User.Identity?.IsAuthenticated != true)
-        {
-            <a class="btn btn-primary w-100" asp-controller="Cuenta" asp-action="Login" asp-route-returnUrl="@returnUrl">
-                Inicia sesión para inscribirte
-            </a>
-        }
-        else if (User.IsInRole("Cliente"))
-        {
-            if (esPago)
+            @if (!Model.InscripcionAbierta)
             {
-                @* Curso de pago: se genera la factura y el acceso se habilita al aprobarse el pago. *@
-                <form asp-controller="Facturas" asp-action="ComprarCurso" method="post"
-                      data-un-solo-envio>
-                    <input type="hidden" name="cursoId" value="@Model.Id" />
-                    <button class="btn btn-primary w-100" type="submit">Comprar curso</button>
-                </form>
-                <p class="curso-compra__nota">Tendrás acceso al curso cuando se apruebe el pago.</p>
+                <aviso tipo="advertencia">Este curso ya inició y no acepta nuevas inscripciones.</aviso>
+            }
+            else if (User.Identity?.IsAuthenticated != true)
+            {
+                <a class="btn btn-primary btn-lg w-100" asp-controller="Cuenta" asp-action="Login" asp-route-returnUrl="@returnUrl">
+                    Inicie sesión para inscribirse
+                </a>
+                <p class="compra-caja__nota">¿No tiene cuenta? <a asp-controller="Cuenta" asp-action="Registrar">Cree una gratis</a>.</p>
+            }
+            else if (User.IsInRole("Cliente"))
+            {
+                if (esPago)
+                {
+                    @* Curso de pago: se genera la factura y el acceso se habilita al aprobarse el pago. *@
+                    <form asp-controller="Facturas" asp-action="ComprarCurso" method="post" data-un-solo-envio>
+                        <input type="hidden" name="cursoId" value="@Model.Id" />
+                        <button class="btn btn-primary btn-lg w-100" type="submit">Comprar curso</button>
+                    </form>
+                    <p class="compra-caja__nota">@Html.Icono("info", "icono--sm")Tendrá acceso al curso cuando se apruebe el pago.</p>
+                }
+                else
+                {
+                    <a asp-action="Inscribirse" asp-route-idCurso="@Model.Id" class="btn btn-primary btn-lg w-100">Inscribirme</a>
+                }
             }
             else
             {
-                <a asp-action="Inscribirse" asp-route-idCurso="@Model.Id" class="btn btn-primary w-100">Inscribirme</a>
+                <p class="compra-caja__nota">@Html.Icono("info", "icono--sm")La inscripción está disponible para cuentas de estudiante.</p>
             }
-        }
-    </aside>
+        </aside>
+    </div>
 </section>
