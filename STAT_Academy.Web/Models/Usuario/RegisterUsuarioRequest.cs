@@ -6,4 +6,6 @@ public class RegisterUsuarioRequest
     public string email { get; set; } = string.Empty;
     public string password { get; set; } = string.Empty;
     public int fk_Tipo_Usuario { get; set; }
+    public bool aceptaTerminos { get; set; }
+    public string versionTerminos { get; set; } = string.Empty;
 }

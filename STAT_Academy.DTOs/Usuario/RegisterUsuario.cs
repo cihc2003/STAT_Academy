@@ -16,5 +16,17 @@ namespace STAT_Academy.DTOs.Usuarios
         [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [StringLength(256, MinimumLength = 8, ErrorMessage = "La contraseña debe tener entre 8 y 256 caracteres.")]
         public string password { get; set; } = string.Empty;
+
+        /// <summary>Debe ser true: la persona aceptó los términos y condiciones y la política de cookies.</summary>
+        [Range(typeof(bool), "true", "true", ErrorMessage = MensajeTerminos)]
+        public bool aceptaTerminos { get; set; }
+
+        /// <summary>Versión de los términos que se mostró al registrarse (p. ej. "2026-11-16").</summary>
+        [Required(ErrorMessage = "Falta la versión de los términos aceptados.")]
+        [StringLength(20, ErrorMessage = "La versión de los términos admite como máximo 20 caracteres.")]
+        public string versionTerminos { get; set; } = string.Empty;
+
+        public const string MensajeTerminos =
+            "Para crear la cuenta debe aceptar los términos y condiciones y la política de cookies.";
     }
 }

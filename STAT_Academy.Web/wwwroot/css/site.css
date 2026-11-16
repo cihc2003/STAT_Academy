@@ -3435,6 +3435,124 @@ a.chip--activo,
     }
 }
 
+/* ---- Documentos legales (Términos y condiciones, Política de cookies) ---- */
+.documento-legal h2 {
+    margin-top: var(--e-10);
+    margin-bottom: var(--e-3);
+    font-size: var(--texto-xl);
+    scroll-margin-top: var(--e-20);
+}
+
+.documento-legal ul,
+.documento-legal ol {
+    display: grid;
+    gap: var(--e-2);
+    padding-left: var(--e-6);
+}
+
+.documento-legal code {
+    overflow-wrap: anywhere;
+    color: var(--color-texto);
+}
+
+.documento-legal a {
+    overflow-wrap: anywhere;
+}
+
+.documento-legal__fecha {
+    color: var(--color-texto-3);
+    font-size: var(--texto-sm);
+}
+
+.documento-legal__indice {
+    margin-block: var(--e-6) var(--e-8);
+    padding: var(--e-5) var(--e-6);
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-3);
+    background: var(--color-fondo-alterno);
+}
+
+    .documento-legal__indice h2 {
+        margin: 0 0 var(--e-3);
+        font-size: var(--texto-md);
+    }
+
+    .documento-legal__indice ol {
+        gap: var(--e-1);
+        margin: 0;
+    }
+
+.lista-cookies {
+    display: grid;
+    gap: var(--e-4);
+    margin-block: var(--e-6);
+    padding: 0;
+    list-style: none;
+}
+
+.documento-legal .lista-cookies {
+    padding-left: 0;
+}
+
+.lista-cookies__item {
+    padding: var(--e-5);
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-3);
+    background: var(--color-superficie);
+}
+
+    .lista-cookies__item p {
+        color: var(--color-texto-2);
+    }
+
+.lista-cookies__nombre {
+    margin-bottom: var(--e-2);
+    font-size: var(--texto-md);
+}
+
+.lista-cookies__datos {
+    display: grid;
+    gap: var(--e-2);
+    margin: var(--e-4) 0 0;
+    padding-top: var(--e-4);
+    border-top: var(--borde) solid var(--color-borde);
+    font-size: var(--texto-sm);
+}
+
+    .lista-cookies__datos div {
+        display: grid;
+        gap: 0 var(--e-4);
+    }
+
+    .lista-cookies__datos dt {
+        color: var(--color-texto-3);
+        font-weight: var(--peso-semi);
+    }
+
+    .lista-cookies__datos dd {
+        margin: 0;
+    }
+
+@media (min-width: 576px) {
+    .lista-cookies__datos div {
+        grid-template-columns: 6rem minmax(0, 1fr);
+    }
+}
+
+/* ---- Registro: aceptación de términos ---- */
+.registro-terminos .form-check-label a {
+    font-weight: var(--peso-semi);
+}
+
+.registro-terminos .form-text {
+    margin-top: var(--e-1);
+}
+
+.datos-icono a {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 /* -------------------------------------------------------------------------
    6. Panel interno (Administración, Tutor, Perfil)
    ------------------------------------------------------------------------- */

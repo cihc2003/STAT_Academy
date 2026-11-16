@@ -146,13 +146,15 @@ namespace STAT_Academy.Web.Controllers
                 return View(model);
             }
 
-            // La API solo recibe nombre, email y password; la confirmación no se envía.
+            // La API recibe los datos y la versión de los términos aceptados; la confirmación no se envía.
             var (resultado, mensajeError) = await _apiUsuarioService.RegistrarUsuarioAsync(
                 new RegisterUsuarioRequest
                 {
                     nombre = model.nombre.Trim(),
                     email = model.email.Trim(),
                     password = model.password,
+                    aceptaTerminos = model.aceptaTerminos,
+                    versionTerminos = TerminosVigentes.Version,
                 }
             );
 
