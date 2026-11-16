@@ -470,16 +470,6 @@ window.addEventListener("pageshow", function (e) {
             if (avance < 1) requestAnimationFrame(paso);
         }
 
-        // Arranca cuando la cifra está a la vista (en pantallas bajas puede quedar más abajo).
-        if ("IntersectionObserver" in window) {
-            var observador = new IntersectionObserver(function (entradas) {
-                if (!entradas[0].isIntersecting) return;
-                observador.disconnect();
-                setTimeout(function () { requestAnimationFrame(paso); }, 350);
-            });
-            observador.observe(el);
-        } else {
-            el.textContent = String(final);
-        }
+        setTimeout(function () { requestAnimationFrame(paso); }, 350);
     });
 })();

@@ -2812,7 +2812,8 @@ a.chip--activo,
         gap: clamp(var(--e-10), 5vw, var(--e-20));
     }
 
-    .inicio-hero__texto {
+    .inicio-hero__texto,
+    .agenda {
         align-self: center;
     }
 }
@@ -5045,6 +5046,7 @@ h3.panel-form__seccion {
     .inicio-hero__bajada { animation-delay: 160ms; }
     .inicio-hero__acciones { animation-delay: 240ms; }
     .inicio-hero .cifras { animation-delay: 320ms; }
+    .inicio-hero .agenda { animation-delay: 200ms; }
 }
 
 @keyframes pulso-trazo {
@@ -5062,129 +5064,4 @@ h3.panel-form__seccion {
 
 .inicio-blog__lista {
     margin-top: var(--e-5);
-}
-
-/* ---- Portada: foto del hero con la agenda superpuesta ---- */
-.inicio-hero__visual {
-    display: grid;
-    align-items: end;
-}
-
-.inicio-hero__foto {
-    display: block;
-    overflow: hidden;
-    border-radius: var(--radio-4);
-    background: var(--color-hundido);
-    aspect-ratio: 4 / 3;
-}
-
-    .inicio-hero__foto img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-/* La agenda se monta sobre el borde inferior de la foto */
-.inicio-hero__visual .agenda {
-    position: relative;
-    margin: calc(-1 * var(--e-12)) var(--e-3) 0;
-    box-shadow: var(--sombra-3);
-}
-
-@media (min-width: 992px) {
-    .inicio-hero__visual {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: minmax(0, 1fr);
-        align-self: stretch;
-    }
-
-    .inicio-hero__foto,
-    .inicio-hero__visual .agenda {
-        grid-area: 1 / 1;
-    }
-
-    .inicio-hero__foto {
-        aspect-ratio: auto;
-        min-height: 34rem;
-        height: 100%;
-    }
-
-    .inicio-hero__visual .agenda {
-        align-self: end;
-        justify-self: start;
-        width: min(100% - 2 * var(--e-6), 30rem);
-        margin: 0 0 var(--e-6) calc(-1 * var(--e-8));
-    }
-}
-
-/* ---- Banda de cierre con foto ---- */
-.banda--foto {
-    display: grid;
-    padding-block: 0;
-}
-
-.banda__foto {
-    display: block;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-}
-
-    .banda__foto img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-.banda--foto > .container {
-    padding-block: clamp(var(--e-10), 6vw, var(--e-16));
-}
-
-    .banda--foto > .container.banda__grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-@media (min-width: 992px) {
-    .banda--foto {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        align-items: stretch;
-    }
-
-    .banda__foto {
-        aspect-ratio: auto;
-        min-height: 24rem;
-    }
-
-    .banda--foto > .container {
-        max-width: none;
-        margin: 0;
-        padding-inline: clamp(var(--e-8), 5vw, var(--e-20));
-    }
-}
-
-/* ---- Movimiento: rendimiento en cualquier equipo ----
-   Solo se animan opacity y transform (composición en GPU, sin recalcular el diseño).
-   Las secciones bajo el primer pantallazo no se dibujan hasta acercarse a la vista. */
-.inicio-hero ~ .section,
-.inicio-hero ~ .banda {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 40rem;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .inicio-hero__foto img {
-        animation: foto-entrada 1.1s var(--curva) both;
-    }
-
-    .inicio-hero__visual .agenda {
-        animation-delay: 350ms;
-    }
-}
-
-@keyframes foto-entrada {
-    from {
-        opacity: 0;
-        transform: scale(1.04);
-    }
 }

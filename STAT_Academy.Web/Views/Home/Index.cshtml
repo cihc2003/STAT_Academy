@@ -62,59 +62,48 @@
             }
         </div>
 
-        <div class="inicio-hero__visual">
-            @* Foto de dominio público (U.S. Navy, Wikimedia Commons); créditos en wwwroot/img/fotos/CREDITOS.md.
-               Es la imagen más grande de la portada: se pide con prioridad y con medidas para no mover el diseño. *@
-            <picture class="inicio-hero__foto">
-                <source type="image/webp"
-                        srcset="/img/fotos/paramedicos-ambulancia-640.webp 640w, /img/fotos/paramedicos-ambulancia-1280.webp 1280w"
-                        sizes="(min-width: 992px) 45vw, 100vw" />
-                <img src="/img/fotos/paramedicos-ambulancia-1280.jpg" width="1280" height="853"
-                     alt="Equipo de paramédicos junto a su ambulancia" fetchpriority="high" decoding="async" />
-            </picture>
-            <aside class="agenda fondo-oscuro" aria-labelledby="agenda-titulo">
-                <div class="agenda__cabecera">
-                    <h2 id="agenda-titulo" class="agenda__titulo">Próximos inicios</h2>
-                    @Html.Icono("calendario", "icono--lg")
-                </div>
+        <aside class="agenda fondo-oscuro" aria-labelledby="agenda-titulo">
+            <div class="agenda__cabecera">
+                <h2 id="agenda-titulo" class="agenda__titulo">Próximos inicios</h2>
+                @Html.Icono("calendario", "icono--lg")
+            </div>
 
-                @if (cursos.Count > 0)
-                {
-                    <ol class="agenda__lista">
-                        @foreach (var c in Model.ProximosInicios)
-                        {
-                            <li>
-                                <a class="agenda__item" asp-controller="Curso" asp-action="Details" asp-route-id="@c.Id">
-                                    <time class="agenda__fecha" datetime="@c.Fecha_Inicio.ToString("yyyy-MM-dd")">
-                                        <span class="agenda__dia">@c.Fecha_Inicio.Day</span>
-                                        <span class="agenda__mes">@Formato.MesCorto(c.Fecha_Inicio)</span>
-                                    </time>
-                                    <span class="agenda__curso">
-                                        <strong>@c.Nombre</strong>
-                                        <span class="agenda__datos">
-                                            <span>@Formato.Semanas(c.Duracion_Semanas)</span>
-                                            <span>@Formato.PrecioCurso(c.Precio_Base)</span>
-                                        </span>
+            @if (cursos.Count > 0)
+            {
+                <ol class="agenda__lista">
+                    @foreach (var c in Model.ProximosInicios)
+                    {
+                        <li>
+                            <a class="agenda__item" asp-controller="Curso" asp-action="Details" asp-route-id="@c.Id">
+                                <time class="agenda__fecha" datetime="@c.Fecha_Inicio.ToString("yyyy-MM-dd")">
+                                    <span class="agenda__dia">@c.Fecha_Inicio.Day</span>
+                                    <span class="agenda__mes">@Formato.MesCorto(c.Fecha_Inicio)</span>
+                                </time>
+                                <span class="agenda__curso">
+                                    <strong>@c.Nombre</strong>
+                                    <span class="agenda__datos">
+                                        <span>@Formato.Semanas(c.Duracion_Semanas)</span>
+                                        <span>@Formato.PrecioCurso(c.Precio_Base)</span>
                                     </span>
-                                    @Html.Icono("chevron-derecha", "agenda__flecha")
-                                </a>
-                            </li>
-                        }
-                    </ol>
-                    <a class="btn btn-claro agenda__boton" asp-controller="Curso" asp-action="Index">
-                        @(cursos.Count == 1 ? "Ver el curso disponible" : $"Ver los {cursos.Count} cursos disponibles")
-                    </a>
-                }
-                else
-                {
-                    <div class="agenda__vacia">
-                        <p><strong>No hay inicios programados por ahora.</strong></p>
-                        <p>Los cursos nuevos aparecen aquí con su fecha de inicio en cuanto abren inscripción.</p>
-                        <a class="btn btn-contorno-claro" asp-controller="Blog" asp-action="Index">Leer el blog mientras tanto</a>
-                    </div>
-                }
-            </aside>
-        </div>
+                                </span>
+                                @Html.Icono("chevron-derecha", "agenda__flecha")
+                            </a>
+                        </li>
+                    }
+                </ol>
+                <a class="btn btn-claro agenda__boton" asp-controller="Curso" asp-action="Index">
+                    @(cursos.Count == 1 ? "Ver el curso disponible" : $"Ver los {cursos.Count} cursos disponibles")
+                </a>
+            }
+            else
+            {
+                <div class="agenda__vacia">
+                    <p><strong>No hay inicios programados por ahora.</strong></p>
+                    <p>Los cursos nuevos aparecen aquí con su fecha de inicio en cuanto abren inscripción.</p>
+                    <a class="btn btn-contorno-claro" asp-controller="Blog" asp-action="Index">Leer el blog mientras tanto</a>
+                </div>
+            }
+        </aside>
     </div>
 </section>
 
@@ -208,14 +197,7 @@
 @* 5. Cierre: siguiente paso según quién visita *@
 @if (!autenticado || esCliente)
 {
-    <section class="banda banda--foto fondo-oscuro" aria-labelledby="inicio-cierre">
-        <picture class="banda__foto">
-            <source type="image/webp"
-                    srcset="/img/fotos/paramedico-equipo-640.webp 640w, /img/fotos/paramedico-equipo-1280.webp 1280w"
-                    sizes="(min-width: 992px) 50vw, 100vw" />
-            <img src="/img/fotos/paramedico-equipo-1280.jpg" width="1280" height="853"
-                 alt="" loading="lazy" decoding="async" />
-        </picture>
+    <section class="banda fondo-oscuro" aria-labelledby="inicio-cierre">
         <div class="container banda__grid">
             @if (!autenticado)
             {
