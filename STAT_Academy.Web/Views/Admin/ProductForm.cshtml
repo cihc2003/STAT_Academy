@@ -151,14 +151,15 @@
                     </div>
                 }
 
-                <form asp-action="SubirImagenesProducto" method="post" enctype="multipart/form-data" class="d-flex flex-wrap gap-2 align-items-end">
+                <form asp-action="SubirImagenesProducto" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="id" value="@Model.id" />
-                    <div class="flex-grow-1">
-                        <label class="form-label fw-bold small" for="imagenes">Agregar imágenes</label>
+                    <label class="form-label fw-bold small" for="imagenes">Agregar imágenes</label>
+                    <div class="campo-con-boton">
                         <input id="imagenes" name="imagenes" type="file" class="form-control" multiple required
-                               accept="@STAT_Academy.Web.Models.Admin.ProductoFormViewModel.AcceptImagenes" />
+                               accept="@STAT_Academy.Web.Models.Admin.ProductoFormViewModel.AcceptImagenes" aria-describedby="imagenes-ayuda" />
+                        <button type="submit" class="btn btn-outline-primary">@Html.Icono("subir")Subir</button>
                     </div>
-                    <button type="submit" class="btn btn-outline-primary">Subir</button>
+                    <div class="form-text" id="imagenes-ayuda">JPG, PNG, GIF o WEBP de hasta 5 MB cada una.</div>
                 </form>
             </div>
         }

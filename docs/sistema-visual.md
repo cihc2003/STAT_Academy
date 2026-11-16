@@ -78,6 +78,9 @@ es lo único que comunica algo, se pasa `etiqueta`.
 |---|---|---|
 | Botón | `btn` + `btn-primary` (rojo), `btn-oscuro`, `btn-secundario` (contorno), `btn-outline-danger`, `btn-fantasma`, `btn-claro` y `btn-contorno-claro` (sobre oscuro); tamaños `btn-sm`, `btn-lg`; `btn-icono` | hover, activo, foco, deshabilitado, cargando (`aria-busy`, lo pone `data-un-solo-envio`) |
 | Campo | `form-control`, `form-select`, `form-check` | hover, foco, deshabilitado, solo lectura, error (borde + mensaje con ícono, asociado por el validador) |
+| Campo con prefijo | `input-group` + `input-group-text` (₡, @…) | El campo y el prefijo comparten fila y altura (44 px) |
+| Selector de archivos | `form-control` en `input type="file"` + `form-text` con formatos y límite | Crece en alto: si el texto del navegador no cabe, pasa a la línea siguiente (nunca se recorta) |
+| Campo + botón | `campo-con-boton` (p. ej. archivos + «Subir») | El botón baja de línea si no cabe |
 | Tarjeta de catálogo | `tarjeta-item` (`_CursoTarjeta`, `_ProductoTarjeta`, `_BlogTarjeta`) | hover, foco (toda la tarjeta es un enlace), apagada (agotado / oculta) |
 | Estado | `estado estado--exito/advertencia/error/info/neutro` | Punto + texto, nunca solo color |
 | Chip | `chip`, `chip--activo` | Filtros aplicados y categorías |
@@ -86,7 +89,10 @@ es lo único que comunica algo, se pasa `etiqueta`.
 | Estado vacío | `vacio` + `vacio__icono` | Qué es, por qué está vacío y qué hacer |
 | Carga | `pantalla-carga` (navegación), `aria-busy` en botones | |
 | Confirmación | `_ConfirmarModal` + `data-confirmar` | |
-| Tabla del panel | `table-card panel-tabla` + `data-label` | Se convierte en tarjetas por debajo de 820 px |
+| Tabla del panel | `table-card panel-tabla` + `data-label` | Se convierte en tarjetas por debajo de 820 px; entre 821 y 1279 px se ajusta al ancho (acciones apiladas) |
+| Existencias | `panel-existencias` (cantidad, «/ mín.» y estado) | Una línea desde 1280 px; el estado baja de línea solo si falta espacio |
+| Métricas del panel | `panel-metricas` + `panel-metrica`; `panel-metricas--cuatro` para cuatro cifras | 2 × 2 en teléfono y tableta, una fila en escritorio |
+| Botón de alta (panel) | `btn btn-primary` + `@Html.Icono("mas")` + «Nuevo/Nueva + elemento», dentro de `panel-encabezado__acciones` | |
 
 ## Accesibilidad (WCAG 2.2 AA)
 

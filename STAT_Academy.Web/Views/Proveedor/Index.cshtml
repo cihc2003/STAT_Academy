@@ -71,7 +71,7 @@
                     <tr>
                         <th scope="col">Proveedor</th>
                         <th scope="col">Teléfono</th>
-                        <th scope="col">Correo</th>
+                        <th scope="col">Correo electrónico</th>
                         <th scope="col">Estado</th>
                         <th scope="col"><span class="visually-hidden">Acciones</span></th>
                     </tr>
@@ -103,7 +103,7 @@
                                 </div>
                             </td>
                             <td data-label="Teléfono">@item.telefono</td>
-                            <td data-label="Correo" class="panel-tabla__correo">@item.email</td>
+                            <td data-label="Correo electrónico" class="panel-tabla__correo">@item.email</td>
                             <td data-label="Estado">
                                 <span class="usuario-estado @(item.estado ? "usuario-estado--activo" : "usuario-estado--inactivo")">
                                     @(item.estado ? "Activo" : "Inactivo")

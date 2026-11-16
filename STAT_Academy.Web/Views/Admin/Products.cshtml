@@ -25,7 +25,7 @@
                 <p>Catálogo de la tienda, existencias e imágenes.</p>
             </div>
             <div class="panel-encabezado__acciones">
-                <a class="btn btn-primary" asp-action="ProductForm">@Html.Icono("mas")Agregar producto</a>
+                <a class="btn btn-primary" asp-action="ProductForm">@Html.Icono("mas")Nuevo producto</a>
             </div>
         </div>
 
@@ -124,7 +124,7 @@
                         <tr>
                             <td colspan="6" class="panel-tabla__vacio">
                                 <strong>No se encontraron productos.</strong>
-                                @(!hayFiltros ? "Agregue el primero con el botón «Agregar producto»." : "Pruebe con otro filtro.")
+                                @(!hayFiltros ? "Agregue el primero con el botón «Nuevo producto»." : "Pruebe con otro filtro.")
                             </td>
                         </tr>
                     }
@@ -146,18 +146,18 @@
                             <td data-label="Categoría">@producto.categoria</td>
                             <td data-label="Precio"><span class="panel-dato">@Formato.Colones(producto.precio_base)</span></td>
                             <td data-label="Existencias">
-                                <span>
-                                    <span class="panel-dato">
+                                <span class="panel-existencias">
+                                    <span class="panel-existencias__cifra">
                                         <strong class="@(producto.stock_bajo && producto.estado ? "text-danger" : "")">@producto.stock</strong>
-                                        <span class="text-muted small fw-normal">/ mín. @producto.min_stock</span>
+                                        <span class="panel-existencias__minimo">/ mín. @producto.min_stock</span>
                                     </span>
                                     @if (producto.estado && producto.stock <= 0)
                                     {
-                                        <span class="usuario-estado usuario-estado--peligro mt-1">Agotado</span>
+                                        <span class="usuario-estado usuario-estado--peligro">Agotado</span>
                                     }
                                     else if (producto.estado && producto.stock_bajo)
                                     {
-                                        <span class="usuario-estado usuario-estado--alerta mt-1">Stock bajo</span>
+                                        <span class="usuario-estado usuario-estado--alerta">Stock bajo</span>
                                     }
                                 </span>
                             </td>

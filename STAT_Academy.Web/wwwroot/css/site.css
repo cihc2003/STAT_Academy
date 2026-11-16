@@ -1337,21 +1337,36 @@ textarea.form-control,
     font-size: var(--texto-md);
 }
 
+/* Selector de archivos: el texto del navegador («Seleccionar archivos», «Ningún archivo seleccionado»,
+   los nombres elegidos) cambia de largo según el idioma. En lugar de una altura fija con el botón pegado
+   al borde (que recortaba el texto), el control crece y el texto pasa a la línea siguiente si no cabe. */
 .form-control[type="file"] {
-    padding: var(--e-2);
+    height: auto;
+    padding: var(--e-1);
+    overflow: hidden;
+    font-size: var(--texto-sm);
+    line-height: var(--interlineado-ajustado);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
 }
 
     .form-control[type="file"]::file-selector-button {
-        margin: calc(-1 * var(--e-2)) var(--e-3) calc(-1 * var(--e-2)) calc(-1 * var(--e-2));
-        padding: var(--e-2) var(--e-4);
-        border: 0;
-        border-right: var(--borde) solid var(--color-borde-control);
+        min-height: calc(var(--objetivo-tactil) - 2 * var(--e-1) - 2 * var(--borde));
+        margin: 0 var(--e-3) 0 0;
+        padding: var(--e-1) var(--e-4);
+        border: var(--borde) solid var(--color-borde);
+        border-radius: var(--radio-1);
         background: var(--color-fondo-alterno);
         color: var(--color-titulo);
+        font: inherit;
         font-weight: var(--peso-semi);
+        vertical-align: middle;
+        cursor: pointer;
     }
 
     .form-control[type="file"]:hover:not(:disabled)::file-selector-button {
+        border-color: var(--color-borde-control);
         background: var(--color-hundido);
     }
 
@@ -1406,9 +1421,21 @@ textarea.form-control,
 }
 
 .input-group-text {
+    flex: 0 0 auto;
+    justify-content: center;
+    min-width: var(--objetivo-tactil);
     border: var(--borde) solid var(--color-borde-control);
     background: var(--color-fondo-alterno);
     color: var(--color-texto-2);
+}
+
+/* El campo comparte la fila con su prefijo (₡, @…): la regla general de .form-group le da width: 100%
+   y, como .input-group admite saltos de línea, lo mandaba debajo del prefijo. Aquí recupera el ancho flexible. */
+.input-group > .form-control,
+.form-group .input-group > input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
 }
 
 .input-group > .form-control:not(:first-child) {
@@ -1418,6 +1445,20 @@ textarea.form-control,
 .input-group > .input-group-text:first-child {
     border-radius: var(--radio-2) 0 0 var(--radio-2);
 }
+
+/* Campo + botón en la misma fila (p. ej. elegir archivos y «Subir»); el botón baja de línea si no cabe */
+.campo-con-boton {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--e-2);
+}
+
+    .campo-con-boton > .form-control {
+        flex: 1 1 14rem;
+        width: auto;
+        min-width: 0;
+    }
 
 /* Error: borde, mensaje asociado e ícono (no solo color) */
 .form-control.is-invalid,
@@ -3628,6 +3669,33 @@ a.chip--activo,
             color: var(--color-titulo);
         }
 
+/* Escritorio angosto (menú lateral visible y poco ancho para el contenido): el ancho mínimo fijo de la tabla
+   (44rem) superaba el espacio disponible y la tabla se salía de su tarjeta. Aquí la tabla se ajusta a su
+   contenido y los botones de acción se apilan en lugar de ensanchar la última columna. */
+@media (min-width: 821px) and (max-width: 1279.98px) {
+    .panel-tabla table {
+        min-width: 0;
+    }
+
+    .panel-tabla th,
+    .panel-tabla td {
+        padding-inline: var(--e-3);
+    }
+
+    /* El nombre pasa a dos líneas (entre palabras) antes que recortarse a unas pocas letras */
+    .panel-tabla .panel-celda__nombre {
+        white-space: normal;
+    }
+
+    .panel-tabla td.panel-tabla__acciones {
+        white-space: normal;
+    }
+
+        .panel-tabla td.panel-tabla__acciones .btn {
+            margin-block: calc(var(--e-1) / 2);
+        }
+}
+
 .usuarios-fila--inactiva .panel-celda__nombre,
 .usuarios-fila--inactiva .panel-celda__icono,
 .usuarios-fila--inactiva .usuario-avatar {
@@ -3692,6 +3760,41 @@ a.usuario-celda__nombre:hover {
     color: var(--color-texto);
     font-weight: var(--peso-medio);
     font-variant-numeric: tabular-nums;
+}
+
+/* Existencias: cantidad, mínimo y aviso en una sola línea dentro de la celda */
+.panel-existencias {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--e-1) var(--e-2);
+}
+
+.panel-existencias__cifra {
+    color: var(--color-texto);
+    font-weight: var(--peso-medio);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.panel-existencias__minimo {
+    color: var(--color-texto-3);
+    font-size: var(--texto-sm);
+    font-weight: var(--peso-normal);
+}
+
+@media (min-width: 821px) {
+    .panel-existencias {
+        justify-content: flex-start;
+    }
+}
+
+@media (min-width: 1280px) {
+    /* Con espacio de sobra, cantidad, mínimo y aviso siempre en una sola línea */
+    .panel-existencias {
+        flex-wrap: nowrap;
+    }
 }
 
 /* Avatar con inicial */
@@ -3812,6 +3915,29 @@ a.usuarios-resumen__item:hover {
     color: var(--color-texto-2);
     font-size: var(--texto-sm);
     font-weight: var(--peso-medio);
+}
+
+/* Cuatro métricas: 2 × 2 en teléfono y tableta, una sola fila en escritorio (sin tarjetas sueltas) */
+.panel-metricas--cuatro {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-3);
+}
+
+@media (max-width: 575.98px) {
+    .panel-metricas--cuatro .panel-metrica {
+        padding: var(--e-4);
+    }
+
+    .panel-metricas--cuatro .panel-metrica__icono {
+        display: none;
+    }
+}
+
+@media (min-width: 1200px) {
+    .panel-metricas--cuatro {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--e-4);
+    }
 }
 
 /* Columnas del panel */
@@ -4537,7 +4663,8 @@ h3.panel-form__seccion {
 /* Cifras en recuadros (aula y tutor) */
 .tutor-cifras {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* Columnas de al menos 5.5rem: la etiqueta más larga («Estudiantes») nunca se parte; si no caben tres, bajan de fila */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
     gap: var(--e-3);
     margin: 0 0 var(--e-5);
 }
@@ -4733,10 +4860,24 @@ h3.panel-form__seccion {
     text-align: center;
 }
 
+/* Vista general del tutor: tarjetas de al menos 20rem que llenan el ancho del panel */
+.tutor-cursos {
+    --rejilla-min: 20rem;
+}
+
 .tutor-curso {
     display: flex;
     flex-direction: column;
     padding: var(--e-5);
+}
+
+.tutor-curso__titulo {
+    margin: var(--e-3) 0 var(--e-2);
+    font-size: var(--texto-lg);
+}
+
+.tutor-curso__fechas {
+    margin-bottom: var(--e-5);
 }
 
     .tutor-curso .btn {

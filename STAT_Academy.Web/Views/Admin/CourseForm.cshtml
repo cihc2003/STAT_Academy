@@ -1,7 +1,7 @@
 @model STAT_Academy.Web.Models.Admin.CursoFormViewModel
 
 @{
-    ViewData["Title"] = Model.id == null ? "Crear Curso" : "Editar Curso";
+    ViewData["Title"] = Model.id == null ? "Nuevo curso" : "Editar curso";
 }
 
 <div class="container admin-shell">
@@ -13,7 +13,7 @@
         <div class="panel-encabezado">
             <div>
                 <span class="eyebrow">Administración</span>
-                <h1>@(Model.id == null ? "Crear curso" : "Editar curso")</h1>
+                <h1>@(Model.id == null ? "Nuevo curso" : "Editar curso")</h1>
                 <p>Nombre, tutor, precio, fechas, portada y estado del curso.</p>
             </div>
         </div>

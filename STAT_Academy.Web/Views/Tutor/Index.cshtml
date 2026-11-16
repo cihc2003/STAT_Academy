@@ -3,18 +3,47 @@
 @{
     ViewData["Title"] = "Mis cursos asignados";
     var esAdmin = User.IsInRole("Admin");
+    var activos = Model.Count(c => c.Estado);
+    var estudiantes = Model.Sum(c => c.Estudiantes);
+    var tareas = Model.Sum(c => c.Tareas);
+    var porCalificar = Model.Sum(c => c.EntregasPorCalificar);
 }
 
 <section class="section">
     <div class="container">
-        <div class="section-heading">
-                        <h1>@(esAdmin ? "Todos los cursos" : "Mis cursos asignados")</h1>
-            <p>
-                @(esAdmin
-                    ? "Como administrador puede gestionar cualquier curso."
-                    : "Cursos en los que usted es el tutor asignado.")
-            </p>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Panel del tutor</span>
+                <h1>@(esAdmin ? "Todos los cursos" : "Mis cursos asignados")</h1>
+                <p>
+                    @(esAdmin
+                        ? "Como administrador puede gestionar cualquier curso."
+                        : "Cursos en los que usted es el tutor asignado.")
+                </p>
+            </div>
         </div>
+
+        @if (Model.Count > 0)
+        {
+            <div class="panel-metricas panel-metricas--cuatro">
+                <div class="panel-metrica">
+                    <span class="panel-metrica__icono">@Html.Icono("birrete", "icono--lg")</span>
+                    <div><strong>@activos</strong><span>@(activos == 1 ? "Curso activo" : "Cursos activos") de @Model.Count</span></div>
+                </div>
+                <div class="panel-metrica">
+                    <span class="panel-metrica__icono">@Html.Icono("usuarios", "icono--lg")</span>
+                    <div><strong>@estudiantes</strong><span>@(estudiantes == 1 ? "Estudiante" : "Estudiantes")</span></div>
+                </div>
+                <div class="panel-metrica">
+                    <span class="panel-metrica__icono">@Html.Icono("tareas", "icono--lg")</span>
+                    <div><strong>@tareas</strong><span>@(tareas == 1 ? "Tarea publicada" : "Tareas publicadas")</span></div>
+                </div>
+                <div class="panel-metrica @(porCalificar > 0 ? "panel-metrica--alerta" : "")">
+                    <span class="panel-metrica__icono">@Html.Icono("calificacion", "icono--lg")</span>
+                    <div><strong>@porCalificar</strong><span>@(porCalificar == 1 ? "Entrega por calificar" : "Entregas por calificar")</span></div>
+                </div>
+            </div>
+        }
 
         @if (Model.Count == 0)
         {
@@ -26,7 +55,7 @@
         }
         else
         {
-            <div class="rejilla">
+            <div class="rejilla tutor-cursos">
                 @foreach (var curso in Model)
                 {
                     <article class="card tutor-curso @(curso.Estado ? "" : "tutor-curso--inactivo")">
@@ -38,8 +67,8 @@
                             }
                         </div>
 
-                        <h2 class="h4 mt-3 mb-2">@curso.Nombre</h2>
-                        <ul class="datos-icono mb-4"><li>@Html.Icono("calendario")<span>@Formato.FechaCorta(curso.FechaInicio) – @Formato.FechaCorta(curso.FechaFin)</span></li></ul>
+                        <h2 class="tutor-curso__titulo">@curso.Nombre</h2>
+                        <ul class="datos-icono tutor-curso__fechas"><li>@Html.Icono("calendario")<span>@Formato.FechaCorta(curso.FechaInicio) – @Formato.FechaCorta(curso.FechaFin)</span></li></ul>
 
                         <dl class="tutor-cifras">
                             <div><dt>Estudiantes</dt><dd>@curso.Estudiantes</dd></div>
