@@ -212,7 +212,7 @@ namespace STAT_Academy.Api.Services
             }
 
             await BorrarBlobs(anteriores.Select(a => a.imagen_url));
-            _auditoria.Registrar("CURSO", "UPLOAD", $"Portada: {subido.NombreOriginal}", usuarioEmail, cursoId);
+            await _auditoria.RegistrarAsync("CURSO", "UPLOAD", $"Portada: {subido.NombreOriginal}", usuarioEmail, cursoId);
 
             return (await GetResponseAsync(cursoId), null);
         }
@@ -233,7 +233,7 @@ namespace STAT_Academy.Api.Services
             await _context.SaveChangesAsync();
             await BorrarBlobs(imagenes.Select(i => i.imagen_url));
 
-            _auditoria.Registrar("CURSO", "REMOVE_IMAGE", "Portada quitada", usuarioEmail, cursoId);
+            await _auditoria.RegistrarAsync("CURSO", "REMOVE_IMAGE", "Portada quitada", usuarioEmail, cursoId);
             return true;
         }
 

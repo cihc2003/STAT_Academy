@@ -44,59 +44,64 @@ namespace STAT_Academy.Api.Services
         // ==================================================================
 
         /// <summary>Tutor asignado al curso, o null si el curso no existe.</summary>
-        public (bool existe, int tutorId) TutorDelCurso(int cursoId)
+        public async Task<(bool existe, int tutorId)> TutorDelCursoAsync(int cursoId)
         {
-            var tutor = _context.Curso
+            var tutor = await _context.Curso
                 .Where(c => c.id == cursoId)
                 .Select(c => (int?)c.fk_tutor)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             return (tutor != null, tutor ?? 0);
         }
 
-        public int? CursoDeTarea(int tareaId) =>
-            _context.Tarea.Where(t => t.ID == tareaId).Select(t => t.CursoId).FirstOrDefault();
+        public Task<int?> CursoDeTareaAsync(int tareaId) =>
+            _context.Tarea.Where(t => t.ID == tareaId).Select(t => t.CursoId).FirstOrDefaultAsync();
 
-        public int? CursoDeEntrega(int entregaId) =>
+        public Task<int?> CursoDeEntregaAsync(int entregaId) =>
             (from e in _context.EntregaTarea
              join t in _context.Tarea on e.fk_Tarea equals t.ID
              where e.id == entregaId
-             select t.CursoId).FirstOrDefault();
+             select t.CursoId).FirstOrDefaultAsync();
 
-        public int? CursoDeArchivoEntrega(int archivoId) =>
+        public Task<int?> CursoDeArchivoEntregaAsync(int archivoId) =>
             (from a in _context.EntregaTareaArchivo
              join e in _context.EntregaTarea on a.fk_Entrega_Tarea equals e.id
              join t in _context.Tarea on e.fk_Tarea equals t.ID
              where a.id == archivoId && a.estado
-             select t.CursoId).FirstOrDefault();
+             select t.CursoId).FirstOrDefaultAsync();
 
-        public int? CursoDeMaterial(int materialId) =>
-            _context.MaterialCurso.Where(m => m.id == materialId).Select(m => m.fk_Curso).FirstOrDefault();
+        public Task<int?> CursoDeMaterialAsync(int materialId) =>
+            _context.MaterialCurso.Where(m => m.id == materialId).Select(m => m.fk_Curso).FirstOrDefaultAsync();
 
         // ==================================================================
         // Cursos asignados
         // ==================================================================
 
         /// <param name="tutorId">null = todos los cursos (Admin).</param>
-        public List<TutorCursoResponse> CursosAsignados(int? tutorId)
+        public async Task<List<TutorCursoResponse>> CursosAsignadosAsync(int? tutorId)
         {
-            var cursos = _context.Curso
+            var cursos = await _context.Curso
                 .AsNoTracking()
                 .Where(c => tutorId == null || c.fk_tutor == tutorId)
                 .OrderByDescending(c => c.estado)
                 .ThenBy(c => c.nombre)
-                .ToList();
+                .ToListAsync();
 
-            return cursos.Select(ResumenCurso).ToList();
+            // Un DbContext no admite consultas en paralelo: los resúmenes se arman uno a uno.
+            var resumenes = new List<TutorCursoResponse>(cursos.Count);
+            foreach (var curso in cursos)
+                resumenes.Add(await ResumenCursoAsync(curso));
+
+            return resumenes;
         }
 
-        public TutorCursoResponse? Curso(int cursoId)
+        public async Task<TutorCursoResponse?> CursoAsync(int cursoId)
         {
-            var curso = _context.Curso.AsNoTracking().FirstOrDefault(c => c.id == cursoId);
-            return curso == null ? null : ResumenCurso(curso);
+            var curso = await _context.Curso.AsNoTracking().FirstOrDefaultAsync(c => c.id == cursoId);
+            return curso == null ? null : await ResumenCursoAsync(curso);
         }
 
-        private TutorCursoResponse ResumenCurso(CursoModel c)
+        private async Task<TutorCursoResponse> ResumenCursoAsync(CursoModel c)
         {
             var tareasActivas = _context.Tarea.Where(t => t.CursoId == c.id && t.Estado != false);
 
@@ -109,11 +114,11 @@ namespace STAT_Academy.Api.Services
                 fechaInicio = c.fechaInicio,
                 fechaFin = c.fechaFin,
                 duracionSemanas = c.duracionSemanas,
-                estudiantes = _context.EstudianteCurso.Count(m => m.CursoId == c.id && m.Estado == MatriculaActiva),
-                tareas = tareasActivas.Count(),
-                entregasPorCalificar = _context.EntregaTarea.Count(e =>
+                estudiantes = await _context.EstudianteCurso.CountAsync(m => m.CursoId == c.id && m.Estado == MatriculaActiva),
+                tareas = await tareasActivas.CountAsync(),
+                entregasPorCalificar = await _context.EntregaTarea.CountAsync(e =>
                     tareasActivas.Any(t => t.ID == e.fk_Tarea) && e.calificacion == null && e.fecha_Entrega != null),
-                material = _context.MaterialCurso.Count(m => m.fk_Curso == c.id && m.estado == true)
+                material = await _context.MaterialCurso.CountAsync(m => m.fk_Curso == c.id && m.estado == true)
             };
         }
 
@@ -121,23 +126,23 @@ namespace STAT_Academy.Api.Services
         // Estudiantes
         // ==================================================================
 
-        public List<TutorEstudianteResponse> Estudiantes(int cursoId)
+        public async Task<List<TutorEstudianteResponse>> EstudiantesAsync(int cursoId)
         {
-            var matriculas = (from m in _context.EstudianteCurso
+            var matriculas = await (from m in _context.EstudianteCurso
                               join u in _context.Usuario on m.EstudianteId equals u.id
                               where m.CursoId == cursoId
                               orderby u.nombre
                               select new { m, u.nombre, u.email })
                              .AsNoTracking()
-                             .ToList();
+                             .ToListAsync();
 
-            var curso = _context.Curso.AsNoTracking().First(c => c.id == cursoId);
+            var curso = await _context.Curso.AsNoTracking().FirstAsync(c => c.id == cursoId);
             var progreso = CursoModel.ProgresoDe(curso.fechaInicio, curso.fechaFin);
 
-            var tareas = TareasActivas(cursoId);
+            var tareas = await TareasActivasAsync(cursoId);
             var tareaIds = tareas.Select(t => t.ID).ToList();
-            var entregas = EntregasDelCurso(tareaIds);
-            var ajustes = _notaFinal.Ajustes(matriculas.Select(x => x.m.IdMatricula).ToList());
+            var entregas = await EntregasDelCursoAsync(tareaIds);
+            var ajustes = await _notaFinal.AjustesAsync(matriculas.Select(x => x.m.IdMatricula).ToList());
 
             return matriculas.Select(x =>
             {
@@ -166,20 +171,20 @@ namespace STAT_Academy.Api.Services
         // Calificaciones (tabla estudiantes × tareas)
         // ==================================================================
 
-        public TutorCalificacionesResponse Calificaciones(int cursoId)
+        public async Task<TutorCalificacionesResponse> CalificacionesAsync(int cursoId)
         {
-            var tareas = TareasActivas(cursoId);
+            var tareas = await TareasActivasAsync(cursoId);
 
-            var estudiantes = (from m in _context.EstudianteCurso
+            var estudiantes = await (from m in _context.EstudianteCurso
                                join u in _context.Usuario on m.EstudianteId equals u.id
                                where m.CursoId == cursoId && m.Estado == MatriculaActiva
                                orderby u.nombre
                                select new { u.id, u.nombre, u.email, matriculaId = m.IdMatricula })
                               .AsNoTracking()
-                              .ToList();
+                              .ToListAsync();
 
-            var entregas = EntregasDelCurso(tareas.Select(t => t.ID).ToList());
-            var ajustes = _notaFinal.Ajustes(estudiantes.Select(e => e.matriculaId).ToList());
+            var entregas = await EntregasDelCursoAsync(tareas.Select(t => t.ID).ToList());
+            var ajustes = await _notaFinal.AjustesAsync(estudiantes.Select(e => e.matriculaId).ToList());
 
             return new TutorCalificacionesResponse
             {
@@ -223,20 +228,20 @@ namespace STAT_Academy.Api.Services
         }
 
         /// <summary>Ajusta (o devuelve a la calculada, con nota = null) la nota final de un estudiante.</summary>
-        public (bool exitoso, string mensaje) AjustarNotaFinal(
+        public async Task<(bool exitoso, string mensaje)> AjustarNotaFinalAsync(
             int cursoId, int estudianteId, TutorNotaFinalRequest request, int tutorId, string tutorEmail)
         {
-            var matricula = (from m in _context.EstudianteCurso
+            var matricula = await (from m in _context.EstudianteCurso
                              join u in _context.Usuario on m.EstudianteId equals u.id
                              where m.CursoId == cursoId && m.EstudianteId == estudianteId && m.Estado == MatriculaActiva
                              select new { m.IdMatricula, u.nombre, u.email })
                             .AsNoTracking()
-                            .FirstOrDefault();
+                            .FirstOrDefaultAsync();
 
             if (matricula == null)
                 return (false, "El estudiante no tiene una matrícula activa en este curso.");
 
-            return _notaFinal.Guardar(matricula.IdMatricula, request.nota, request.comentario,
+            return await _notaFinal.GuardarAsync(matricula.IdMatricula, request.nota, request.comentario,
                 tutorId, tutorEmail, matricula.nombre ?? matricula.email ?? "estudiante");
         }
 
@@ -244,23 +249,23 @@ namespace STAT_Academy.Api.Services
         // Tareas
         // ==================================================================
 
-        public List<TutorTareaResponse> Tareas(int cursoId)
+        public async Task<List<TutorTareaResponse>> TareasAsync(int cursoId)
         {
-            var inicioCurso = _context.Curso.Where(c => c.id == cursoId).Select(c => c.fechaInicio).First();
-            var estudiantes = _context.EstudianteCurso.Count(m => m.CursoId == cursoId && m.Estado == MatriculaActiva);
+            var inicioCurso = await _context.Curso.Where(c => c.id == cursoId).Select(c => c.fechaInicio).FirstAsync();
+            var estudiantes = await _context.EstudianteCurso.CountAsync(m => m.CursoId == cursoId && m.Estado == MatriculaActiva);
 
-            var tareas = _context.Tarea
+            var tareas = await _context.Tarea
                 .AsNoTracking()
                 .Where(t => t.CursoId == cursoId)
                 .OrderBy(t => t.Fecha_Inicio)
-                .ToList();
+                .ToListAsync();
 
-            var entregas = EntregasDelCurso(tareas.Select(t => t.ID).ToList());
+            var entregas = await EntregasDelCursoAsync(tareas.Select(t => t.ID).ToList());
 
             return tareas.Select(t => MapTarea(t, inicioCurso, estudiantes, entregas)).ToList();
         }
 
-        public TutorTareaResponse CrearTarea(int cursoId, TutorTareaRequest request, int autorId, string autorEmail)
+        public async Task<TutorTareaResponse> CrearTareaAsync(int cursoId, TutorTareaRequest request, int autorId, string autorEmail)
         {
             var tarea = new TareaModel
             {
@@ -275,16 +280,16 @@ namespace STAT_Academy.Api.Services
             };
 
             _context.Tarea.Add(tarea);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("TAREA", "CREATE", $"Tarea creada en curso {cursoId}: {Recortar(tarea.Titulo)}", autorEmail, tarea.ID);
+            await _auditoria.RegistrarAsync("TAREA", "CREATE", $"Tarea creada en curso {cursoId}: {Recortar(tarea.Titulo)}", autorEmail, tarea.ID);
 
-            return Tareas(cursoId).First(t => t.id == tarea.ID);
+            return (await TareasAsync(cursoId)).First(t => t.id == tarea.ID);
         }
 
-        public TutorTareaResponse? EditarTarea(int tareaId, TutorTareaRequest request, string usuarioEmail)
+        public async Task<TutorTareaResponse?> EditarTareaAsync(int tareaId, TutorTareaRequest request, string usuarioEmail)
         {
-            var tarea = _context.Tarea.FirstOrDefault(t => t.ID == tareaId);
+            var tarea = await _context.Tarea.FirstOrDefaultAsync(t => t.ID == tareaId);
             if (tarea == null || tarea.CursoId == null)
                 return null;
 
@@ -293,23 +298,23 @@ namespace STAT_Academy.Api.Services
             tarea.Fecha_Inicio = request.fechaInicio;
             tarea.Fecha_Limite = request.fechaLimite;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("TAREA", "UPDATE", $"Tarea actualizada: {Recortar(tarea.Titulo)}", usuarioEmail, tarea.ID);
+            await _auditoria.RegistrarAsync("TAREA", "UPDATE", $"Tarea actualizada: {Recortar(tarea.Titulo)}", usuarioEmail, tarea.ID);
 
-            return Tareas(tarea.CursoId.Value).First(t => t.id == tareaId);
+            return (await TareasAsync(tarea.CursoId.Value)).First(t => t.id == tareaId);
         }
 
-        public bool CambiarEstadoTarea(int tareaId, bool activa, string usuarioEmail)
+        public async Task<bool> CambiarEstadoTareaAsync(int tareaId, bool activa, string usuarioEmail)
         {
-            var tarea = _context.Tarea.FirstOrDefault(t => t.ID == tareaId);
+            var tarea = await _context.Tarea.FirstOrDefaultAsync(t => t.ID == tareaId);
             if (tarea == null)
                 return false;
 
             tarea.Estado = activa;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("TAREA", activa ? "ENABLE" : "DISABLE",
+            await _auditoria.RegistrarAsync("TAREA", activa ? "ENABLE" : "DISABLE",
                 $"Tarea {(activa ? "publicada" : "ocultada")}: {Recortar(tarea.Titulo ?? "")}", usuarioEmail, tarea.ID);
 
             return true;
@@ -319,28 +324,28 @@ namespace STAT_Academy.Api.Services
         // Entregas y calificación
         // ==================================================================
 
-        public TutorEntregasResponse? Entregas(int tareaId)
+        public async Task<TutorEntregasResponse?> EntregasAsync(int tareaId)
         {
-            var tarea = _context.Tarea.AsNoTracking().FirstOrDefault(t => t.ID == tareaId);
+            var tarea = await _context.Tarea.AsNoTracking().FirstOrDefaultAsync(t => t.ID == tareaId);
             if (tarea?.CursoId == null)
                 return null;
 
             var cursoId = tarea.CursoId.Value;
-            var curso = _context.Curso.AsNoTracking().First(c => c.id == cursoId);
+            var curso = await _context.Curso.AsNoTracking().FirstAsync(c => c.id == cursoId);
 
-            var estudiantes = (from m in _context.EstudianteCurso
+            var estudiantes = await (from m in _context.EstudianteCurso
                                join u in _context.Usuario on m.EstudianteId equals u.id
                                where m.CursoId == cursoId && m.Estado == MatriculaActiva
                                orderby u.nombre
                                select new { u.id, u.nombre, u.email })
                               .AsNoTracking()
-                              .ToList();
+                              .ToListAsync();
 
-            var entregas = _context.EntregaTarea
+            var entregas = await _context.EntregaTarea
                 .AsNoTracking()
                 .Include(e => e.Archivos.Where(a => a.estado))
                 .Where(e => e.fk_Tarea == tareaId)
-                .ToList();
+                .ToListAsync();
 
             var estudiantesActivos = estudiantes.Count;
 
@@ -349,10 +354,10 @@ namespace STAT_Academy.Api.Services
                 .Union(entregas.Where(e => e.fk_Estudiante != null).Select(e => e.fk_Estudiante!.Value))
                 .ToList();
 
-            var nombres = _context.Usuario
+            var nombres = await _context.Usuario
                 .Where(u => ids.Contains(u.id))
                 .Select(u => new { u.id, u.nombre, u.email })
-                .ToDictionary(u => u.id);
+                .ToDictionaryAsync(u => u.id);
 
             var filas = ids.Select(id =>
             {
@@ -392,9 +397,9 @@ namespace STAT_Academy.Api.Services
             };
         }
 
-        public (bool exitoso, string mensaje) Calificar(int entregaId, TutorCalificarRequest request, string tutorEmail)
+        public async Task<(bool exitoso, string mensaje)> CalificarAsync(int entregaId, TutorCalificarRequest request, string tutorEmail)
         {
-            var entrega = _context.EntregaTarea.FirstOrDefault(e => e.id == entregaId);
+            var entrega = await _context.EntregaTarea.FirstOrDefaultAsync(e => e.id == entregaId);
 
             if (entrega == null)
                 return (false, "La entrega no existe.");
@@ -408,19 +413,19 @@ namespace STAT_Academy.Api.Services
             entrega.feedback = string.IsNullOrWhiteSpace(request.feedback) ? null : request.feedback.Trim();
             entrega.estado = EntregaTareaModel.EstadoCalificada;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("ENTREGA_TAREA", corregida ? "REGRADE" : "GRADE",
+            await _auditoria.RegistrarAsync("ENTREGA_TAREA", corregida ? "REGRADE" : "GRADE",
                 $"Entrega {entrega.id} calificada con {entrega.calificacion:0.##}", tutorEmail, entrega.id);
 
-            AvisarEstudiante(entrega, corregida);
+            await AvisarEstudianteAsync(entrega, corregida);
 
             return (true, corregida ? "Calificación actualizada." : "Entrega calificada.");
         }
 
         public async Task<(ArchivoDescarga contenido, string nombre)?> AbrirArchivoEntrega(int archivoId, CancellationToken ct)
         {
-            var archivo = _context.EntregaTareaArchivo.AsNoTracking().FirstOrDefault(a => a.id == archivoId && a.estado);
+            var archivo = await _context.EntregaTareaArchivo.AsNoTracking().FirstOrDefaultAsync(a => a.id == archivoId && a.estado, ct);
             if (archivo == null)
                 return null;
 
@@ -431,16 +436,14 @@ namespace STAT_Academy.Api.Services
         // Material del curso
         // ==================================================================
 
-        public List<TutorMaterialResponse> Material(int cursoId)
-        {
-            return _context.MaterialCurso
+        public async Task<List<TutorMaterialResponse>> MaterialAsync(int cursoId) =>
+            (await _context.MaterialCurso
                 .AsNoTracking()
                 .Where(m => m.fk_Curso == cursoId && m.estado == true)
                 .OrderBy(m => m.id)
-                .AsEnumerable()
-                .Select(MapMaterial)
-                .ToList();
-        }
+                .ToListAsync())
+            .Select(MapMaterial)
+            .ToList();
 
         public async Task<(TutorMaterialResponse? material, string? error)> AgregarMaterial(
             int cursoId, string titulo, IFormFile? archivo, string? enlace, int autorId, string autorEmail)
@@ -511,9 +514,9 @@ namespace STAT_Academy.Api.Services
             };
 
             _context.MaterialCurso.Add(material);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("MATERIAL_CURSO", "CREATE", $"Material agregado al curso {cursoId}: {Recortar(titulo)}", autorEmail, material.id);
+            await _auditoria.RegistrarAsync("MATERIAL_CURSO", "CREATE", $"Material agregado al curso {cursoId}: {Recortar(titulo)}", autorEmail, material.id);
 
             return (MapMaterial(material), null);
         }
@@ -521,7 +524,7 @@ namespace STAT_Academy.Api.Services
         /// <summary>Abre un material de tipo archivo (los enlaces no pasan por aquí).</summary>
         public async Task<(ArchivoDescarga contenido, string nombre)?> AbrirMaterial(int materialId, CancellationToken ct)
         {
-            var material = _context.MaterialCurso.AsNoTracking().FirstOrDefault(m => m.id == materialId && m.estado == true);
+            var material = await _context.MaterialCurso.AsNoTracking().FirstOrDefaultAsync(m => m.id == materialId && m.estado == true, ct);
             if (material == null || string.IsNullOrEmpty(material.materialUrl) || EsEnlace(material.materialUrl))
                 return null;
 
@@ -545,12 +548,12 @@ namespace STAT_Academy.Api.Services
 
         public async Task<bool> QuitarMaterial(int materialId, string usuarioEmail)
         {
-            var material = _context.MaterialCurso.FirstOrDefault(m => m.id == materialId && m.estado == true);
+            var material = await _context.MaterialCurso.FirstOrDefaultAsync(m => m.id == materialId && m.estado == true);
             if (material == null)
                 return false;
 
             material.estado = false;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             if (!EsEnlace(material.materialUrl) && !string.IsNullOrEmpty(material.materialUrl))
             {
@@ -564,7 +567,7 @@ namespace STAT_Academy.Api.Services
                 }
             }
 
-            _auditoria.Registrar("MATERIAL_CURSO", "DISABLE", $"Material quitado: {Recortar(material.titulo ?? "")}", usuarioEmail, material.id);
+            await _auditoria.RegistrarAsync("MATERIAL_CURSO", "DISABLE", $"Material quitado: {Recortar(material.titulo ?? "")}", usuarioEmail, material.id);
 
             return true;
         }
@@ -573,29 +576,29 @@ namespace STAT_Academy.Api.Services
         // Ayudantes
         // ==================================================================
 
-        private List<TareaModel> TareasActivas(int cursoId) =>
+        private Task<List<TareaModel>> TareasActivasAsync(int cursoId) =>
             _context.Tarea
                 .AsNoTracking()
                 .Where(t => t.CursoId == cursoId && t.Estado != false)
                 .OrderBy(t => t.Fecha_Limite)
-                .ToList();
+                .ToListAsync();
 
         /// <summary>
         /// Correo al estudiante con su nota. Es complementario: se arma con los datos ya leídos
         /// y se envía en segundo plano para no demorar la respuesta (si falla, solo se registra).
         /// </summary>
-        private void AvisarEstudiante(EntregaTareaModel entrega, bool corregida)
+        private async Task AvisarEstudianteAsync(EntregaTareaModel entrega, bool corregida)
         {
             try
             {
                 var estudianteId = entrega.fk_Estudiante ?? 0;
-                var datos = (from t in _context.Tarea
+                var datos = await (from t in _context.Tarea
                              join c in _context.Curso on t.CursoId equals c.id
                              from u in _context.Usuario.Where(u => u.id == estudianteId)
                              where t.ID == entrega.fk_Tarea
                              select new { tarea = t.Titulo, t.ID, curso = c.nombre, u.email, u.nombre })
                             .AsNoTracking()
-                            .FirstOrDefault();
+                            .FirstOrDefaultAsync();
 
                 if (datos == null || string.IsNullOrWhiteSpace(datos.email) || entrega.calificacion == null)
                     return;
@@ -611,8 +614,8 @@ namespace STAT_Academy.Api.Services
             }
         }
 
-        private List<EntregaTareaModel> EntregasDelCurso(List<int> tareaIds) =>
-            _context.EntregaTarea.AsNoTracking().Where(e => e.fk_Tarea != null && tareaIds.Contains(e.fk_Tarea.Value)).ToList();
+        private Task<List<EntregaTareaModel>> EntregasDelCursoAsync(List<int> tareaIds) =>
+            _context.EntregaTarea.AsNoTracking().Where(e => e.fk_Tarea != null && tareaIds.Contains(e.fk_Tarea.Value)).ToListAsync();
 
         private static TutorTareaResponse MapTarea(TareaModel t, DateTime inicioCurso, int estudiantes, List<EntregaTareaModel> entregas)
         {

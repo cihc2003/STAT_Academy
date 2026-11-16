@@ -19,22 +19,22 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            return Ok(_service.GetAll());
+            return Ok(await _service.GetAllAsync());
         }
 
         [HttpPost]
-        public IActionResult Crear([FromBody] ProveedorCreateRequest proveedor)
+        public async Task<IActionResult> Crear([FromBody] ProveedorCreateRequest proveedor)
         {
-            var result = _service.Crear(proveedor);
+            var result = await _service.CrearAsync(proveedor);
             return Ok(result);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Editar(int id, [FromBody] ProveedorCreateRequest proveedor)
+        public async Task<IActionResult> Editar(int id, [FromBody] ProveedorCreateRequest proveedor)
         {
-            var result = _service.Editar(id, proveedor);
+            var result = await _service.EditarAsync(id, proveedor);
 
             if (result == null)
                 return NotFound();
@@ -42,11 +42,11 @@ namespace STAT_Academy.Api.Controllers
             return Ok(result);
         }
         [HttpPatch("desactivar/{id}")]
-        public IActionResult Desactivar(int id)
+        public async Task<IActionResult> Desactivar(int id)
         {
             try
             {
-                var result = _service.Desactivar(id);
+                var result = await _service.DesactivarAsync(id);
 
                 if (result == null)
                     return NotFound("El proveedor no existe.");
@@ -61,9 +61,9 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var proveedor = _service.GetById(id);
+            var proveedor = await _service.GetByIdAsync(id);
 
             if (proveedor == null)
                 return NotFound();

@@ -38,15 +38,15 @@ namespace STAT_Academy.Api.Services
         /// <summary>False si la tabla TAREA_ARCHIVO no existe (se sabe después de la primera lectura).</summary>
         public bool Disponible { get; private set; } = true;
 
-        public List<TareaAdjuntoResponse> Listar(int tareaId)
+        public async Task<List<TareaAdjuntoResponse>> ListarAsync(int tareaId)
         {
             try
             {
-                return _context.TareaArchivo
-                    .AsNoTracking()
-                    .Where(a => a.fk_Tarea == tareaId && a.estado)
-                    .OrderBy(a => a.id)
-                    .AsEnumerable()
+                return (await _context.TareaArchivo
+                        .AsNoTracking()
+                        .Where(a => a.fk_Tarea == tareaId && a.estado)
+                        .OrderBy(a => a.id)
+                        .ToListAsync())
                     .Select(Map)
                     .ToList();
             }
@@ -60,14 +60,14 @@ namespace STAT_Academy.Api.Services
         }
 
         /// <summary>Curso del adjunto activo, o null si no existe (o falta la tabla).</summary>
-        public int? CursoDeAdjunto(int adjuntoId)
+        public async Task<int?> CursoDeAdjuntoAsync(int adjuntoId)
         {
             try
             {
-                return (from a in _context.TareaArchivo
-                        join t in _context.Tarea on a.fk_Tarea equals t.ID
-                        where a.id == adjuntoId && a.estado
-                        select t.CursoId).FirstOrDefault();
+                return await (from a in _context.TareaArchivo
+                              join t in _context.Tarea on a.fk_Tarea equals t.ID
+                              where a.id == adjuntoId && a.estado
+                              select t.CursoId).FirstOrDefaultAsync();
             }
             catch (SqlException ex) when (ex.Number == 208)
             {
@@ -76,14 +76,14 @@ namespace STAT_Academy.Api.Services
         }
 
         /// <summary>Tarea del adjunto, solo si la tarea está visible para estudiantes.</summary>
-        public bool TareaActiva(int adjuntoId)
+        public async Task<bool> TareaActivaAsync(int adjuntoId)
         {
             try
             {
-                return (from a in _context.TareaArchivo
-                        join t in _context.Tarea on a.fk_Tarea equals t.ID
-                        where a.id == adjuntoId && a.estado && t.Estado != false
-                        select a.id).Any();
+                return await (from a in _context.TareaArchivo
+                              join t in _context.Tarea on a.fk_Tarea equals t.ID
+                              where a.id == adjuntoId && a.estado && t.Estado != false
+                              select a.id).AnyAsync();
             }
             catch (SqlException ex) when (ex.Number == 208)
             {
@@ -109,7 +109,7 @@ namespace STAT_Academy.Api.Services
             int actuales;
             try
             {
-                actuales = _context.TareaArchivo.Count(a => a.fk_Tarea == tareaId && a.estado);
+                actuales = await _context.TareaArchivo.CountAsync(a => a.fk_Tarea == tareaId && a.estado);
             }
             catch (SqlException ex) when (ex.Number == 208)
             {
@@ -177,7 +177,7 @@ namespace STAT_Academy.Api.Services
             try
             {
                 _context.TareaArchivo.Add(adjunto);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateException ex)
             {
@@ -187,24 +187,24 @@ namespace STAT_Academy.Api.Services
                 return (null, "No se pudo guardar el documento. Intente nuevamente.");
             }
 
-            _auditoria.Registrar("TAREA_ARCHIVO", "CREATE", $"Documento agregado a la tarea {tareaId}: {Recortar(titulo)}", autorEmail, adjunto.id);
+            await _auditoria.RegistrarAsync("TAREA_ARCHIVO", "CREATE", $"Documento agregado a la tarea {tareaId}: {Recortar(titulo)}", autorEmail, adjunto.id);
 
             return (Map(adjunto), null);
         }
 
         public async Task<int?> Quitar(int adjuntoId, string usuarioEmail)
         {
-            var adjunto = _context.TareaArchivo.FirstOrDefault(a => a.id == adjuntoId && a.estado);
+            var adjunto = await _context.TareaArchivo.FirstOrDefaultAsync(a => a.id == adjuntoId && a.estado);
             if (adjunto == null)
                 return null;
 
             adjunto.estado = false;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             if (!TutorService.EsEnlace(adjunto.ubicacion))
                 await BorrarBlob(adjunto.tipo, adjunto.ubicacion);
 
-            _auditoria.Registrar("TAREA_ARCHIVO", "DISABLE", $"Documento quitado de la tarea: {Recortar(adjunto.titulo)}", usuarioEmail, adjunto.id);
+            await _auditoria.RegistrarAsync("TAREA_ARCHIVO", "DISABLE", $"Documento quitado de la tarea: {Recortar(adjunto.titulo)}", usuarioEmail, adjunto.id);
 
             return adjunto.fk_Tarea;
         }
@@ -212,7 +212,7 @@ namespace STAT_Academy.Api.Services
         /// <summary>Abre un adjunto de tipo archivo (los enlaces no pasan por aquí).</summary>
         public async Task<(ArchivoDescarga contenido, string nombre)?> Abrir(int adjuntoId, CancellationToken ct)
         {
-            var adjunto = _context.TareaArchivo.AsNoTracking().FirstOrDefault(a => a.id == adjuntoId && a.estado);
+            var adjunto = await _context.TareaArchivo.AsNoTracking().FirstOrDefaultAsync(a => a.id == adjuntoId && a.estado, ct);
             if (adjunto == null || TutorService.EsEnlace(adjunto.ubicacion))
                 return null;
 

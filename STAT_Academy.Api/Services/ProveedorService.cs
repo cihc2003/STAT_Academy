@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.DTOs.Proveedor;
 using STAT_Academy.Api.Models;
@@ -15,12 +16,10 @@ namespace STAT_Academy.Api.Services
             _auditoria = auditoria;
         }
 
-        public List<ProveedorModel> GetAll()
-        {
-            return _context.Proveedor.ToList();
-        }
+        public Task<List<ProveedorModel>> GetAllAsync() =>
+            _context.Proveedor.AsNoTracking().ToListAsync();
 
-        public ProveedorModel Crear(ProveedorCreateRequest request)
+        public async Task<ProveedorModel> CrearAsync(ProveedorCreateRequest request)
         {
             var proveedor = new ProveedorModel
             {
@@ -33,9 +32,9 @@ namespace STAT_Academy.Api.Services
             };
 
             _context.Proveedor.Add(proveedor);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar(
+            await _auditoria.RegistrarAsync(
                 "PROVEEDOR",
                 "CREATE",
                 $"Proveedor {proveedor.nombre} creado",
@@ -45,9 +44,9 @@ namespace STAT_Academy.Api.Services
             return proveedor;
         }
 
-        public ProveedorModel? Editar(int id, ProveedorCreateRequest request)
+        public async Task<ProveedorModel?> EditarAsync(int id, ProveedorCreateRequest request)
         {
-            var proveedor = _context.Proveedor.FirstOrDefault(p => p.id == id);
+            var proveedor = await _context.Proveedor.FirstOrDefaultAsync(p => p.id == id);
 
             if (proveedor == null)
                 return null;
@@ -57,9 +56,9 @@ namespace STAT_Academy.Api.Services
             proveedor.telefono = request.telefono;
             proveedor.email = request.email;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar(
+            await _auditoria.RegistrarAsync(
                 "PROVEEDOR",
                 "UPDATE",
                 $"Proveedor {proveedor.nombre} editado",
@@ -68,24 +67,24 @@ namespace STAT_Academy.Api.Services
 
             return proveedor;
         }
-        public ProveedorModel? Desactivar(int id)
+        public async Task<ProveedorModel?> DesactivarAsync(int id)
         {
-            var proveedor = _context.Proveedor.FirstOrDefault(p => p.id == id);
+            var proveedor = await _context.Proveedor.FirstOrDefaultAsync(p => p.id == id);
 
             if (proveedor == null)
                 return null;
 
-            bool tieneProductosActivos = _context.Producto
-                .Any(p => p.fk_proveedor == id && p.estado == true);
+            bool tieneProductosActivos = await _context.Producto
+                .AnyAsync(p => p.fk_proveedor == id && p.estado == true);
 
             if (tieneProductosActivos)
                 throw new InvalidOperationException("No se puede desactivar el proveedor porque tiene productos activos");
 
             proveedor.estado = false;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar(
+            await _auditoria.RegistrarAsync(
                 "PROVEEDOR",
                 "DISABLE",
                 $"Proveedor {proveedor.nombre} desactivado",
@@ -95,9 +94,7 @@ namespace STAT_Academy.Api.Services
             return proveedor;
         }
 
-        public ProveedorModel? GetById(int id)
-        {
-            return _context.Proveedor.FirstOrDefault(p => p.id == id);
-        }
+        public Task<ProveedorModel?> GetByIdAsync(int id) =>
+            _context.Proveedor.AsNoTracking().FirstOrDefaultAsync(p => p.id == id);
     }
 }

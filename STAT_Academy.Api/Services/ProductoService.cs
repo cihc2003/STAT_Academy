@@ -39,40 +39,36 @@ namespace STAT_Academy.Api.Services
         // ==================================================================
 
         /// <param name="incluirInactivos">Solo Admin: los clientes ven únicamente productos activos.</param>
-        public List<ProductoResponse> GetAll(bool incluirInactivos)
-        {
-            return ConImagenes()
+        public async Task<List<ProductoResponse>> GetAllAsync(bool incluirInactivos) =>
+            (await ConImagenes()
                 .Where(p => incluirInactivos || p.estado)
                 .OrderBy(p => p.nombre)
-                .AsEnumerable()
-                .Select(Map)
-                .ToList();
-        }
+                .ToListAsync())
+            .Select(Map)
+            .ToList();
 
-        public ProductoResponse? GetById(int id, bool incluirInactivos)
+        public async Task<ProductoResponse?> GetByIdAsync(int id, bool incluirInactivos)
         {
-            var producto = ConImagenes().FirstOrDefault(p => p.id == id && (incluirInactivos || p.estado));
+            var producto = await ConImagenes().FirstOrDefaultAsync(p => p.id == id && (incluirInactivos || p.estado));
             return producto == null ? null : Map(producto);
         }
 
         /// <summary>Productos activos con existencias en o por debajo del mínimo.</summary>
-        public List<ProductoResponse> StockBajo()
-        {
-            return ConImagenes()
+        public async Task<List<ProductoResponse>> StockBajoAsync() =>
+            (await ConImagenes()
                 .Where(p => p.estado && p.stock <= p.min_stock)
                 .OrderBy(p => p.stock - p.min_stock)
-                .AsEnumerable()
-                .Select(Map)
-                .ToList();
-        }
+                .ToListAsync())
+            .Select(Map)
+            .ToList();
 
         // ==================================================================
         // Altas y cambios
         // ==================================================================
 
-        public (ProductoResponse? producto, string? error) Crear(ProductoCreateRequest request, string usuarioEmail)
+        public async Task<(ProductoResponse? producto, string? error)> CrearAsync(ProductoCreateRequest request, string usuarioEmail)
         {
-            if (ValidarProveedor(request.fk_proveedor) is string error)
+            if (await ValidarProveedorAsync(request.fk_proveedor) is string error)
                 return (null, error);
 
             var producto = new ProductoModel
@@ -88,20 +84,20 @@ namespace STAT_Academy.Api.Services
             };
 
             _context.Producto.Add(producto);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("PRODUCTO", "CREATE", $"Producto {producto.nombre} creado", usuarioEmail, producto.id);
+            await _auditoria.RegistrarAsync("PRODUCTO", "CREATE", $"Producto {producto.nombre} creado", usuarioEmail, producto.id);
 
-            return (GetById(producto.id, incluirInactivos: true), null);
+            return (await GetByIdAsync(producto.id, incluirInactivos: true), null);
         }
 
-        public async Task<(ProductoResponse? producto, string? error)> Editar(int id, ProductoCreateRequest request, string usuarioEmail)
+        public async Task<(ProductoResponse? producto, string? error)> EditarAsync(int id, ProductoCreateRequest request, string usuarioEmail)
         {
-            var producto = _context.Producto.FirstOrDefault(p => p.id == id);
+            var producto = await _context.Producto.FirstOrDefaultAsync(p => p.id == id);
             if (producto == null)
                 return (null, null);
 
-            if (ValidarProveedor(request.fk_proveedor) is string error)
+            if (await ValidarProveedorAsync(request.fk_proveedor) is string error)
                 return (null, error);
 
             var estabaBajo = producto.StockBajo;
@@ -114,46 +110,46 @@ namespace STAT_Academy.Api.Services
             producto.min_stock = request.min_stock;
             producto.fk_proveedor = request.fk_proveedor;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("PRODUCTO", "UPDATE", $"Producto {producto.nombre} actualizado", usuarioEmail, producto.id);
+            await _auditoria.RegistrarAsync("PRODUCTO", "UPDATE", $"Producto {producto.nombre} actualizado", usuarioEmail, producto.id);
 
             // Si el cambio lo deja en o por debajo del mínimo, se avisa (solo al cruzar el umbral).
             if (!estabaBajo && producto.StockBajo && producto.estado)
-                await _alertas.Notificar([producto]);
+                await _alertas.NotificarAsync([producto]);
 
-            return (GetById(id, incluirInactivos: true), null);
+            return (await GetByIdAsync(id, incluirInactivos: true), null);
         }
 
-        public ProductoResponse? CambiarEstado(int id, bool activo, string usuarioEmail)
+        public async Task<ProductoResponse?> CambiarEstadoAsync(int id, bool activo, string usuarioEmail)
         {
-            var producto = _context.Producto.FirstOrDefault(p => p.id == id);
+            var producto = await _context.Producto.FirstOrDefaultAsync(p => p.id == id);
             if (producto == null)
                 return null;
 
             producto.estado = activo;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            _auditoria.Registrar("PRODUCTO", activo ? "ENABLE" : "DISABLE",
+            await _auditoria.RegistrarAsync("PRODUCTO", activo ? "ENABLE" : "DISABLE",
                 $"Producto {producto.nombre} {(activo ? "reactivado" : "desactivado")}", usuarioEmail, producto.id);
 
-            return GetById(id, incluirInactivos: true);
+            return await GetByIdAsync(id, incluirInactivos: true);
         }
 
         // ==================================================================
         // Imágenes
         // ==================================================================
 
-        public async Task<(ProductoResponse? producto, List<string> errores)> AgregarImagenes(
+        public async Task<(ProductoResponse? producto, List<string> errores)> AgregarImagenesAsync(
             int productoId, IReadOnlyList<IFormFile> archivos, string usuarioEmail, CancellationToken ct)
         {
-            if (!_context.Producto.Any(p => p.id == productoId))
+            if (!await _context.Producto.AnyAsync(p => p.id == productoId, ct))
                 return (null, ["El producto no existe."]);
 
             if (archivos.Count == 0)
                 return (null, ["Seleccione al menos una imagen."]);
 
-            var existentes = _context.ProductoImagen.Where(i => i.fk_producto == productoId && i.estado).ToList();
+            var existentes = await _context.ProductoImagen.Where(i => i.fk_producto == productoId && i.estado).ToListAsync(ct);
             if (existentes.Count + archivos.Count > MaxImagenesPorProducto)
                 return (null, [$"Un producto admite como máximo {MaxImagenesPorProducto} imágenes (ya tiene {existentes.Count})."]);
 
@@ -192,43 +188,43 @@ namespace STAT_Academy.Api.Services
                     });
                 }
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (ArchivoInvalidoException ex)
             {
-                await BorrarBlobs(subidos);
+                await BorrarBlobsAsync(subidos);
                 return (null, [ex.Message]);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al subir imágenes del producto {ProductoId}.", productoId);
-                await BorrarBlobs(subidos);
+                await BorrarBlobsAsync(subidos);
                 return (null, ["No se pudieron guardar las imágenes. Intente nuevamente."]);
             }
 
-            SincronizarImagenPrincipal(productoId);
-            _auditoria.Registrar("PRODUCTO", "UPLOAD", $"{archivos.Count} imagen(es) agregada(s)", usuarioEmail, productoId);
+            await SincronizarImagenPrincipalAsync(productoId);
+            await _auditoria.RegistrarAsync("PRODUCTO", "UPLOAD", $"{archivos.Count} imagen(es) agregada(s)", usuarioEmail, productoId);
 
-            return (GetById(productoId, incluirInactivos: true), []);
+            return (await GetByIdAsync(productoId, incluirInactivos: true), []);
         }
 
-        public bool MarcarPrincipal(int productoId, int imagenId)
+        public async Task<bool> MarcarPrincipalAsync(int productoId, int imagenId)
         {
-            var imagenes = _context.ProductoImagen.Where(i => i.fk_producto == productoId && i.estado).ToList();
+            var imagenes = await _context.ProductoImagen.Where(i => i.fk_producto == productoId && i.estado).ToListAsync();
             if (imagenes.All(i => i.id != imagenId))
                 return false;
 
             foreach (var i in imagenes)
                 i.es_principal = i.id == imagenId;
 
-            _context.SaveChanges();
-            SincronizarImagenPrincipal(productoId);
+            await _context.SaveChangesAsync();
+            await SincronizarImagenPrincipalAsync(productoId);
             return true;
         }
 
-        public async Task<bool> QuitarImagen(int productoId, int imagenId, string usuarioEmail)
+        public async Task<bool> QuitarImagenAsync(int productoId, int imagenId, string usuarioEmail)
         {
-            var imagen = _context.ProductoImagen.FirstOrDefault(i => i.id == imagenId && i.fk_producto == productoId && i.estado);
+            var imagen = await _context.ProductoImagen.FirstOrDefaultAsync(i => i.id == imagenId && i.fk_producto == productoId && i.estado);
             if (imagen == null)
                 return false;
 
@@ -239,22 +235,22 @@ namespace STAT_Academy.Api.Services
             // Si se quitó la portada, la siguiente imagen pasa a ser la principal.
             if (eraPrincipal)
             {
-                var siguiente = _context.ProductoImagen
+                var siguiente = await _context.ProductoImagen
                     .Where(i => i.fk_producto == productoId && i.estado && i.id != imagenId)
                     .OrderBy(i => i.id)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
 
                 if (siguiente != null)
                     siguiente.es_principal = true;
             }
 
-            _context.SaveChanges();
-            SincronizarImagenPrincipal(productoId);
+            await _context.SaveChangesAsync();
+            await SincronizarImagenPrincipalAsync(productoId);
 
             // El contenedor es público: si no se borra el archivo, la URL seguiría funcionando.
-            await BorrarBlobs([imagen.imagen_url]);
+            await BorrarBlobsAsync([imagen.imagen_url]);
 
-            _auditoria.Registrar("PRODUCTO", "REMOVE_IMAGE", $"Imagen quitada: {imagen.nombre_archivo}", usuarioEmail, productoId);
+            await _auditoria.RegistrarAsync("PRODUCTO", "REMOVE_IMAGE", $"Imagen quitada: {imagen.nombre_archivo}", usuarioEmail, productoId);
             return true;
         }
 
@@ -265,26 +261,26 @@ namespace STAT_Academy.Api.Services
         private IQueryable<ProductoModel> ConImagenes() =>
             _context.Producto.AsNoTracking().Include(p => p.Imagenes.Where(i => i.estado));
 
-        private string? ValidarProveedor(int fkProveedor) =>
-            _context.Proveedor.Any(p => p.id == fkProveedor) ? null : "El proveedor seleccionado no existe.";
+        private async Task<string?> ValidarProveedorAsync(int fkProveedor) =>
+            await _context.Proveedor.AnyAsync(p => p.id == fkProveedor) ? null : "El proveedor seleccionado no existe.";
 
         /// <summary>Mantiene PRODUCTO.Imagen_URL igual al blob de la imagen principal.</summary>
-        private void SincronizarImagenPrincipal(int productoId)
+        private async Task SincronizarImagenPrincipalAsync(int productoId)
         {
-            var principal = _context.ProductoImagen
+            var principal = await _context.ProductoImagen
                 .Where(i => i.fk_producto == productoId && i.estado && i.es_principal)
                 .Select(i => i.imagen_url)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            var producto = _context.Producto.First(p => p.id == productoId);
+            var producto = await _context.Producto.FirstAsync(p => p.id == productoId);
             if (producto.imagen_url != principal)
             {
                 producto.imagen_url = principal;
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
-        private async Task BorrarBlobs(IEnumerable<string> blobs)
+        private async Task BorrarBlobsAsync(IEnumerable<string> blobs)
         {
             foreach (var blob in blobs)
             {

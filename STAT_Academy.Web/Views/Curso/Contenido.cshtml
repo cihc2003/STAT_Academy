@@ -26,7 +26,7 @@
                 </div>
                 <div class="progress aula-progreso" role="progressbar" aria-label="Avance del curso"
                      aria-valuenow="@aula.Progreso" aria-valuemin="0" aria-valuemax="100">
-                    <div class="progress-bar" style="width: @aula.Progreso%;"></div>
+                    <div class="progress-bar" data-progreso="@aula.Progreso"></div>
                 </div>
                 <span class="small text-muted">
                     Del @aula.FechaInicio.ToString("dd/MM/yyyy") al @aula.FechaFin.ToString("dd/MM/yyyy")

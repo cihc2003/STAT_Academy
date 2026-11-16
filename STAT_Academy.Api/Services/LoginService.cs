@@ -88,18 +88,18 @@ namespace STAT_Academy.Api.Services
         /// Sesión del usuario activo con sus datos actuales (p. ej. para emitir un token nuevo
         /// después de cambiar la contraseña, ya que el anterior queda revocado).
         /// </summary>
-        public SesionUsuario? SesionDe(int usuarioId)
+        public async Task<SesionUsuario?> SesionDeAsync(int usuarioId)
         {
-            var usuario = _context.Usuario.FirstOrDefault(u => u.id == usuarioId && u.estado);
+            var usuario = await _context.Usuario.FirstOrDefaultAsync(u => u.id == usuarioId && u.estado);
             return usuario == null ? null : Crear(usuario);
         }
 
         /// <summary>Quita el bloqueo (p. ej. al restablecer la contraseña por correo). Se guarda con SaveChanges del llamador.</summary>
-        public void Desbloquear(int usuarioId)
+        public async Task DesbloquearAsync(int usuarioId)
         {
             try
             {
-                var bloqueo = _context.UsuarioBloqueo.FirstOrDefault(b => b.fk_Usuario == usuarioId);
+                var bloqueo = await _context.UsuarioBloqueo.FirstOrDefaultAsync(b => b.fk_Usuario == usuarioId);
                 if (bloqueo != null)
                     _context.UsuarioBloqueo.Remove(bloqueo);
             }

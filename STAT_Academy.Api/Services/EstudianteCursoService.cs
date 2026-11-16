@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.DTOs.EstudianteCurso;
@@ -13,9 +14,9 @@ namespace STAT_Academy.Api.Services
             _context = context;
         }
 
-        public List<CursoCompradoResponse> ObtenerCursos(int estudianteId)
+        public async Task<List<CursoCompradoResponse>> ObtenerCursosAsync(int estudianteId)
         {
-            var cursos = (from ec in _context.EstudianteCurso
+            var cursos = await (from ec in _context.EstudianteCurso
                           join c in _context.Set<CursoModel>()
                           on ec.CursoId equals c.id
                           // Los cursos inactivos dejan de estar disponibles para el estudiante.
@@ -30,7 +31,7 @@ namespace STAT_Academy.Api.Services
                               ec.Fecha_Matricula,
                               c.fechaInicio,
                               c.fechaFin
-                          }).ToList();
+                          }).ToListAsync();
 
             return cursos.Select(x => new CursoCompradoResponse
             {
@@ -51,11 +52,11 @@ namespace STAT_Academy.Api.Services
         /// Inscripción directa, solo para cursos gratuitos. Los cursos de pago se compran
         /// (CompraService.ComprarCurso) y la matrícula se crea al aprobarse el pago.
         /// </summary>
-        public bool Matricular(int estudianteId, int cursoId)
+        public async Task<bool> MatricularAsync(int estudianteId, int cursoId)
         {
             // Verificar que el curso exista
-            var curso = _context.Set<CursoModel>()
-                .FirstOrDefault(c => c.id == cursoId);
+            var curso = await _context.Set<CursoModel>()
+                .FirstOrDefaultAsync(c => c.id == cursoId);
 
             if (curso == null)
                 return false;
@@ -73,8 +74,8 @@ namespace STAT_Academy.Api.Services
                 return false;
 
             // Verificar si ya está matriculado
-            var yaMatriculado = _context.EstudianteCurso
-                .Any(ec =>
+            var yaMatriculado = await _context.EstudianteCurso
+                .AnyAsync(ec =>
                     ec.EstudianteId == estudianteId &&
                     ec.CursoId == cursoId);
 
@@ -93,7 +94,7 @@ namespace STAT_Academy.Api.Services
 
             _context.EstudianteCurso.Add(matricula);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             return true;
         }

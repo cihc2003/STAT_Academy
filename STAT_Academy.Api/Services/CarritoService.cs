@@ -1,4 +1,5 @@
-﻿using STAT_Academy.Api.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.DTOs.Carrito;
 
@@ -14,25 +15,25 @@ namespace STAT_Academy.Api.Services
         }
 
         // Cada usuario tiene un único carrito; si no existe todavía, se crea aquí.
-        private CarritoModel ObtenerOCrearCarrito(int usuarioId)
+        private async Task<CarritoModel> ObtenerOCrearCarritoAsync(int usuarioId)
         {
-            var carrito = _context.Carrito.FirstOrDefault(c => c.fk_Usuario == usuarioId);
+            var carrito = await _context.Carrito.FirstOrDefaultAsync(c => c.fk_Usuario == usuarioId);
 
             if (carrito == null)
             {
                 carrito = new CarritoModel { fk_Usuario = usuarioId };
                 _context.Carrito.Add(carrito);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
             return carrito;
         }
 
-        public CarritoResponse GetCarrito(int usuarioId)
+        public async Task<CarritoResponse> GetCarritoAsync(int usuarioId)
         {
-            var carrito = ObtenerOCrearCarrito(usuarioId);
+            var carrito = await ObtenerOCrearCarritoAsync(usuarioId);
 
-            var items = (
+            var items = await (
                 from detalle in _context.CarritoDetalle
                 where detalle.fk_Carrito == carrito.id && detalle.fk_Producto != null
                 join producto in _context.Producto on detalle.fk_Producto equals producto.id
@@ -45,7 +46,7 @@ namespace STAT_Academy.Api.Services
                     cantidad = detalle.cantidad,
                     stock_disponible = producto.stock
                 }
-            ).ToList();
+            ).ToListAsync();
 
             return new CarritoResponse
             {
@@ -54,16 +55,16 @@ namespace STAT_Academy.Api.Services
             };
         }
 
-        public CarritoResponse AgregarItem(AgregarAlCarritoRequest request)
+        public async Task<CarritoResponse> AgregarItemAsync(AgregarAlCarritoRequest request)
         {
-            var producto = _context.Producto.FirstOrDefault(p => p.id == request.productoId && p.estado);
+            var producto = await _context.Producto.FirstOrDefaultAsync(p => p.id == request.productoId && p.estado);
 
             if (producto == null)
                 throw new InvalidOperationException("Producto no existe o no está disponible.");
 
-            var carrito = ObtenerOCrearCarrito(request.usuarioId);
+            var carrito = await ObtenerOCrearCarritoAsync(request.usuarioId);
 
-            var detalle = _context.CarritoDetalle.FirstOrDefault(d =>
+            var detalle = await _context.CarritoDetalle.FirstOrDefaultAsync(d =>
                 d.fk_Carrito == carrito.id && d.fk_Producto == request.productoId);
 
             var cantidadDeseada = (detalle?.cantidad ?? 0) + request.cantidad;
@@ -86,46 +87,46 @@ namespace STAT_Academy.Api.Services
                 detalle.cantidad = cantidadDeseada;
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return GetCarrito(request.usuarioId);
+            return await GetCarritoAsync(request.usuarioId);
         }
 
-        public CarritoResponse ActualizarCantidad(int detalleId, int usuarioId, int cantidad)
+        public async Task<CarritoResponse> ActualizarCantidadAsync(int detalleId, int usuarioId, int cantidad)
         {
-            var carrito = ObtenerOCrearCarrito(usuarioId);
+            var carrito = await ObtenerOCrearCarritoAsync(usuarioId);
 
-            var detalle = _context.CarritoDetalle.FirstOrDefault(d =>
+            var detalle = await _context.CarritoDetalle.FirstOrDefaultAsync(d =>
                 d.id == detalleId && d.fk_Carrito == carrito.id);
 
             if (detalle == null)
                 throw new InvalidOperationException("El producto no está en el carrito.");
 
-            var producto = _context.Producto.FirstOrDefault(p => p.id == detalle.fk_Producto);
+            var producto = await _context.Producto.FirstOrDefaultAsync(p => p.id == detalle.fk_Producto);
 
             if (producto != null && cantidad > producto.stock)
                 throw new InvalidOperationException($"Solo hay {producto.stock} unidades disponibles.");
 
             detalle.cantidad = cantidad;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            return GetCarrito(usuarioId);
+            return await GetCarritoAsync(usuarioId);
         }
 
-        public CarritoResponse EliminarItem(int detalleId, int usuarioId)
+        public async Task<CarritoResponse> EliminarItemAsync(int detalleId, int usuarioId)
         {
-            var carrito = ObtenerOCrearCarrito(usuarioId);
+            var carrito = await ObtenerOCrearCarritoAsync(usuarioId);
 
-            var detalle = _context.CarritoDetalle.FirstOrDefault(d =>
+            var detalle = await _context.CarritoDetalle.FirstOrDefaultAsync(d =>
                 d.id == detalleId && d.fk_Carrito == carrito.id);
 
             if (detalle != null)
             {
                 _context.CarritoDetalle.Remove(detalle);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
-            return GetCarrito(usuarioId);
+            return await GetCarritoAsync(usuarioId);
         }
     }
 }

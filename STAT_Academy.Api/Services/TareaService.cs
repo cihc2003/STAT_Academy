@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using STAT_Academy.Api.Data;
 using STAT_Academy.Api.Models;
 using STAT_Academy.DTOs.Tareas;
@@ -13,17 +14,17 @@ namespace STAT_Academy.Api.Services
             _context = context;
         }
 
-        public List<TareaResponse> ObtenerPorCurso(int cursoId)
+        public async Task<List<TareaResponse>> ObtenerPorCursoAsync(int cursoId)
         {
-            var inicioCurso = _context.Curso
+            var inicioCurso = await _context.Curso
                 .Where(c => c.id == cursoId)
                 .Select(c => (DateTime?)c.fechaInicio)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            var tareas = _context.Tarea
+            var tareas = await _context.Tarea
                 .Where(x => x.CursoId == cursoId && x.Estado != false)
                 .OrderBy(x => x.Fecha_Inicio)
-                .ToList();
+                .ToListAsync();
 
             return tareas
                 .Select(x => new TareaResponse

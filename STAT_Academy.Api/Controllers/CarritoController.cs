@@ -19,23 +19,23 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("usuario/{usuarioId}")]
-        public IActionResult GetCarrito(int usuarioId)
+        public async Task<IActionResult> GetCarrito(int usuarioId)
         {
             if (!PuedeActuarSobre(usuarioId))
                 return Forbid();
 
-            return Ok(_service.GetCarrito(usuarioId));
+            return Ok(await _service.GetCarritoAsync(usuarioId));
         }
 
         [HttpPost("agregar")]
-        public IActionResult Agregar([FromBody] AgregarAlCarritoRequest request)
+        public async Task<IActionResult> Agregar([FromBody] AgregarAlCarritoRequest request)
         {
             // Se ignora el usuarioId del cuerpo: el carrito siempre es el del usuario autenticado.
             request.usuarioId = UsuarioActualId;
 
             try
             {
-                return Ok(_service.AgregarItem(request));
+                return Ok(await _service.AgregarItemAsync(request));
             }
             catch (InvalidOperationException ex)
             {
@@ -46,14 +46,14 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpPut("{detalleId}/usuario/{usuarioId}")]
-        public IActionResult ActualizarCantidad(int detalleId, int usuarioId, [FromBody] ActualizarCantidadRequest request)
+        public async Task<IActionResult> ActualizarCantidad(int detalleId, int usuarioId, [FromBody] ActualizarCantidadRequest request)
         {
             if (!PuedeActuarSobre(usuarioId))
                 return Forbid();
 
             try
             {
-                return Ok(_service.ActualizarCantidad(detalleId, usuarioId, request.cantidad));
+                return Ok(await _service.ActualizarCantidadAsync(detalleId, usuarioId, request.cantidad));
             }
             catch (InvalidOperationException ex)
             {
@@ -64,12 +64,12 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpDelete("{detalleId}/usuario/{usuarioId}")]
-        public IActionResult Eliminar(int detalleId, int usuarioId)
+        public async Task<IActionResult> Eliminar(int detalleId, int usuarioId)
         {
             if (!PuedeActuarSobre(usuarioId))
                 return Forbid();
 
-            return Ok(_service.EliminarItem(detalleId, usuarioId));
+            return Ok(await _service.EliminarItemAsync(detalleId, usuarioId));
         }
     }
 }

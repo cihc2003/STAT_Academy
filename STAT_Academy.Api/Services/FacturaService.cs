@@ -284,7 +284,7 @@ namespace STAT_Academy.Api.Services
                 return (null, "No se pudo registrar el comprobante. Revisa si ya hay uno en verificación.", false);
             }
 
-            _auditoria.Registrar("PEDIDO_PAGO", "CREATE",
+            await _auditoria.RegistrarAsync("PEDIDO_PAGO", "CREATE",
                 $"Comprobante {metodoNormalizado} por {monto:0.00} para la factura #{facturaId}", usuarioEmail, pedido.id);
 
             await AvisarAdministradores(facturaId, usuarioId, monto, metodoNormalizado);
@@ -423,7 +423,7 @@ namespace STAT_Academy.Api.Services
             if (error != null || pedido == null || factura == null)
                 return (false, error ?? "No se pudo aprobar el pago.");
 
-            _auditoria.Registrar("PEDIDO_PAGO", "APROBAR",
+            await _auditoria.RegistrarAsync("PEDIDO_PAGO", "APROBAR",
                 $"Pago aprobado de la factura #{factura.id} por {pedido.monto:0.00}", adminEmail, pedido.id);
 
             var usuario = await DatosUsuario(factura.fk_Usuario);
@@ -468,7 +468,7 @@ namespace STAT_Academy.Api.Services
 
             var pedido = await _context.PedidoPago.AsNoTracking().FirstAsync(p => p.id == pagoId);
 
-            _auditoria.Registrar("PEDIDO_PAGO", "RECHAZAR",
+            await _auditoria.RegistrarAsync("PEDIDO_PAGO", "RECHAZAR",
                 $"Pago rechazado de la factura #{pedido.fk_Factura}: {observacion}", adminEmail, pedido.id);
 
             var usuario = await DatosUsuario(pedido.fk_Usuario);

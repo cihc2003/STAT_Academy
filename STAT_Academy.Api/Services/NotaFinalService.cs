@@ -27,17 +27,17 @@ namespace STAT_Academy.Api.Services
         public bool Disponible { get; private set; } = true;
 
         /// <summary>Ajustes por matrícula (id de matrícula → ajuste).</summary>
-        public Dictionary<int, NotaFinalModel> Ajustes(IReadOnlyCollection<int> matriculaIds)
+        public async Task<Dictionary<int, NotaFinalModel>> AjustesAsync(IReadOnlyCollection<int> matriculaIds)
         {
             if (matriculaIds.Count == 0)
                 return [];
 
             try
             {
-                return _context.NotaFinal
-                    .AsNoTracking()
-                    .Where(n => matriculaIds.Contains(n.fk_Matricula))
-                    .ToList()
+                return (await _context.NotaFinal
+                        .AsNoTracking()
+                        .Where(n => matriculaIds.Contains(n.fk_Matricula))
+                        .ToListAsync())
                     .GroupBy(n => n.fk_Matricula)
                     .ToDictionary(g => g.Key, g => g.OrderByDescending(n => n.id).First());
             }
@@ -50,16 +50,16 @@ namespace STAT_Academy.Api.Services
             }
         }
 
-        public NotaFinalModel? Ajuste(int matriculaId) =>
-            Ajustes([matriculaId]).GetValueOrDefault(matriculaId);
+        public async Task<NotaFinalModel?> AjusteAsync(int matriculaId) =>
+            (await AjustesAsync([matriculaId])).GetValueOrDefault(matriculaId);
 
         /// <summary>Guarda (o reemplaza) el ajuste. nota = null quita el ajuste.</summary>
-        public (bool exitoso, string mensaje) Guardar(
+        public async Task<(bool exitoso, string mensaje)> GuardarAsync(
             int matriculaId, decimal? nota, string? comentario, int tutorId, string tutorEmail, string estudiante)
         {
             try
             {
-                var actual = _context.NotaFinal.FirstOrDefault(n => n.fk_Matricula == matriculaId);
+                var actual = await _context.NotaFinal.FirstOrDefaultAsync(n => n.fk_Matricula == matriculaId);
 
                 if (nota == null)
                 {
@@ -67,9 +67,9 @@ namespace STAT_Academy.Api.Services
                         return (true, "La nota final ya era la calculada.");
 
                     _context.NotaFinal.Remove(actual);
-                    _context.SaveChanges();
+                    await _context.SaveChangesAsync();
 
-                    _auditoria.Registrar("NOTA_FINAL", "DELETE",
+                    await _auditoria.RegistrarAsync("NOTA_FINAL", "DELETE",
                         $"Nota final de {Recortar(estudiante)} vuelve a la calculada", tutorEmail, actual.id);
 
                     return (true, "La nota final vuelve a ser la calculada a partir de las tareas.");
@@ -83,9 +83,9 @@ namespace STAT_Academy.Api.Services
                 actual.fk_Tutor = tutorId;
                 actual.fecha_Edicion = DateTime.UtcNow;
 
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
-                _auditoria.Registrar("NOTA_FINAL", corregida ? "UPDATE" : "CREATE",
+                await _auditoria.RegistrarAsync("NOTA_FINAL", corregida ? "UPDATE" : "CREATE",
                     $"Nota final de {Recortar(estudiante)} ajustada a {actual.nota:0.##}", tutorEmail, actual.id);
 
                 return (true, "Nota final ajustada.");

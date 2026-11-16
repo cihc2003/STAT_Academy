@@ -9,7 +9,7 @@ Plataforma de cursos, tienda y blog de STAT Academy (texto en español de Costa 
 | `STAT_Academy.Api` | API REST (.NET 10). JWT, EF Core sobre Azure SQL, archivos en Azure Blob Storage, correos con MailKit. |
 | `STAT_Academy.Web` | Sitio ASP.NET MVC. No toca la base: llama a la API con `HttpClient` y reenvía el JWT guardado en la cookie de sesión (`BearerTokenHandler`). |
 | `STAT_Academy.DTOs` | Contratos compartidos (peticiones y respuestas). |
-| `STAT_Academy.Tests` | Pruebas unitarias (xUnit) de la lógica sin base de datos. |
+| `STAT_Academy.Tests` | Pruebas (xUnit): lógica pura y servicios de la API sobre SQLite en memoria (no tocan Azure). |
 
 Roles: Admin (1), Tutor (2) y Cliente (3, estudiante).
 

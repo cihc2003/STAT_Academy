@@ -5428,3 +5428,28 @@ a.panel-metrica:hover {
         justify-content: flex-start;
     }
 }
+
+/* ============================================================
+   Utilidades que reemplazan los atributos style= de las vistas
+   (la CSP no permite estilos en línea).
+   ============================================================ */
+
+.contenedor-angosto {
+    max-width: 860px;
+}
+
+.contenedor-formulario {
+    max-width: 760px;
+}
+
+.carrito-celda-cantidad {
+    max-width: 140px;
+}
+
+.carrito-resumen {
+    min-width: 280px;
+}
+
+.progreso-delgado {
+    height: 8px;
+}

@@ -17,19 +17,19 @@ namespace STAT_Academy.Api.Controllers
         }
 
         [HttpGet("{estudianteId}")]
-        public IActionResult ObtenerCursos(int estudianteId)
+        public async Task<IActionResult> ObtenerCursos(int estudianteId)
         {
             if (!PuedeActuarSobre(estudianteId))
                 return Forbid();
 
-            return Ok(_service.ObtenerCursos(estudianteId));
+            return Ok(await _service.ObtenerCursosAsync(estudianteId));
         }
 
         [Authorize(Roles = Roles.Cliente)]
         [HttpPost("matricular/{cursoId}")]
-        public IActionResult Matricular(int cursoId)
+        public async Task<IActionResult> Matricular(int cursoId)
         {
-            var resultado = _service.Matricular(UsuarioActualId, cursoId);
+            var resultado = await _service.MatricularAsync(UsuarioActualId, cursoId);
 
             if (!resultado)
             {

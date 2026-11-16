@@ -33,10 +33,16 @@ Rama `auditoria-seguridad` (desde `origin/master` en `a1463bd`). Sin cambios de 
 | B4 | Proyecto `STAT_Academy.Tests` (xUnit) con 17 pruebas. | `STAT_Academy.Tests/*` |
 | B5 | README con arquitectura, configuración, ejecución local y convenciones. Título de la pestaña del carrito. | `README.md`, `Views/Carrito/Index.cshtml` |
 
+## Tercera ronda
+
+| Id | Cambio | Archivos principales |
+|----|--------|----------------------|
+| B3 | Todos los servicios de la API con EF Core async: tutor, blog, productos, proveedores, carrito, compras, matrícula, material, tareas y adjuntos, usuarios y perfil, contraseña, nota final, auditoría (`RegistrarAsync`) y el aviso de errores por correo. Los controladores hacen `await`; las descargas pasan su `CancellationToken` a las consultas. Sin cambios de rutas, JSON ni esquema. | `Api/Services/*`, `Api/Controllers/*`, `Api/Errores/ErrorAlertaService.cs` |
+| CSP | Las vistas ya no usan `style=` (clases al final de `site.css`; las barras de progreso usan `data-progreso` en `site.js`). `style-src` sin `'unsafe-inline'`: no se aceptan bloques `<style>` en línea. Solo `style-src-attr 'unsafe-inline'`, porque el contenido del blog guarda colores como atributo (la API los sanea: solo `color` y `background-color`). En navegadores sin `style-src-attr` (anteriores a 2022/2023) esos colores no se aplican. | `Web/Program.cs`, `wwwroot/css/site.css`, `wwwroot/js/site.js`, vistas de Carrito, Curso, Facturas y Tutor |
+| B4 | Pruebas de servicios con base de datos: SQLite en memoria con el esquema del modelo de EF (`EnsureCreated`), sin tocar Azure, y Blob Storage simulado en memoria (`BlobStorageSimulado`). 38 pruebas: proveedores, carrito, productos, usuarios y perfil, tutor, compras (transacción, stock y carrito), facturas y pagos (comprobante privado, aprobar con matrícula, rechazar, permisos), blog (saneado, visibilidad, adjuntos e imagen principal) y aula (entregas, retiro, calificada, permisos de descarga). En total 74 pruebas. | `STAT_Academy.Tests/BaseDatos/*` |
+
 ## Pendiente
 
 - **C1 (crítica, a cargo del responsable de Azure):** el historial público del repositorio contiene la contraseña del usuario SQL de Azure y dos claves de Supabase. Hay que rotar la contraseña (user-secrets y App Settings), revisar el firewall de Azure SQL y revocar las claves de Supabase. Reescribir el historial es opcional.
 - Aplicar `Database/Scripts/2026-11-16_usuario_bloqueo.sql` en Azure para activar el bloqueo persistente.
-- B3: el resto de servicios (tutor, blog, productos, carrito, facturas en parte, usuarios) sigue con consultas síncronas.
-- CSP: `style-src` permite `'unsafe-inline'` (atributos `style=` de las vistas y colores del contenido del blog).
-- Ampliar las pruebas a servicios con base de datos (requiere una base de pruebas o el proveedor en memoria de EF).
+- Pruebas: SQLite no ordena por columnas `decimal`, así que el orden de facturas por total (`total_desc`/`total`) no está cubierto; tampoco el envío real de correos ni la estrategia de reintento de SQL Server (en SQLite no reintenta).
