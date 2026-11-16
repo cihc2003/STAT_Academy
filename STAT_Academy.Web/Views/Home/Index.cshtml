@@ -39,7 +39,7 @@
                     @if (Model.CursosDisponibles)
                     {
                         <div class="cifras__item">
-                            <dt>@(cursos.Count == 1 ? "curso con inscripción abierta" : "cursos con inscripción abierta")</dt>
+                            <dt>@(cursos.Count == 1 ? "curso abierto" : "cursos abiertos")</dt>
                             <dd><span class="visually-hidden">@cursos.Count</span><span aria-hidden="true" data-contar="@cursos.Count">@cursos.Count</span></dd>
                         </div>
                         @if (Model.Instructores > 0)
@@ -53,7 +53,7 @@
                     @if (Model.ProductosDisponibles)
                     {
                         <div class="cifras__item">
-                            <dt>@(productos.Count == 1 ? "producto en la tienda" : "productos en la tienda")</dt>
+                            <dt>@(productos.Count == 1 ? "producto en tienda" : "productos en tienda")</dt>
                             <dd><span class="visually-hidden">@productos.Count</span><span aria-hidden="true" data-contar="@productos.Count">@productos.Count</span></dd>
                         </div>
                         @if (Model.Categorias.Count > 0)
