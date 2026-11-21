@@ -1,0 +1,288 @@
+@using STAT_Academy.Web.Helpers
+@using STAT_Academy.Web.Models.Usuarios
+@model UsuariosIndexViewModel
+
+@{
+    ViewData["Title"] = "Usuarios";
+    var f = Model.Filtros;
+    var p = Model.Pagina;
+    var r = p.resumen;
+    var desde = p.total == 0 ? 0 : (p.pagina - 1) * p.tamano + 1;
+    var hasta = Math.Min(p.pagina * p.tamano, p.total);
+    var volver = Context.Request.Path + Context.Request.QueryString;
+
+    // Encabezado ordenable: alterna asc/desc y marca la columna activa.
+    (string orden, string indicador, string? aria) Orden(string campo)
+    {
+        var actual = f.Orden ?? "nombre";
+        if (actual == campo) return (campo + "_desc", "chevron-arriba", "ascending");
+        if (actual == campo + "_desc") return (campo, "chevron-abajo", "descending");
+        return (campo, "", null);
+    }
+
+    var (ordNombre, indNombre, ariaNombre) = Orden("nombre");
+    var (ordRegistro, indRegistro, ariaRegistro) = Orden("registro");
+    var (ordLogin, indLogin, ariaLogin) = Orden("login");
+
+    // Páginas visibles: primera, última y dos alrededor de la actual.
+    var paginas = Enumerable.Range(1, p.totalPaginas)
+        .Where(n => n == 1 || n == p.totalPaginas || Math.Abs(n - p.pagina) <= 2)
+        .ToList();
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section class="usuarios">
+        <div class="usuarios-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1 class="mb-1">Usuarios</h1>
+                <p class="text-muted mb-0">Cuentas de administradores, tutores y estudiantes de la plataforma.</p>
+            </div>
+            <div class="panel-encabezado__acciones">
+                <a class="btn btn-primary" asp-action="UserForm">@Html.Icono("mas")Nuevo usuario</a>
+            </div>
+        </div>
+
+        @* ------------------------- Resumen por tipo ------------------------- *@
+        <nav class="usuarios-resumen" aria-label="Filtrar por tipo de usuario">
+            <a asp-action="Index" class="usuarios-resumen__item @(f.Tipo == null && f.Activo == null ? "usuarios-resumen__item--activo" : "")">
+                <span>Total</span><strong>@r.total</strong>
+            </a>
+            <a asp-action="Index" asp-route-tipo="1" class="usuarios-resumen__item @(f.Tipo == 1 ? "usuarios-resumen__item--activo" : "")">
+                <span>Administradores</span><strong>@r.admins</strong>
+            </a>
+            <a asp-action="Index" asp-route-tipo="2" class="usuarios-resumen__item @(f.Tipo == 2 ? "usuarios-resumen__item--activo" : "")">
+                <span>Tutores</span><strong>@r.tutores</strong>
+            </a>
+            <a asp-action="Index" asp-route-tipo="3" class="usuarios-resumen__item @(f.Tipo == 3 ? "usuarios-resumen__item--activo" : "")">
+                <span>Clientes</span><strong>@r.clientes</strong>
+            </a>
+            <a asp-action="Index" asp-route-activo="false" class="usuarios-resumen__item usuarios-resumen__item--alerta @(f.Activo == false && f.Tipo == null ? "usuarios-resumen__item--activo" : "")">
+                <span>Inactivos</span><strong>@r.inactivos</strong>
+            </a>
+        </nav>
+
+        @* ------------------------------ Filtros ------------------------------ *@
+        <form class="panel-filtros" method="get" asp-action="Index" role="search">
+            <div class="panel-filtros__buscar">
+                <label class="panel-filtros__etiqueta" for="buscar">Buscar</label>
+                @Html.Icono("buscar", "panel-filtros__lupa")
+                <input class="form-control" id="buscar" name="buscar" type="search" value="@f.Buscar"
+                       placeholder="Nombre o correo electrónico" maxlength="150" />
+            </div>
+
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="tipo">Tipo</label>
+                <select class="form-select @(f.Tipo != null ? "panel-filtros__activo" : "")" id="tipo" name="tipo" data-autoenviar>
+                    <option value="">Todos</option>
+                    @foreach (var (valor, nombre) in TiposUsuario.Todos)
+                    {
+                        <option value="@valor" selected="@(f.Tipo == valor)">@nombre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="activo">Estado</label>
+                <select class="form-select @(f.Activo != null ? "panel-filtros__activo" : "")" id="activo" name="activo" data-autoenviar>
+                    <option value="">Todos</option>
+                    <option value="true" selected="@(f.Activo == true)">Activos</option>
+                    <option value="false" selected="@(f.Activo == false)">Inactivos</option>
+                </select>
+            </div>
+
+            @if (!string.IsNullOrEmpty(f.Orden))
+            {
+                <input type="hidden" name="orden" value="@f.Orden" />
+            }
+            @if (f.Tamano != 10)
+            {
+                <input type="hidden" name="tamano" value="@f.Tamano" />
+            }
+
+            <div class="panel-filtros__acciones">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+            </div>
+        </form>
+
+        <div class="panel-resultados" aria-live="polite">
+            <span><strong>@p.total</strong> @(p.total == 1 ? "usuario" : "usuarios")@(f.HayFiltros ? " con estos filtros" : "")</span>
+            @if (!string.IsNullOrWhiteSpace(f.Buscar))
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(Context.Request.Query, "buscar", "pagina")" >«@f.Buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (f.Tipo != null)
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(Context.Request.Query, "tipo", "pagina")" >@TiposUsuario.Nombre(f.Tipo.Value) @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (f.Activo != null)
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(Context.Request.Query, "activo", "pagina")" >@(f.Activo == true ? "Activos" : "Inactivos") @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (f.HayFiltros)
+            {
+                <a class="panel-resultados__limpiar" asp-action="Index">Limpiar filtros</a>
+            }
+        </div>
+
+        @* ------------------------------- Tabla ------------------------------- *@
+        <div class="table-card panel-tabla usuarios-tabla">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col" aria-sort="@ariaNombre">
+                            <a class="usuarios-orden" asp-action="Index" asp-all-route-data="@f.Ruta(pagina: 1, orden: ordNombre)">Usuario @if (indNombre != "") { @Html.Icono(indNombre, "icono--sm") }</a>
+                        </th>
+                        <th scope="col">Tipo</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col" aria-sort="@(ariaRegistro ?? ariaLogin)">
+                            <span class="usuarios-orden-doble">
+                                <a class="usuarios-orden" asp-action="Index" asp-all-route-data="@f.Ruta(pagina: 1, orden: ordRegistro)"
+                                   title="Ordenar por fecha de registro">Registro @if (indRegistro != "") { @Html.Icono(indRegistro, "icono--sm") }</a>
+                                <span aria-hidden="true">/</span>
+                                <a class="usuarios-orden" asp-action="Index" asp-all-route-data="@f.Ruta(pagina: 1, orden: ordLogin)"
+                                   title="Ordenar por último acceso">Acceso @if (indLogin != "") { @Html.Icono(indLogin, "icono--sm") }</a>
+                            </span>
+                        </th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (p.items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="panel-tabla__vacio">
+                                @(f.HayFiltros ? "Ningún usuario coincide con los filtros." : "Todavía no hay usuarios registrados.")
+                            </td>
+                        </tr>
+                    }
+
+                    @foreach (var u in p.items)
+                    {
+                        var esYo = u.id == Model.UsuarioActualId;
+                        var inicial = string.IsNullOrWhiteSpace(u.nombre) ? "?" : u.nombre.Trim()[..1].ToUpperInvariant();
+
+                        <tr class="@(u.activo ? "" : "usuarios-fila--inactiva")">
+                            <td class="panel-tabla__principal">
+                                <div class="usuario-celda">
+                                    <span class="usuario-avatar @TiposUsuario.Clase(u.fk_Tipo_Usuario)" aria-hidden="true">@inicial</span>
+                                    <div class="usuario-celda__texto">
+                                        <a class="usuario-celda__nombre" asp-action="Details" asp-route-id="@u.id">@u.nombre</a>
+                                        @if (esYo)
+                                        {
+                                            <span class="usuario-yo">(su cuenta)</span>
+                                        }
+                                        <span class="usuario-celda__correo" title="@u.email">@u.email</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Tipo">
+                                <span class="usuario-tipo @TiposUsuario.Clase(u.fk_Tipo_Usuario)">@u.TipoTexto</span>
+                            </td>
+                            <td data-label="Estado">
+                                <span class="usuario-estado @(u.activo ? "usuario-estado--activo" : "usuario-estado--inactivo")">
+                                    @(u.activo ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td data-label="Actividad">
+                                <dl class="usuario-actividad">
+                                    <div title="@Formato.FechaHora(u.fecha_Registro, "Sin dato")">
+                                        <dt>Registro</dt>
+                                        <dd>@Formato.Fecha(u.fecha_Registro, "Sin dato")</dd>
+                                    </div>
+                                    <div title="@Formato.FechaHora(u.ultimo_Login, "Nunca ha iniciado sesión")">
+                                        <dt>Acceso</dt>
+                                        <dd>@Formato.Hace(u.ultimo_Login)</dd>
+                                    </div>
+                                </dl>
+                            </td>
+                            <td class="panel-tabla__acciones">
+                                <a class="btn btn-sm btn-secundario" asp-action="UserForm" asp-route-id="@u.id"
+                                   aria-label="Editar a @u.nombre">Editar</a>
+
+                                @if (u.activo && !esYo)
+                                {
+                                    <form asp-action="ToggleUser" asp-route-id="@u.id" method="post" class="d-inline"
+                                          data-confirmar="¿Desactivar a @u.nombre? No podrá iniciar sesión hasta que se active de nuevo."
+                                          data-confirmar-boton="Desactivar" data-confirmar-peligro>
+                                        <input type="hidden" name="volver" value="@volver" />
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Desactivar</button>
+                                    </form>
+                                }
+                                else if (!u.activo)
+                                {
+                                    <form asp-action="ActivateUser" asp-route-id="@u.id" method="post" class="d-inline"
+                                          data-confirmar="¿Activar a @u.nombre? Podrá volver a iniciar sesión."
+                                          data-confirmar-boton="Activar">
+                                        <input type="hidden" name="volver" value="@volver" />
+                                        <button class="btn btn-sm btn-outline-success" type="submit">Activar</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @* ----------------------------- Paginación ----------------------------- *@
+        <div class="usuarios-paginacion">
+            <p class="mb-0 text-muted small">
+                @if (p.total > 0)
+                {
+                    <text>Mostrando <strong>@desde–@hasta</strong> de <strong>@p.total</strong> usuarios</text>
+                }
+                else
+                {
+                    <text>0 usuarios</text>
+                }
+            </p>
+
+            @if (p.totalPaginas > 1)
+            {
+                <nav aria-label="Páginas de usuarios">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(p.pagina == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-all-route-data="@f.Ruta(pagina: p.pagina - 1)" aria-label="Página anterior">@Html.Icono("chevron-izquierda", "icono--sm")</a>
+                        </li>
+
+                        @for (var i = 0; i < paginas.Count; i++)
+                        {
+                            var n = paginas[i];
+                            if (i > 0 && n - paginas[i - 1] > 1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            }
+                            <li class="page-item @(n == p.pagina ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-all-route-data="@f.Ruta(pagina: n)"
+                                   aria-current="@(n == p.pagina ? "page" : null)">@n</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(p.pagina == p.totalPaginas ? "disabled" : "")">
+                            <a class="page-link" asp-action="Index" asp-all-route-data="@f.Ruta(pagina: p.pagina + 1)" aria-label="Página siguiente">@Html.Icono("chevron-derecha", "icono--sm")</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+
+            <form method="get" asp-action="Index" class="usuarios-tamano">
+                @foreach (var (clave, valor) in f.Ruta(pagina: 1).Where(x => x.Key != "tamano"))
+                {
+                    <input type="hidden" name="@clave" value="@valor" />
+                }
+                <label class="small text-muted" for="tamano">Por página</label>
+                <select class="form-select form-select-sm" id="tamano" name="tamano" data-enviar-al-cambiar>
+                    @foreach (var t in UsuarioFiltros.TamanosPagina)
+                    {
+                        <option value="@t" selected="@(t == f.Tamano)">@t</option>
+                    }
+                </select>
+                <noscript><button class="btn btn-sm btn-secundario" type="submit">Aplicar</button></noscript>
+            </form>
+        </div>
+    </section>
+</div>
+

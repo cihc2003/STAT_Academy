@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "Panel de control";
+
+    var stockBajo = ViewBag.StockBajo as List<STAT_Academy.Web.Models.Productos.ProductoResponse> ?? new();
+    var pagosPendientes = (int)(ViewBag.PagosPendientes ?? 0);
+    var nombre = User.Identity?.Name ?? "";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Panel de control</h1>
+                <p>@(string.IsNullOrWhiteSpace(nombre) ? "Hola." : $"Hola, {nombre}.") Este es el resumen de usuarios, cursos, productos y pagos.</p>
+            </div>
+        </div>
+
+        <div class="panel-metricas">
+            <a class="panel-metrica" asp-controller="Usuario" asp-action="Index">
+                <span class="panel-metrica__icono">@Html.Icono("usuarios", "icono--lg")</span>
+                <div><strong>@ViewBag.Users</strong><span>Usuarios</span></div>
+            </a>
+            <a class="panel-metrica" asp-action="Courses">
+                <span class="panel-metrica__icono">@Html.Icono("birrete", "icono--lg")</span>
+                <div><strong>@ViewBag.Courses</strong><span>Cursos</span></div>
+            </a>
+            <a class="panel-metrica" asp-action="Products">
+                <span class="panel-metrica__icono">@Html.Icono("caja", "icono--lg")</span>
+                <div><strong>@ViewBag.Products</strong><span>Productos</span></div>
+            </a>
+            <a class="panel-metrica @(pagosPendientes > 0 ? "panel-metrica--alerta" : "")" asp-action="Invoices">
+                <span class="panel-metrica__icono">@Html.Icono("factura", "icono--lg")</span>
+                <div><strong>@pagosPendientes</strong><span>Pagos por verificar</span></div>
+            </a>
+        </div>
+
+        <div class="panel-columnas">
+            <div class="panel-tarjeta">
+                <h2 class="panel-tarjeta__titulo">Pendientes</h2>
+
+                @if (pagosPendientes == 0 && stockBajo.Count == 0)
+                {
+                    <p class="panel-ok">
+                        @Html.Icono("exito")
+                        Todo al día: no hay pagos por verificar ni productos con stock bajo.
+                    </p>
+                }
+
+                @if (pagosPendientes > 0)
+                {
+                    <div class="panel-aviso panel-aviso--info" role="status">
+                        <p>
+                            @Html.Icono("info")
+                            <span><strong>@pagosPendientes @(pagosPendientes == 1 ? "comprobante de pago espera" : "comprobantes de pago esperan")</strong> su verificación.</span>
+                        </p>
+                        <a class="btn btn-sm btn-primary" asp-action="Invoices">Revisar pagos</a>
+                    </div>
+                }
+
+                @if (stockBajo.Count > 0)
+                {
+                    <div class="panel-aviso" role="status">
+                        <p>
+                            @Html.Icono("advertencia")
+                            <span><strong>@stockBajo.Count @(stockBajo.Count == 1 ? "producto tiene" : "productos tienen")</strong> stock bajo.</span>
+                        </p>
+                        <a class="btn btn-sm btn-secundario" asp-action="Products" asp-route-stockBajo="true">Ver productos</a>
+                    </div>
+                    <ul class="panel-lista">
+                        @foreach (var p in stockBajo.Take(5))
+                        {
+                            <li>
+                                <a asp-action="ProductForm" asp-route-id="@p.id">@p.nombre</a>
+                                <span class="text-nowrap"><strong class="text-danger">@p.stock</strong> <span class="text-muted small">/ mín. @p.min_stock</span></span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="panel-tarjeta">
+                <h2 class="panel-tarjeta__titulo">Accesos rápidos</h2>
+                <div class="panel-accesos">
+                    <a asp-controller="Usuario" asp-action="UserForm">@Html.Icono("mas")Nuevo usuario</a>
+                    <a asp-action="CourseForm">@Html.Icono("mas")Nuevo curso</a>
+                    <a asp-action="ProductForm">@Html.Icono("mas")Nuevo producto</a>
+                    <a asp-controller="Proveedor" asp-action="SupplierForm">@Html.Icono("mas")Nuevo proveedor</a>
+                    <a asp-action="Invoices" asp-route-vista="facturas">@Html.Icono("factura")Todas las facturas</a>
+                    <a asp-controller="Tutor" asp-action="Index">@Html.Icono("pizarra")Panel del tutor</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

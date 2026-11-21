@@ -1,0 +1,57 @@
+@model STAT_Academy.Web.Models.Contrasena.RestablecerContrasenaViewModel
+
+@{
+    ViewData["Title"] = "Restablecer contraseña";
+}
+
+<div class="auth-split">
+    <aside class="auth-brand" aria-labelledby="auth-brand-titulo">
+        <div class="auth-brand__contenido">
+            @Html.Logo("auth-brand__logo", 56)
+            <h2 id="auth-brand-titulo" class="auth-brand__titulo">Cree una contraseña nueva</h2>
+            <p class="auth-brand__texto">Al guardarla se cierran las sesiones abiertas en otros dispositivos.</p>
+            <ul class="auth-brand__lista">
+                <li>@Html.Icono("check")<span>Use al menos 8 caracteres</span></li>
+                <li>@Html.Icono("check")<span>Evite repetir contraseñas de otros sitios</span></li>
+            </ul>
+        </div>
+    </aside>
+
+    <section class="auth-panel" aria-labelledby="auth-titulo">
+        <div class="auth-form">
+            <a class="enlace-volver" asp-controller="Cuenta" asp-action="Login">@Html.Icono("flecha-izquierda", "icono--sm")Iniciar sesión</a>
+            <h1 id="auth-titulo">Restablecer contraseña</h1>
+            <p class="auth-form__intro">Escriba y confirme la contraseña nueva de su cuenta.</p>
+
+            <form asp-action="RestablecerContrasena" method="post" novalidate data-un-solo-envio>
+                <div asp-validation-summary="ModelOnly" class="aviso aviso--error" role="alert"></div>
+
+                <input asp-for="token" type="hidden" />
+
+                <div class="form-group">
+                    <label asp-for="nuevaContrasena"></label>
+                    <div class="campo-contrasena">
+                        <input asp-for="nuevaContrasena" class="form-control" autocomplete="new-password" />
+                        <partial name="_BotonVerContrasena" />
+                    </div>
+                    <span asp-validation-for="nuevaContrasena" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="confirmarContrasena"></label>
+                    <div class="campo-contrasena">
+                        <input asp-for="confirmarContrasena" class="form-control" autocomplete="new-password" />
+                        <partial name="_BotonVerContrasena" />
+                    </div>
+                    <span asp-validation-for="confirmarContrasena" class="text-danger"></span>
+                </div>
+
+                <button class="btn btn-primary btn-lg w-100" type="submit">Guardar contraseña nueva</button>
+            </form>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

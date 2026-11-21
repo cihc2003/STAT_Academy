@@ -1,0 +1,36 @@
+@model STAT_Academy.Web.Models.Tutor.TutorCurso
+@{
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    string Activa(string a) => accion == a ? "tutor-nav__link--activa" : "";
+}
+
+<div class="tutor-encabezado tutor-encabezado--curso">
+    <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Mis cursos asignados</a>
+    <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+        <h1 class="mb-0">@Model.Nombre</h1>
+        @if (!Model.Estado)
+        {
+            <span class="status-pill tutor-pill--gris">Curso inactivo</span>
+        }
+    </div>
+    <ul class="datos-icono datos-icono--fila">
+        <li>@Html.Icono("calendario")<span>@Formato.FechaCorta(Model.FechaInicio) – @Formato.FechaCorta(Model.FechaFin)</span></li>
+        <li>@Html.Icono("reloj")<span>@Formato.Semanas(Model.DuracionSemanas)</span></li>
+    </ul>
+</div>
+
+<nav class="tutor-nav" aria-label="Secciones del curso">
+    <a asp-action="Curso" asp-route-id="@Model.Id" class="tutor-nav__link @Activa("Curso")" aria-current="@(accion == "Curso" ? "page" : null)">
+        Tareas y material
+        @if (Model.EntregasPorCalificar > 0)
+        {
+            <span class="tutor-nav__badge">@Model.EntregasPorCalificar<span class="visually-hidden"> por calificar</span></span>
+        }
+    </a>
+    <a asp-action="Estudiantes" asp-route-id="@Model.Id" class="tutor-nav__link @Activa("Estudiantes")" aria-current="@(accion == "Estudiantes" ? "page" : null)">
+        Estudiantes <span class="text-muted">(@Model.Estudiantes)</span>
+    </a>
+    <a asp-action="Calificaciones" asp-route-id="@Model.Id" class="tutor-nav__link @Activa("Calificaciones")" aria-current="@(accion == "Calificaciones" ? "page" : null)">
+        Calificaciones
+    </a>
+</nav>

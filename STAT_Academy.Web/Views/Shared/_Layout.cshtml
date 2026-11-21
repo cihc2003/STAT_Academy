@@ -1,49 +1,227 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    var esAdmin = User.IsInRole("Admin");
+    var esTutor = User.IsInRole("Tutor");
+    var esCliente = User.IsInRole("Cliente");
+
+    // Marca el enlace de la sección actual (aria-current para lectores de pantalla).
+    string Activo(string c, string? a = null) =>
+        controlador == c && (a == null || accion == a) ? "active" : "";
+    string? Actual(string c, string? a = null) =>
+        controlador == c && (a == null || accion == a) ? "page" : null;
+
+    var nombre = User.Identity?.Name ?? "";
+    var inicial = string.IsNullOrWhiteSpace(nombre) ? "?" : nombre.Trim()[..1].ToUpperInvariant();
+    var correo = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+    var titulo = ViewData["Title"] as string;
+}
+<!DOCTYPE html>
+<html lang="es-CR">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - STAT_Academy.Web</title>
+    <meta name="theme-color" content="#112945" />
+    <link rel="icon" href="@Marca.Favicon" sizes="any" />
+    <link rel="icon" href="@Marca.Favicon32" type="image/png" sizes="32x32" />
+    <link rel="icon" href="@Marca.Icono192" type="image/png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="@Marca.IconoApple" />
+    <title>@(string.IsNullOrWhiteSpace(titulo) ? "STAT Academy" : $"{titulo} | STAT Academy")</title>
+    @* Instrument Sans (variable: peso 400–700 y ancho 75–100 %), con soporte completo de español. *@
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@fontsource-variable/instrument-sans@5.1.0/wdth.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/STAT_Academy.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/blog.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
+
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">STAT_Academy.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+        <nav class="container menu" aria-label="Navegación principal">
+            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="STAT Academy, inicio">
+                @Html.Logo("brand__marca")
+                <span class="brand__texto" aria-hidden="true">
+                    <strong>STAT Academy</strong>
+                    <small>por STATMEDICAL</small>
+                </span>
+            </a>
+
+            <button class="menu-toggle" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false">
+                @Html.Icono("menu", "icono--abrir")
+                @Html.Icono("cerrar", "icono--cerrar")
+                <span>Menú</span>
+            </button>
+
+            <div id="mainNav" class="collapse menu-panel">
+                <ul class="menu-links">
+                    <li><a class="nav-link @Activo("Home", "Index")" aria-current="@Actual("Home", "Index")" asp-controller="Home" asp-action="Index">Inicio</a></li>
+                    <li><a class="nav-link @Activo("Curso", "Index") @Activo("Curso", "Details")" aria-current="@Actual("Curso", "Index")" asp-controller="Curso" asp-action="Index">Cursos</a></li>
+                    <li><a class="nav-link @Activo("Products")" aria-current="@Actual("Products", "Index")" asp-controller="Products" asp-action="Index">Tienda</a></li>
+                    <li><a class="nav-link @Activo("Blog")" aria-current="@Actual("Blog", "Index")" asp-controller="Blog" asp-action="Index">Blog</a></li>
+                    <li><a class="nav-link @Activo("Home", "Contacto")" aria-current="@Actual("Home", "Contacto")" asp-controller="Home" asp-action="Contacto">Contacto</a></li>
+                </ul>
+
+                <ul class="menu-acciones">
+                    @* Acceso directo a la zona de trabajo de cada rol *@
+                    @if (esAdmin)
+                    {
+                        <li><a class="nav-link @Activo("Admin")" aria-current="@Actual("Admin", "Dashboard")" asp-controller="Admin" asp-action="Dashboard">@Html.Icono("panel")Administración</a></li>
+                    }
+                    @if (esTutor && !esAdmin)
+                    {
+                        <li><a class="nav-link @Activo("Tutor")" aria-current="@Actual("Tutor", "Index")" asp-controller="Tutor" asp-action="Index">@Html.Icono("pizarra")Panel del tutor</a></li>
+                    }
+                    @if (esCliente)
+                    {
+                        <li><a class="nav-link @Activo("Curso", "MisCursos")" aria-current="@Actual("Curso", "MisCursos")" asp-controller="Curso" asp-action="MisCursos">@Html.Icono("libro")Mis cursos</a></li>
+                    }
+
+                    @if (!isAuthenticated || esCliente)
+                    {
+                        <li>
+                            <a class="nav-link menu-carrito @Activo("Carrito")" aria-current="@Actual("Carrito", "Index")" asp-controller="Carrito" asp-action="Index">
+                                @Html.Icono("carrito")
+                                <span class="menu-carrito__texto">Carrito</span>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                    }
+
+                    @if (isAuthenticated)
+                    {
+                        <li class="dropdown">
+                            <button class="nav-link dropdown-toggle menu-usuario" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false" aria-label="Cuenta de @nombre">
+                                <span class="menu-usuario__avatar" aria-hidden="true">@inicial</span>
+                                <span class="menu-usuario__nombre" aria-hidden="true">@nombre</span>
+                                @Html.Icono("chevron-abajo", "icono--sm icono--chevron")
+                            </button>
+                            @* Menú de perfil: agrupa las opciones de la cuenta (cualquier rol). *@
+                            <ul class="dropdown-menu dropdown-menu-end menu-perfil">
+                                <li class="menu-perfil__cabecera">
+                                    <span class="menu-usuario__avatar menu-perfil__avatar" aria-hidden="true">@inicial</span>
+                                    <span class="menu-perfil__texto">
+                                        <strong>@nombre</strong>
+                                        @if (!string.IsNullOrEmpty(correo))
+                                        {
+                                            <small>@correo</small>
+                                        }
+                                        <span class="estado estado--neutro menu-perfil__rol">@(esAdmin ? "Administrador" : esTutor ? "Tutor" : "Estudiante")</span>
+                                    </span>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item @Activo("Perfil", "Index")" aria-current="@Actual("Perfil", "Index")" asp-controller="Perfil" asp-action="Index">@Html.Icono("usuario")Mi perfil</a></li>
+                                <li><a class="dropdown-item @Activo("Perfil", "Contrasena")" aria-current="@Actual("Perfil", "Contrasena")" asp-controller="Perfil" asp-action="Contrasena">@Html.Icono("candado")Cambiar contraseña</a></li>
+                                @if (esCliente)
+                                {
+                                    <li><a class="dropdown-item @Activo("Facturas")" aria-current="@Actual("Facturas")" asp-controller="Facturas" asp-action="Index">@Html.Icono("factura")Facturas y pedidos</a></li>
+                                }
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <form asp-controller="Cuenta" asp-action="Logout" method="post">
+                                        <button class="dropdown-item dropdown-item--peligro" type="submit">@Html.Icono("salir")Cerrar sesión</button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
-                    </ul>
-                </div>
+                    }
+                    else
+                    {
+                        <li><a class="nav-link @Activo("Cuenta", "Login")" aria-current="@Actual("Cuenta", "Login")" asp-controller="Cuenta" asp-action="Login">Ingresar</a></li>
+                        <li><a class="btn btn-primary menu-registro" asp-controller="Cuenta" asp-action="Registrar">Crear cuenta</a></li>
+                    }
+                </ul>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+    <main id="contenido" tabindex="-1">
+        @RenderBody()
+    </main>
+
+    <partial name="_Notificaciones" />
+
+    @* Ventana de confirmación compartida (formularios con data-confirmar). *@
+    <partial name="_ConfirmarModal" />
+
+    @* Pantalla de carga: la muestra site.js al navegar o enviar formularios (las páginas esperan a la API). *@
+    <div id="pantalla-carga" class="pantalla-carga" role="status" aria-live="polite" hidden>
+        <div class="pantalla-carga__caja">
+            <span class="pantalla-carga__spinner animacion-esencial" aria-hidden="true"></span>
+            <span class="pantalla-carga__texto">Cargando…</span>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="site-footer fondo-oscuro">
         <div class="container">
-            &copy; 2026 - STAT_Academy.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="footer-grid">
+                <div class="footer-marca">
+                    <a class="brand" asp-controller="Home" asp-action="Index" aria-label="STAT Academy, inicio">
+                        @Html.Logo("brand__marca")
+                        <span class="brand__texto" aria-hidden="true">
+                            <strong>STAT Academy</strong>
+                            <small>por STATMEDICAL</small>
+                        </span>
+                    </a>
+                    <p>Cursos para profesionales de la salud, materiales de práctica y artículos educativos.</p>
+                </div>
+
+                <nav aria-labelledby="pie-explorar">
+                    <h2 id="pie-explorar">Explorar</h2>
+                    <ul class="footer-lista">
+                        <li><a asp-controller="Curso" asp-action="Index">Cursos</a></li>
+                        <li><a asp-controller="Products" asp-action="Index">Tienda</a></li>
+                        <li><a asp-controller="Blog" asp-action="Index">Blog</a></li>
+                    </ul>
+                </nav>
+
+                <nav aria-labelledby="pie-cuenta">
+                    <h2 id="pie-cuenta">Cuenta</h2>
+                    <ul class="footer-lista">
+                        @if (isAuthenticated)
+                        {
+                            <li><a asp-controller="Perfil" asp-action="Index">Mi perfil</a></li>
+                            @if (esCliente)
+                            {
+                                <li><a asp-controller="Curso" asp-action="MisCursos">Mis cursos</a></li>
+                                <li><a asp-controller="Facturas" asp-action="Index">Facturas y pedidos</a></li>
+                            }
+                        }
+                        else
+                        {
+                            <li><a asp-controller="Cuenta" asp-action="Login">Ingresar</a></li>
+                            <li><a asp-controller="Cuenta" asp-action="Registrar">Crear cuenta</a></li>
+                        }
+                    </ul>
+                </nav>
+
+                <nav aria-labelledby="pie-ayuda">
+                    <h2 id="pie-ayuda">Ayuda</h2>
+                    <ul class="footer-lista">
+                        <li><a asp-controller="Home" asp-action="Contacto">Contacto</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Privacidad</a></li>
+                        <li><a asp-controller="Home" asp-action="Terminos">Términos y condiciones</a></li>
+                        <li><a asp-controller="Home" asp-action="Cookies">Política de cookies</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="footer-legal">
+                <p>&copy; @DateTime.UtcNow.Year STATMEDICAL. Todos los derechos reservados.</p>
+                <p>STAT Academy</p>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

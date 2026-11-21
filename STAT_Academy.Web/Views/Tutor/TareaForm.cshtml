@@ -1,0 +1,142 @@
+@model STAT_Academy.Web.Models.Tutor.TareaFormViewModel
+@using STAT_Academy.Web.Models.Tutor
+
+@{
+    var nueva = Model.Id == null;
+    ViewData["Title"] = nueva ? "Nueva tarea" : "Editar tarea";
+    ViewData["CursoActivo"] = (int?)Model.CursoId; // marca el curso en el menú lateral
+}
+
+<section class="section">
+    <div class="container contenedor-formulario">
+        <a asp-action="Curso" asp-route-id="@Model.CursoId" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Volver a @Model.CursoNombre</a>
+
+        <h1 class="mt-2">@(nueva ? "Nueva tarea" : "Editar tarea")</h1>
+        <p class="text-muted">
+            Los estudiantes verán la tarea en su aula, ordenada por fecha límite.
+        </p>
+
+        <form asp-action="GuardarTarea" method="post" class="card blog-form card-body">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="CursoId" />
+            <input type="hidden" asp-for="CursoNombre" />
+
+            <div asp-validation-summary="ModelOnly" class="aviso aviso--error"></div>
+
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label"></label>
+                <input asp-for="Titulo" class="form-control" maxlength="100" />
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label"></label>
+                <textarea asp-for="Descripcion" class="form-control" rows="4" maxlength="255"></textarea>
+                <div class="form-text">Máximo 255 caracteres.</div>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="FechaInicio" class="form-label"></label>
+                    <input asp-for="FechaInicio" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="FechaInicio" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="FechaLimite" class="form-label"></label>
+                    <input asp-for="FechaLimite" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="FechaLimite" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">@(nueva ? "Crear tarea" : "Guardar cambios")</button>
+                <a asp-action="Curso" asp-route-id="@Model.CursoId" class="btn btn-secundario">Cancelar</a>
+            </div>
+        </form>
+
+        @* ---------------------- Documentos de la tarea ---------------------- *@
+        <section class="card card-body tarea-adjuntos mt-4" aria-labelledby="titulo-adjuntos">
+            <h2 class="h5 mb-1" id="titulo-adjuntos">Documentos de la tarea</h2>
+            <p class="text-muted small">Guías, plantillas para llenar o enlaces. Los estudiantes los descargan desde la tarea.</p>
+
+            @if (nueva)
+            {
+                <p class="mb-0 small">Primero cree la tarea; después podrá adjuntarle documentos desde <strong>Editar tarea</strong>.</p>
+            }
+            else if (!Model.AdjuntosDisponible)
+            {
+                <aviso tipo="info" class="mb-0">
+                    Los documentos de las tareas todavía no están habilitados en la base de datos.
+                </aviso>
+            }
+            else
+            {
+                @if (Model.Adjuntos.Count == 0)
+                {
+                    <p class="text-muted small">La tarea todavía no tiene documentos.</p>
+                }
+                else
+                {
+                    <ul class="blog-documentos mb-3">
+                        @foreach (var a in Model.Adjuntos)
+                        {
+                            <li>
+                                <span class="blog-documentos__ext">@a.Tipo</span>
+                                @if (a.EsEnlace)
+                                {
+                                    <a href="@a.Url" target="_blank" rel="noopener noreferrer" class="tarea-adjuntos__nombre">@a.Titulo</a>
+                                }
+                                else
+                                {
+                                    <a asp-action="Adjunto" asp-route-id="@a.Id" data-sin-carga class="tarea-adjuntos__nombre">@a.Titulo</a>
+                                }
+                                <form asp-action="QuitarAdjunto" method="post" class="ms-auto"
+                                      data-confirmar="¿Quitar «@a.Titulo» de la tarea? Los estudiantes dejarán de verlo." data-confirmar-boton="Quitar documento" data-confirmar-peligro>
+                                    <input type="hidden" name="id" value="@a.Id" />
+                                    <input type="hidden" name="tareaId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (Model.Adjuntos.Count < AdjuntoTareaFormViewModel.MaxAdjuntos)
+                {
+                    <form asp-action="AgregarAdjunto" method="post" enctype="multipart/form-data" class="tarea-adjuntos__form">
+                        <input type="hidden" name="TareaId" value="@Model.Id" />
+
+                        <div>
+                            <label class="form-label" for="adjunto-titulo">Título (opcional)</label>
+                            <input id="adjunto-titulo" name="Titulo" class="form-control" maxlength="255" placeholder="Si lo deja vacío, se usa el nombre del archivo" />
+                        </div>
+                        <div>
+                            <label class="form-label" for="adjunto-archivo">Archivo</label>
+                            <input id="adjunto-archivo" name="Archivo" type="file" class="form-control" accept="@MaterialFormViewModel.Accept" />
+                        </div>
+                        <div>
+                            <label class="form-label" for="adjunto-enlace">o enlace</label>
+                            <input id="adjunto-enlace" name="Enlace" type="url" class="form-control" placeholder="https://…" inputmode="url" />
+                            <div class="form-text">
+                                PDF, Word, Excel, PowerPoint, TXT o CSV (máx. 10 MB) o imágenes (máx. 5 MB).
+                                Hasta @AdjuntoTareaFormViewModel.MaxAdjuntos documentos por tarea.
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">Agregar documento</button>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <p class="small text-muted mb-0">La tarea ya tiene el máximo de @AdjuntoTareaFormViewModel.MaxAdjuntos documentos.</p>
+                }
+            }
+        </section>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

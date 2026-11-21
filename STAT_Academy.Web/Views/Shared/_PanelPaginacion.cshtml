@@ -1,0 +1,73 @@
+@model STAT_Academy.Web.Helpers.Paginacion
+@*
+    Pie de las tablas del panel: "Mostrando x–y de z", páginas y cantidad por página.
+    Conserva los filtros de la consulta actual. Uso: <partial name="_PanelPaginacion" model="ViewBag.Paginacion" />
+*@
+@{
+    var consulta = Context.Request.Query;
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    var paginas = Model.PaginasVisibles();
+
+    Dictionary<string, string> Ruta(int pagina)
+    {
+        var ruta = FiltrosPanel.Sin(consulta, "pagina");
+        if (pagina > 1) ruta["pagina"] = pagina.ToString();
+        return ruta;
+    }
+}
+
+<div class="usuarios-paginacion panel-paginacion">
+    <p class="mb-0 text-muted small">
+        @if (Model.Total > 0)
+        {
+            <text>Mostrando <strong>@Model.Desde–@Model.Hasta</strong> de <strong>@Model.Total</strong> @Model.Elementos</text>
+        }
+        else
+        {
+            <text>0 @Model.Elementos</text>
+        }
+    </p>
+
+    @if (Model.TotalPaginas > 1)
+    {
+        <nav aria-label="Páginas">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.Pagina == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina - 1)" aria-label="Página anterior">@Html.Icono("chevron-izquierda", "icono--sm")</a>
+                </li>
+
+                @for (var i = 0; i < paginas.Count; i++)
+                {
+                    var n = paginas[i];
+                    if (i > 0 && n - paginas[i - 1] > 1)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    <li class="page-item @(n == Model.Pagina ? "active" : "")">
+                        <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(n)"
+                           aria-current="@(n == Model.Pagina ? "page" : null)">@n</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.Pagina == Model.TotalPaginas ? "disabled" : "")">
+                    <a class="page-link" asp-action="@accion" asp-all-route-data="@Ruta(Model.Pagina + 1)" aria-label="Página siguiente">@Html.Icono("chevron-derecha", "icono--sm")</a>
+                </li>
+            </ul>
+        </nav>
+    }
+
+    <form method="get" asp-action="@accion" class="usuarios-tamano">
+        @foreach (var (clave, valor) in FiltrosPanel.Sin(consulta, "pagina", "tamano"))
+        {
+            <input type="hidden" name="@clave" value="@valor" />
+        }
+        <label class="small text-muted" for="tamano-pagina">Por página</label>
+        <select class="form-select form-select-sm" id="tamano-pagina" name="tamano" data-autoenviar>
+            @foreach (var t in STAT_Academy.Web.Helpers.Paginacion.TamanosPagina)
+            {
+                <option value="@t" selected="@(t == Model.Tamano)">@t</option>
+            }
+        </select>
+        <noscript><button class="btn btn-sm btn-secundario" type="submit">Aplicar</button></noscript>
+    </form>
+</div>

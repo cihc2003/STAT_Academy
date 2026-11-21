@@ -1,0 +1,63 @@
+@inject STAT_Academy.Web.Services.ApiTutorService ApiTutor
+@{
+    // Menú lateral del panel del tutor (mismo diseño que el de Administración):
+    // "Mis cursos" y acceso directo a cada curso asignado, con sus entregas por calificar.
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+    var enInicio = accion == "Index";
+
+    // Curso actual: lo indica la vista (páginas de una tarea) o la ruta (páginas de un curso).
+    var cursoActivo = ViewData["CursoActivo"] as int?;
+    if (cursoActivo == null
+        && accion is "Curso" or "Estudiantes" or "Calificaciones" or "NuevaTarea"
+        && int.TryParse(ViewContext.RouteData.Values["id"]?.ToString(), out var idRuta))
+    {
+        cursoActivo = idRuta;
+    }
+
+    var cursos = await ApiTutor.Cursos() ?? [];
+
+}
+
+<aside class="admin-sidebar" aria-label="Panel del tutor">
+    <div class="admin-sidebar__marca">
+        @Html.Logo("admin-sidebar__logo admin-sidebar__logo--marca")
+        <div>
+            <strong>Panel del tutor</strong>
+            <small>STAT Academy</small>
+        </div>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+        <p class="admin-sidebar__grupo">General</p>
+        <a asp-controller="Tutor" asp-action="Index"
+           class="admin-sidebar__link @(enInicio ? "admin-sidebar__link--activo" : "")"
+           aria-current="@(enInicio ? "page" : null)">
+            @Html.Icono("birrete", "admin-sidebar__icono")
+            <span>Mis cursos</span>
+        </a>
+
+        @if (cursos.Count > 0)
+        {
+            <p class="admin-sidebar__grupo">Cursos asignados</p>
+            @foreach (var c in cursos)
+            {
+                var activo = c.Id == cursoActivo;
+                <a asp-controller="Tutor" asp-action="Curso" asp-route-id="@c.Id"
+                   class="admin-sidebar__link @(activo ? "admin-sidebar__link--activo" : "") @(c.Estado ? "" : "admin-sidebar__link--apagado")"
+                   aria-current="@(activo ? "page" : null)" title="@c.Nombre">
+                    @Html.Icono("libro", "admin-sidebar__icono")
+                    <span class="admin-sidebar__texto">@c.Nombre</span>
+                    @if (c.EntregasPorCalificar > 0)
+                    {
+                        <span class="admin-sidebar__badge">@c.EntregasPorCalificar<span class="visually-hidden"> @(c.EntregasPorCalificar == 1 ? "entrega por calificar" : "entregas por calificar")</span></span>
+                    }
+                </a>
+            }
+        }
+    </nav>
+
+    <a class="admin-sidebar__sitio" asp-controller="Home" asp-action="Index">
+        @Html.Icono("flecha-izquierda", "admin-sidebar__icono")
+        <span>Volver al sitio</span>
+    </a>
+</aside>

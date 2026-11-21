@@ -1,0 +1,73 @@
+@model IEnumerable<STAT_Academy.Web.Models.CursoModel>
+
+@{
+    ViewData["Title"] = "Cursos";
+    var buscar = ViewData["Buscar"] as string;
+    var total = ViewData["Total"] as int? ?? Model.Count();
+    var filtrando = !string.IsNullOrWhiteSpace(buscar);
+    var paginacion = (Paginacion)ViewBag.Paginacion;
+    var cantidad = paginacion.Total;
+}
+
+<section class="encabezado-pagina">
+    <div class="container encabezado-pagina__grid">
+        <div>
+            <h1>Cursos</h1>
+            <p>Cursos con tutor y fecha de inicio definida. Inscríbase antes de que empiecen.</p>
+        </div>
+
+        <form method="get" asp-action="Index" class="buscador" role="search" aria-label="Buscar cursos" data-sin-carga>
+            <label for="buscar" class="visually-hidden">Buscar cursos por nombre</label>
+            @Html.Icono("buscar", "buscador__icono")
+            <input id="buscar" name="buscar" type="search" class="form-control" value="@buscar"
+                   placeholder="Buscar por nombre" autocomplete="off" maxlength="100" />
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+    </div>
+</section>
+
+<section class="section section--compacta">
+    <div class="container">
+        <h2 class="visually-hidden">Resultados</h2>
+        <div class="resultados" aria-live="polite">
+            @if (filtrando)
+            {
+                <p class="resultados__texto"><strong>@cantidad</strong> de @total @(total == 1 ? "curso" : "cursos") para «@buscar»</p>
+                <a class="chip" asp-action="Index">«@buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar búsqueda</span></a>
+            }
+            else if (total > 0)
+            {
+                <p class="resultados__texto"><strong>@total</strong> @(total == 1 ? "curso con inscripción abierta" : "cursos con inscripción abierta")</p>
+            }
+        </div>
+
+        @if (cantidad == 0)
+        {
+            <div class="vacio">
+                <span class="vacio__icono">@Html.Icono("birrete", "icono--lg")</span>
+                @if (filtrando)
+                {
+                    <h3>No hay cursos con ese nombre</h3>
+                    <p>Revise la ortografía o pruebe con una palabra más general.</p>
+                    <a class="btn btn-secundario" asp-action="Index">Ver todos los cursos</a>
+                }
+                else
+                {
+                    <h3>No hay cursos con inscripción abierta</h3>
+                    <p>Los cursos nuevos aparecen aquí en cuanto abren inscripción.</p>
+                    <a class="btn btn-secundario" asp-controller="Products" asp-action="Index">Ir a la tienda</a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="rejilla">
+                @foreach (var item in Model)
+                {
+                    <partial name="_CursoTarjeta" model="item" />
+                }
+            </div>
+            <partial name="_Paginador" model="paginacion" />
+        }
+    </div>
+</section>

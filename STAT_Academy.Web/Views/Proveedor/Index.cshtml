@@ -1,0 +1,133 @@
+@model IEnumerable<STAT_Academy.Web.Models.Proveedor.ProveedorResponse>
+
+@{
+    ViewData["Title"] = "Proveedores";
+    var q = Context.Request.Query;
+    var buscar = FiltrosPanel.Valor(q, "search");
+    var activo = FiltrosPanel.Valor(q, "active");
+    var total = (int)(ViewBag.Total ?? 0);
+    var hayFiltros = buscar != null || activo != null;
+    var cantidad = ((Paginacion)ViewBag.Paginacion).Total;
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Proveedores</h1>
+                <p>Empresas y contactos que abastecen los productos de la tienda.</p>
+            </div>
+            <div class="panel-encabezado__acciones">
+                <a class="btn btn-primary" asp-action="SupplierForm">@Html.Icono("mas")Nuevo proveedor</a>
+            </div>
+        </div>
+
+        <form class="panel-filtros" method="get" asp-action="Index" role="search">
+            <div class="panel-filtros__buscar">
+                <label class="panel-filtros__etiqueta" for="search">Buscar</label>
+                @Html.Icono("buscar", "panel-filtros__lupa")
+                <input class="form-control" id="search" name="search" type="search" value="@buscar"
+                       placeholder="Nombre, contacto, correo o teléfono" maxlength="100" />
+            </div>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="active">Estado</label>
+                <select class="form-select @FiltrosPanel.Activo(activo)" id="active" name="active" data-autoenviar>
+                    <option value="">Todos</option>
+                    <option value="true" selected="@(activo == "true")">Activos</option>
+                    <option value="false" selected="@(activo == "false")">Inactivos</option>
+                </select>
+            </div>
+            @if (FiltrosPanel.Valor(q, "tamano") is string tamano)
+            {
+                <input type="hidden" name="tamano" value="@tamano" />
+            }
+            <div class="panel-filtros__acciones">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+            </div>
+        </form>
+
+        <div class="panel-resultados" aria-live="polite">
+            <span><strong>@cantidad</strong> de @total @(total == 1 ? "proveedor" : "proveedores")</span>
+            @if (buscar != null)
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(q, "search")" >«@buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (activo != null)
+            {
+                <a class="panel-chip" asp-action="Index" asp-all-route-data="@FiltrosPanel.Sin(q, "active")" >@(activo == "true" ? "Activos" : "Inactivos") @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (hayFiltros)
+            {
+                <a class="panel-resultados__limpiar" asp-action="Index">Limpiar filtros</a>
+            }
+        </div>
+
+        <div class="table-card panel-tabla">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Proveedor</th>
+                        <th scope="col">Teléfono</th>
+                        <th scope="col">Correo electrónico</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col"><span class="visually-hidden">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="panel-tabla__vacio">
+                                <strong>@(hayFiltros ? "Ningún proveedor coincide con los filtros." : "No hay proveedores registrados.")</strong>
+                                @(hayFiltros ? "Pruebe con otra búsqueda." : "Agregue el primero con el botón «Nuevo proveedor».")
+                            </td>
+                        </tr>
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        <tr class="@(item.estado ? "" : "usuarios-fila--inactiva")">
+                            <td class="panel-tabla__principal">
+                                <div class="panel-celda">
+                                    <span class="panel-celda__icono">@Html.Icono("camion")</span>
+                                    <div class="panel-celda__texto">
+                                        <a class="panel-celda__nombre" asp-action="Details" asp-route-id="@item.id">@item.nombre</a>
+                                        @if (!string.IsNullOrWhiteSpace(item.contacto))
+                                        {
+                                            <span class="panel-celda__sub">Contacto: @item.contacto</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Teléfono">@item.telefono</td>
+                            <td data-label="Correo electrónico" class="panel-tabla__correo">@item.email</td>
+                            <td data-label="Estado">
+                                <span class="usuario-estado @(item.estado ? "usuario-estado--activo" : "usuario-estado--inactivo")">
+                                    @(item.estado ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td class="panel-tabla__acciones">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="SupplierForm" asp-route-id="@item.id"
+                                   aria-label="Editar @item.nombre">Editar</a>
+                                @if (item.estado)
+                                {
+                                    <form asp-action="ToggleSupplier" asp-route-id="@item.id" method="post" class="d-inline"
+                                          data-confirmar="¿Desactivar al proveedor «@item.nombre»?"
+                                          data-confirmar-boton="Desactivar" data-confirmar-peligro>
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Desactivar</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_PanelPaginacion" model="(Paginacion)ViewBag.Paginacion" />
+    </section>
+</div>
+

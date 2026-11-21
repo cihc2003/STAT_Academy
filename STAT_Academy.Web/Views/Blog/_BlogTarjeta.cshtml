@@ -1,0 +1,46 @@
+@* Tarjeta de una entrada: portada, fecha, lectura, título, resumen y autor.
+   Toda la tarjeta lleva a la entrada (el enlace del título se extiende a la tarjeta). *@
+@model STAT_Academy.Web.Models.Blog.BlogResponse
+
+@{
+    var autor = string.IsNullOrWhiteSpace(Model.Autor) ? "Equipo STAT Academy" : Model.Autor;
+    var inicial = autor.Trim()[..1].ToUpperInvariant();
+}
+
+<article class="tarjeta-item blog-tarjeta @(Model.Estado ? "" : "tarjeta-item--apagada")">
+    <div class="tarjeta-item__media blog-tarjeta__portada">
+        @if (!string.IsNullOrEmpty(Model.ImagenPrincipal))
+        {
+            <img src="@Model.ImagenPrincipal" alt="" loading="lazy" />
+        }
+        else
+        {
+            <span class="tarjeta-item__sin-imagen">@Html.Icono("articulo", "icono--xl")</span>
+        }
+        @if (!Model.Estado)
+        {
+            <span class="estado estado--neutro tarjeta-item__marca">Oculta: solo la ven los administradores</span>
+        }
+    </div>
+
+    <div class="tarjeta-item__cuerpo">
+        <h3 class="tarjeta-item__titulo">
+            <a class="tarjeta-item__enlace" asp-controller="Blog" asp-action="Details" asp-route-id="@Model.Id">@Model.Titulo</a>
+        </h3>
+
+        <p class="tarjeta-item__resumen">@Model.Resumen</p>
+
+        <ul class="datos-icono datos-icono--fila">
+            <li>@Html.Icono("calendario")<time datetime="@Model.FechaCreacion.ToString("o")">@Formato.Fecha(Model.FechaCreacion)</time></li>
+            <li>@Html.Icono("reloj")<span>@Model.MinutosLectura min de lectura</span></li>
+        </ul>
+
+        <div class="tarjeta-item__pie">
+            <span class="blog-autor">
+                <span class="blog-autor__avatar" aria-hidden="true">@inicial</span>
+                @autor
+            </span>
+            <span class="tarjeta-item__accion" aria-hidden="true">Leer @Html.Icono("chevron-derecha", "icono--sm")</span>
+        </div>
+    </div>
+</article>

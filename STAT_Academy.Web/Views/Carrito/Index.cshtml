@@ -1,0 +1,91 @@
+﻿@model STAT_Academy.Web.Models.Carrito.CarritoResponse
+
+@{
+    ViewData["Title"] = "Carrito";
+    var vacio = Model == null || !Model.items.Any();
+    var unidades = vacio ? 0 : Model!.items.Sum(i => i.cantidad);
+}
+
+<section class="encabezado-pagina">
+    <div class="container">
+        <h1>Carrito</h1>
+        @if (!vacio)
+        {
+            <p>@unidades @(unidades == 1 ? "unidad" : "unidades") en @Model!.items.Count @(Model.items.Count == 1 ? "producto" : "productos")</p>
+        }
+    </div>
+</section>
+
+<section class="section section--compacta">
+    <div class="container">
+        @if (vacio)
+        {
+            <div class="vacio">
+                <span class="vacio__icono">@Html.Icono("carrito", "icono--lg")</span>
+                <h2>Su carrito está vacío</h2>
+                <p>Agregue productos desde la tienda; aquí verá el total antes de pagar.</p>
+                <a class="btn btn-primary" asp-controller="Products" asp-action="Index">Ir a la tienda</a>
+            </div>
+        }
+        else
+        {
+            <div class="carrito">
+                <div class="table-card panel-tabla">
+                    <table class="table align-middle mb-0">
+                        <caption class="visually-hidden">Productos en el carrito</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Producto</th>
+                                <th scope="col">Precio</th>
+                                <th scope="col">Cantidad</th>
+                                <th scope="col" class="text-end">Subtotal</th>
+                                <th scope="col"><span class="visually-hidden">Acciones</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model!.items)
+                            {
+                                <tr>
+                                    <td class="panel-tabla__principal"><strong class="panel-celda__nombre">@item.nombre</strong></td>
+                                    <td data-label="Precio">@Formato.Colones(item.precio_unitario)</td>
+                                    <td data-label="Cantidad" class="carrito-celda-cantidad">
+                                        <form asp-action="Actualizar" method="post" class="carrito-cantidad">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="detalleId" value="@item.detalleId" />
+                                            <label class="visually-hidden" for="cantidad-@item.detalleId">Cantidad de @item.nombre</label>
+                                            <input type="number" id="cantidad-@item.detalleId" name="cantidad" value="@item.cantidad"
+                                                   min="1" max="@item.stock_disponible" inputmode="numeric" class="form-control form-control-sm" />
+                                            <button class="btn btn-sm btn-secundario" type="submit">Actualizar</button>
+                                        </form>
+                                    </td>
+                                    <td data-label="Subtotal" class="text-end"><strong>@Formato.Colones(item.subtotal)</strong></td>
+                                    <td class="panel-tabla__acciones">
+                                        <form asp-action="Eliminar" method="post" class="d-inline"
+                                              data-confirmar="¿Quitar «@item.nombre» del carrito?"
+                                              data-confirmar-boton="Quitar" data-confirmar-peligro>
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="detalleId" value="@item.detalleId" />
+                                            <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Quitar @item.nombre">@Html.Icono("eliminar", "icono--sm")Quitar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <aside class="compra-caja carrito-resumen" aria-labelledby="carrito-resumen">
+                    <h2 id="carrito-resumen" class="h5 mb-0">Resumen</h2>
+                    <dl class="lista-datos">
+                        <div>
+                            <dt>Total</dt>
+                            <dd class="carrito-resumen__total">@Formato.Colones(Model.total)</dd>
+                        </div>
+                    </dl>
+                    <a class="btn btn-primary btn-lg w-100" asp-action="Checkout">Continuar al pago</a>
+                    <a class="enlace-accion" asp-controller="Products" asp-action="Index">Seguir comprando</a>
+                </aside>
+            </div>
+        }
+    </div>
+</section>

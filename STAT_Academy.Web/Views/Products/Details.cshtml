@@ -1,0 +1,130 @@
+﻿@model STAT_Academy.Web.Models.Productos.ProductoResponse
+
+@{
+    ViewData["Title"] = Model.nombre;
+    var secundarias = Model.ImagenesSecundarias.ToList();
+    var puedeComprar = !Model.agotado && (User.Identity?.IsAuthenticated != true || User.IsInRole("Cliente"));
+    var unidades = $"{Model.stock} {(Model.stock == 1 ? "unidad" : "unidades")}";
+    var (icono, disponibilidad) = Model.agotado
+        ? ("error", "Agotado")
+        : Model.stock <= 5 ? ("advertencia", $"Últimas {unidades}") : ("exito", "Disponible");
+}
+
+<section class="detalle-hero">
+    <div class="container detalle-hero__grid">
+        <div class="detalle-hero__texto">
+            <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Tienda</a>
+            @if (!string.IsNullOrWhiteSpace(Model.categoria))
+            {
+                <a class="etiqueta detalle-hero__etiqueta" asp-action="Index" asp-route-categoria="@Model.categoria">@Model.categoria</a>
+            }
+            <h1>@Model.nombre</h1>
+            <ul class="datos-icono datos-icono--fila datos-icono--grande">
+                <li>@Html.Icono(icono)<span>@disponibilidad</span></li>
+            </ul>
+        </div>
+        <div class="detalle-hero__media">
+            <partial name="_ProductoPortada" model="Model" />
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container detalle-cuerpo">
+        <article class="detalle-cuerpo__texto">
+            <h2>Sobre el producto</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.descripcion))
+            {
+                <p class="texto-largo">@Model.descripcion</p>
+            }
+            else
+            {
+                <p class="texto-largo">Este producto todavía no tiene descripción.</p>
+            }
+
+            @* Carrusel con las demás imágenes (no principales) *@
+            @if (secundarias.Count > 0)
+            {
+                <section class="producto-galeria" aria-labelledby="titulo-galeria">
+                    <h3 id="titulo-galeria" class="h5">Más imágenes</h3>
+
+                    <div id="carruselProducto" class="carousel slide producto-carrusel" data-bs-ride="false" data-bs-interval="false">
+                        @if (secundarias.Count > 1)
+                        {
+                            <div class="carousel-indicators">
+                                @for (var i = 0; i < secundarias.Count; i++)
+                                {
+                                    <button type="button" data-bs-target="#carruselProducto" data-bs-slide-to="@i"
+                                            class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : null)"
+                                            aria-label="Imagen @(i + 1) de @secundarias.Count"></button>
+                                }
+                            </div>
+                        }
+
+                        <div class="carousel-inner">
+                            @for (var i = 0; i < secundarias.Count; i++)
+                            {
+                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                    <img src="@secundarias[i].url" alt="@Model.nombre, imagen @(i + 1)" loading="lazy" />
+                                </div>
+                            }
+                        </div>
+
+                        @if (secundarias.Count > 1)
+                        {
+                            <button class="carousel-control-prev" type="button" data-bs-target="#carruselProducto" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Imagen anterior</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#carruselProducto" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Imagen siguiente</span>
+                            </button>
+                        }
+                    </div>
+                </section>
+            }
+        </article>
+
+        <aside class="compra-caja" aria-labelledby="compra-titulo">
+            <h2 id="compra-titulo" class="visually-hidden">Compra</h2>
+            <p class="compra-caja__precio">@Formato.Colones(Model.precio_base)</p>
+
+            <dl class="lista-datos">
+                @if (!string.IsNullOrWhiteSpace(Model.categoria))
+                {
+                    <div>
+                        <dt>Categoría</dt>
+                        <dd>@Model.categoria</dd>
+                    </div>
+                }
+                <div>
+                    <dt>Disponibilidad</dt>
+                    <dd>@(Model.agotado ? "Agotado" : unidades)</dd>
+                </div>
+            </dl>
+
+            @if (puedeComprar)
+            {
+                <form asp-controller="Carrito" asp-action="Agregar" method="post" class="producto-compra" data-un-solo-envio>
+                    <input type="hidden" name="productoId" value="@Model.id" />
+                    <div class="campo">
+                        <label for="cantidad" class="form-label">Cantidad</label>
+                        <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="@Model.stock" class="form-control form-control-lg"
+                               inputmode="numeric" aria-describedby="cantidad-ayuda" />
+                    </div>
+                    <button class="btn btn-primary btn-lg" type="submit">@Html.Icono("carrito")Agregar al carrito</button>
+                    <span id="cantidad-ayuda" class="form-text producto-compra__ayuda">Puede agregar hasta @unidades.</span>
+                </form>
+            }
+            else if (Model.agotado)
+            {
+                <aviso tipo="info">Este producto está agotado. Vuelva más tarde o revise otros productos de la categoría.</aviso>
+            }
+            else
+            {
+                <p class="compra-caja__nota">@Html.Icono("info", "icono--sm")La compra está disponible para cuentas de estudiante.</p>
+            }
+        </aside>
+    </div>
+</section>

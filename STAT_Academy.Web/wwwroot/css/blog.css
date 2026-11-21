@@ -1,0 +1,878 @@
+/* =========================================================================
+   Blog: listado, artículo, editor (Quill) y adjuntos.
+   Usa solo los tokens de site.css. Sin gradientes.
+   ========================================================================= */
+
+.encabezado-pagina__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-3);
+}
+
+    .encabezado-pagina__acciones .buscador {
+        flex: 1 1 18rem;
+    }
+
+.acciones-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e-2);
+}
+
+.blog-listado__titulo {
+    margin: var(--e-12) 0 var(--e-6);
+    font-size: var(--texto-2xl);
+}
+
+/* Autor */
+.blog-autor {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-2);
+    color: var(--color-texto);
+    font-size: var(--texto-sm);
+    font-weight: var(--peso-semi);
+}
+
+.blog-autor__avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radio-total);
+    background: var(--color-oscuro);
+    color: var(--color-sobre-oscuro);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-semi);
+}
+
+.blog-autor__avatar--grande {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: var(--texto-base);
+}
+
+.blog-autor__datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--e-4);
+    color: var(--color-texto-3);
+    font-weight: var(--peso-normal);
+}
+
+/* Entrada destacada: bloque oscuro de marca con portada grande */
+.blog-destacada {
+    display: grid;
+    overflow: hidden;
+    border-radius: var(--radio-4);
+    background: var(--color-oscuro);
+    color: var(--color-sobre-oscuro-2);
+    box-shadow: var(--sombra-2);
+}
+
+.blog-destacada__portada {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--color-oscuro-2);
+}
+
+    .blog-destacada__portada img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform var(--duracion-3) var(--curva);
+    }
+
+    .blog-destacada__portada .tarjeta-item__sin-imagen {
+        background: var(--color-oscuro-2);
+        color: var(--color-sobre-oscuro-2);
+    }
+
+.blog-destacada:hover .blog-destacada__portada img {
+    transform: scale(1.03);
+}
+
+.blog-destacada__cuerpo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--e-5);
+    padding: clamp(var(--e-6), 4vw, var(--e-16));
+    border-top: 6px solid var(--color-accion);
+}
+
+.blog-destacada__marca {
+    display: inline-flex;
+    padding: var(--e-1) var(--e-3);
+    border-radius: var(--radio-1);
+    background: var(--color-accion);
+    color: var(--blanco);
+    font-size: var(--texto-sm);
+    font-weight: var(--peso-semi);
+}
+
+.blog-destacada__marca--oculta {
+    background: var(--gris-700);
+}
+
+.blog-destacada--oculta .blog-destacada__portada img {
+    filter: grayscale(1);
+    opacity: 0.7;
+}
+
+.blog-destacada__titulo {
+    margin: 0;
+    max-width: 18ch;
+    color: var(--color-sobre-oscuro);
+    font-size: clamp(2rem, 1.2rem + 2.6vw, 3.75rem);
+    font-weight: var(--peso-semi);
+    font-stretch: var(--ancho-display);
+    line-height: 1.02;
+    letter-spacing: var(--tracking-display);
+}
+
+    .blog-destacada__titulo a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+        .blog-destacada__titulo a:hover {
+            color: inherit;
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+        }
+
+.blog-destacada__resumen {
+    display: -webkit-box;
+    max-width: 56ch;
+    margin: 0;
+    overflow: hidden;
+    color: var(--color-sobre-oscuro-2);
+    font-size: var(--texto-md);
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+
+.blog-destacada__datos {
+    color: var(--color-sobre-oscuro-2);
+}
+
+    .blog-destacada__datos .icono {
+        color: var(--color-sobre-oscuro-2);
+    }
+
+.blog-destacada__leer {
+    margin-top: var(--e-2);
+}
+
+@media (min-width: 992px) {
+    .blog-destacada {
+        grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+        min-height: 30rem;
+    }
+
+    .blog-destacada__portada {
+        aspect-ratio: auto;
+        height: 100%;
+    }
+
+    .blog-destacada__cuerpo {
+        border-top: 0;
+        border-left: 6px solid var(--color-accion);
+    }
+}
+
+/* Tarjeta en la rejilla con acciones de gestión debajo */
+.blog-rejilla__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-2);
+}
+
+    .blog-rejilla__item > .tarjeta-item {
+        flex: 1 1 auto;
+    }
+
+
+
+.blog-seccion {
+    margin: var(--e-12) 0 var(--e-4);
+    font-size: var(--texto-xl);
+}
+
+.blog-galeria {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: var(--e-3);
+}
+
+    .blog-galeria a {
+        display: block;
+        overflow: hidden;
+        border-radius: var(--radio-2);
+    }
+
+    .blog-galeria img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        transition: opacity var(--duracion-2) var(--curva);
+    }
+
+    .blog-galeria a:hover img {
+        opacity: 0.85;
+    }
+
+/* Lista de archivos para descargar (blog, tareas, materiales) */
+.lista-archivos,
+.blog-documentos {
+    display: grid;
+    gap: var(--e-2);
+    margin: 0 0 var(--e-6);
+    padding: 0;
+    list-style: none;
+}
+
+    .lista-archivos__item,
+    .blog-documentos li {
+        display: flex;
+        align-items: center;
+        gap: var(--e-3);
+        min-height: var(--objetivo-tactil);
+        padding: var(--e-2) var(--e-3);
+        border: var(--borde) solid var(--color-borde);
+        border-radius: var(--radio-2);
+        background: var(--color-superficie);
+    }
+
+.lista-archivos__tipo,
+.blog-documentos__ext {
+    flex: 0 0 auto;
+    min-width: 3rem;
+    padding: 0.125rem var(--e-2);
+    border-radius: var(--radio-1);
+    background: var(--color-oscuro);
+    color: var(--color-sobre-oscuro);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-semi);
+    text-align: center;
+}
+
+/* El nombre del archivo se muestra completo: pasa a otra línea en lugar de recortarse con «…» */
+.lista-archivos__nombre,
+.blog-documentos a {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--color-titulo);
+    font-weight: var(--peso-medio);
+    overflow-wrap: anywhere;
+}
+
+.lista-archivos__icono {
+    color: var(--color-texto-3);
+}
+
+/* Contenido con formato: el artículo y el editor comparten estas reglas,
+   así lo que el autor ve al escribir es lo que verá el lector. */
+.blog-contenido,
+.editor-blog .ql-editor {
+    color: var(--color-texto);
+    font-family: var(--fuente);
+    font-size: var(--texto-md);
+    line-height: 1.75;
+}
+
+    .blog-contenido::after,
+    .editor-blog .ql-editor::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .blog-contenido p,
+    .editor-blog .ql-editor p {
+        margin: 0 0 1.1em;
+    }
+
+    .blog-contenido h2,
+    .editor-blog .ql-editor h2 {
+        margin: 1.6em 0 0.6em;
+        font-size: var(--texto-2xl);
+    }
+
+    .blog-contenido h3,
+    .editor-blog .ql-editor h3 {
+        margin: 1.4em 0 0.5em;
+        font-size: var(--texto-xl);
+    }
+
+    .blog-contenido ul,
+    .blog-contenido ol {
+        margin: 0 0 1.1em;
+        padding-left: 1.6em;
+    }
+
+    .blog-contenido li {
+        margin-bottom: 0.35em;
+    }
+
+    .blog-contenido blockquote,
+    .editor-blog .ql-editor blockquote {
+        margin: 1.4em 0;
+        padding: var(--e-2) var(--e-5);
+        border-left: 4px solid var(--color-accion);
+        background: var(--color-fondo-alterno);
+        color: var(--color-texto-2);
+    }
+
+    .blog-contenido a {
+        color: var(--color-accion);
+        text-decoration: underline;
+    }
+
+    .blog-contenido .ql-align-center { text-align: center; }
+    .blog-contenido .ql-align-right { text-align: right; }
+    .blog-contenido .ql-align-justify { text-align: justify; }
+    .blog-contenido .ql-indent-1 { padding-left: 2em; }
+    .blog-contenido .ql-indent-2 { padding-left: 4em; }
+    .blog-contenido .ql-indent-3 { padding-left: 6em; }
+    .blog-contenido .ql-indent-4 { padding-left: 8em; }
+
+    /* Imágenes dentro del texto: tamaño y posición elegidos en el editor */
+    .blog-contenido img,
+    .editor-blog .ql-editor img {
+        max-width: 100%;
+        height: auto;
+        border-radius: var(--radio-2);
+    }
+
+        .blog-contenido img.img-sm,
+        .editor-blog .ql-editor img.img-sm {
+            width: 33%;
+        }
+
+        .blog-contenido img.img-md,
+        .editor-blog .ql-editor img.img-md {
+            width: 55%;
+        }
+
+        .blog-contenido img.img-lg,
+        .editor-blog .ql-editor img.img-lg {
+            width: 100%;
+        }
+
+        .blog-contenido img.img-izquierda,
+        .editor-blog .ql-editor img.img-izquierda {
+            float: left;
+            margin: 0.3em 1.4em 1em 0;
+        }
+
+        .blog-contenido img.img-derecha,
+        .editor-blog .ql-editor img.img-derecha {
+            float: right;
+            margin: 0.3em 0 1em 1.4em;
+        }
+
+        .blog-contenido img.img-centro,
+        .editor-blog .ql-editor img.img-centro {
+            display: block;
+            float: none;
+            margin: 1.2em auto;
+        }
+
+/* Editor */
+.blog-form {
+    padding: clamp(var(--e-5), 3vw, var(--e-8));
+}
+
+.blog-titulo-input {
+    font-weight: var(--peso-semi);
+}
+
+.editor-blog {
+    position: relative;
+}
+
+    .editor-blog .ql-toolbar.ql-snow {
+        position: sticky;
+        top: var(--alto-cabecera);
+        z-index: 5;
+        border: var(--borde) solid var(--color-borde-control);
+        border-radius: var(--radio-2) var(--radio-2) 0 0;
+        background: var(--color-superficie);
+        font-family: var(--fuente);
+    }
+
+    .editor-blog .ql-container.ql-snow {
+        border: var(--borde) solid var(--color-borde-control);
+        border-top: 0;
+        border-radius: 0 0 var(--radio-2) var(--radio-2);
+        font-family: var(--fuente);
+    }
+
+    .editor-blog:focus-within .ql-container.ql-snow,
+    .editor-blog:focus-within .ql-toolbar.ql-snow {
+        border-color: var(--color-foco);
+    }
+
+    .editor-blog .ql-editor {
+        min-height: 24rem;
+        padding: var(--e-5) var(--e-6);
+    }
+
+        .editor-blog .ql-editor img {
+            cursor: pointer;
+        }
+
+            .editor-blog .ql-editor img:hover {
+                outline: 3px solid var(--marino-100);
+            }
+
+.editor-blog__pie {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--e-1) var(--e-4);
+    margin-top: var(--e-2);
+    color: var(--color-texto-3);
+    font-size: var(--texto-sm);
+}
+
+.editor-panel-imagen {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-2);
+    padding: var(--e-2);
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-2);
+    background: var(--color-superficie);
+    box-shadow: var(--sombra-3);
+}
+
+    .editor-panel-imagen[hidden] {
+        display: none;
+    }
+
+.editor-panel-imagen__grupo {
+    display: inline-flex;
+    overflow: hidden;
+    border: var(--borde) solid var(--color-borde-control);
+    border-radius: var(--radio-2);
+}
+
+.editor-panel-imagen button {
+    min-height: 2.25rem;
+    padding: var(--e-1) var(--e-3);
+    border: 0;
+    background: var(--color-superficie);
+    color: var(--color-titulo);
+    font-size: var(--texto-sm);
+    font-weight: var(--peso-semi);
+}
+
+    .editor-panel-imagen button + button {
+        border-left: var(--borde) solid var(--color-borde-control);
+    }
+
+    .editor-panel-imagen button:hover {
+        background: var(--color-fondo-alterno);
+    }
+
+    .editor-panel-imagen button.activo {
+        background: var(--color-oscuro);
+        color: var(--color-sobre-oscuro);
+    }
+
+.editor-panel-imagen__quitar {
+    border: var(--borde) solid var(--error-borde) !important;
+    border-radius: var(--radio-2);
+    color: var(--error-texto) !important;
+}
+
+/* Adjuntos en el formulario de edición */
+.blog-adjuntos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: var(--e-4);
+}
+
+.blog-adjunto {
+    margin: 0;
+    overflow: hidden;
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-2);
+    background: var(--color-superficie);
+}
+
+    .blog-adjunto img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+    }
+
+    .blog-adjunto figcaption {
+        display: grid;
+        gap: var(--e-1);
+        padding: var(--e-3);
+        font-size: var(--texto-sm);
+    }
+
+.blog-adjunto--principal {
+    border-color: var(--color-oscuro);
+    box-shadow: 0 0 0 1px var(--color-oscuro);
+}
+
+.blog-adjunto__nombre,
+.tarea-adjuntos__nombre {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.blog-seleccion {
+    display: grid;
+    gap: var(--e-1);
+    margin: var(--e-2) 0 0;
+    padding-left: var(--e-5);
+    color: var(--color-texto-2);
+    font-size: var(--texto-sm);
+}
+
+@media (max-width: 575.98px) {
+    /* En pantallas pequeñas las imágenes con texto alrededor ocupan todo el ancho */
+    .blog-contenido img.img-sm,
+    .blog-contenido img.img-md,
+    .blog-contenido img.img-izquierda,
+    .blog-contenido img.img-derecha {
+        float: none;
+        width: 100%;
+        margin: 1em 0;
+    }
+
+    .editor-blog .ql-editor {
+        padding: var(--e-4);
+    }
+}
+
+/* =========================================================================
+   Listado horizontal: portada a la izquierda y datos a la derecha.
+   Una columna hasta 1400 px; dos columnas en pantallas anchas.
+   ========================================================================= */
+.blog-lista {
+    display: grid;
+    gap: var(--e-5);
+}
+
+    .blog-lista .tarjeta-item__titulo {
+        font-size: var(--texto-xl);
+        -webkit-line-clamp: 3;
+    }
+
+@media (min-width: 640px) {
+    .blog-lista .tarjeta-item {
+        flex-direction: row;
+    }
+
+    .blog-lista .tarjeta-item__media {
+        flex: 0 0 42%;
+        aspect-ratio: auto;
+        min-height: 15rem;
+    }
+
+    .blog-lista .tarjeta-item__cuerpo {
+        padding: var(--e-6);
+    }
+}
+
+@media (min-width: 1400px) {
+    .blog-lista {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================================
+   Artículo: portada panorámica, contenido amplio y columna lateral.
+   ========================================================================= */
+.blog-articulo__portada {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 70vh;
+    overflow: hidden;
+    background: var(--color-hundido);
+}
+
+    .blog-articulo__portada img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+@media (min-width: 768px) {
+    .blog-articulo__portada {
+        aspect-ratio: 21 / 8;
+    }
+}
+
+.blog-articulo__cabecera {
+    padding-block: var(--e-6) var(--e-8);
+    border-bottom: var(--borde) solid var(--color-borde);
+}
+
+.blog-articulo__titulo {
+    max-width: 28ch;
+    margin: var(--e-3) 0 0;
+    font-size: clamp(2rem, 1.2rem + 3vw, 4rem);
+    font-stretch: var(--ancho-display);
+    letter-spacing: var(--tracking-display);
+}
+
+.blog-articulo__cuerpo {
+    display: grid;
+    gap: var(--e-8);
+    align-items: start;
+    padding-block: var(--e-10) var(--e-12);
+}
+
+.blog-articulo__lateral {
+    display: grid;
+    gap: var(--e-5);
+}
+
+.blog-ficha {
+    display: grid;
+    gap: var(--e-4);
+}
+
+    .blog-ficha .datos-icono {
+        font-size: var(--texto-base);
+    }
+
+@media (min-width: 1100px) {
+    .blog-articulo__cuerpo {
+        grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+        gap: clamp(var(--e-10), 4vw, var(--e-20));
+    }
+
+    .blog-articulo__lateral {
+        position: sticky;
+        top: calc(var(--alto-cabecera) + var(--e-6));
+    }
+}
+
+/* Texto del artículo: más amplio que la medida general, con líneas legibles */
+.blog-articulo .blog-contenido {
+    max-width: 92ch;
+    font-size: clamp(var(--texto-md), 1rem + 0.25vw, var(--texto-lg));
+}
+
+    .blog-articulo .blog-contenido > p:first-child {
+        font-size: 1.12em;
+        color: var(--color-texto);
+    }
+
+    .blog-articulo .blog-contenido img.img-lg {
+        width: 100%;
+    }
+
+/* Galería: rejilla uniforme y separación clara del pie */
+.blog-galeria-seccion {
+    padding-bottom: var(--seccion);
+}
+
+    .blog-galeria-seccion .blog-seccion {
+        margin-top: 0;
+        padding-top: var(--e-8);
+        border-top: var(--borde) solid var(--color-borde);
+    }
+
+.blog-galeria {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    gap: var(--e-4);
+}
+
+    .blog-galeria img {
+        aspect-ratio: 4 / 3;
+    }
+
+    .blog-galeria a {
+        border-radius: var(--radio-2);
+    }
+
+        .blog-galeria a:focus-visible {
+            outline-offset: 3px;
+        }
+
+/* =========================================================================
+   Formularios de crear y editar: contenido a la izquierda, archivos a la derecha.
+   ========================================================================= */
+.blog-editor-pagina > .section-heading {
+    margin-bottom: var(--e-6);
+}
+
+.blog-form-rejilla {
+    display: grid;
+    gap: var(--e-6);
+    align-items: start;
+}
+
+.blog-form-rejilla__lateral {
+    display: grid;
+    gap: var(--e-5);
+}
+
+.blog-form-rejilla__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-3);
+}
+
+@media (min-width: 1200px) {
+    .blog-form-rejilla {
+        grid-template-columns: minmax(0, 1fr) minmax(20rem, 26rem);
+    }
+}
+
+.blog-form__titulo {
+    margin-bottom: var(--e-2);
+    font-size: var(--texto-lg);
+}
+
+.blog-form__subida {
+    display: grid;
+    justify-items: start;
+    gap: var(--e-2);
+    margin-top: var(--e-4);
+    padding-top: var(--e-4);
+    border-top: var(--borde) solid var(--color-borde);
+}
+
+    .blog-form__subida .form-control {
+        width: 100%;
+    }
+
+    .blog-form__subida .form-label {
+        margin: 0;
+    }
+
+/* Vista previa de la portada con la misma proporción que en la entrada */
+.portada-blog__vista {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 21 / 9;
+    overflow: hidden;
+    border: var(--borde) solid var(--color-borde);
+    border-radius: var(--radio-2);
+    background: var(--color-fondo-alterno);
+}
+
+    .portada-blog__vista img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.portada-blog__vacio {
+    display: grid;
+    justify-items: center;
+    gap: var(--e-2);
+    color: var(--color-texto-3);
+    font-size: var(--texto-sm);
+}
+
+.blog-adjuntos {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+    gap: var(--e-3);
+}
+
+.blog-adjunto figcaption .acciones-fila {
+    flex-wrap: nowrap;
+}
+
+    .blog-adjunto figcaption .acciones-fila form:first-child {
+        flex: 1 1 auto;
+    }
+
+        .blog-adjunto figcaption .acciones-fila form:first-child .btn {
+            width: 100%;
+            padding-inline: var(--e-2);
+            white-space: normal;
+        }
+
+/* =========================================================================
+   Botones de gestión (editar, desactivar, publicar): ocupan su fila completa
+   en partes iguales, sin saltos de línea sueltos. Se ocultan si no hay permisos.
+   ========================================================================= */
+.blog-gestion {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    gap: var(--e-2);
+}
+
+    .blog-gestion:not(:has(.btn)) {
+        display: none;
+    }
+
+    .blog-gestion form {
+        display: contents;
+    }
+
+    .blog-gestion .btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+/* En la destacada: fila propia bajo el botón principal, separada por una línea */
+.blog-gestion--oscura {
+    align-self: stretch;
+    max-width: 26rem;
+    padding-top: var(--e-4);
+    border-top: var(--borde) solid var(--marino-700);
+}
+
+/* En el listado: pie de la tarjeta, unido a ella */
+.blog-rejilla__item {
+    gap: 0;
+}
+
+    .blog-rejilla__item:has(.blog-gestion .btn) > .tarjeta-item {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+.blog-rejilla__acciones {
+    padding: var(--e-3) var(--e-4);
+    border: var(--borde) solid var(--color-borde);
+    border-top: 0;
+    border-radius: 0 0 var(--radio-3) var(--radio-3);
+    background: var(--color-fondo-alterno);
+}
+
+@media (min-width: 640px) {
+    .blog-rejilla__acciones {
+        grid-auto-columns: minmax(0, 10rem);
+        justify-content: end;
+    }
+}
+
+/* En la ficha del artículo: dos columnas parejas (copiar enlace + gestión) */
+.blog-gestion--ficha {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+    .blog-gestion--ficha > [data-copiar-enlace] {
+        grid-column: 1 / -1;
+    }

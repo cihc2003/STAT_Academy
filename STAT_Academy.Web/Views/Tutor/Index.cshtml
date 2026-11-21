@@ -1,0 +1,85 @@
+@model List<STAT_Academy.Web.Models.Tutor.TutorCurso>
+
+@{
+    ViewData["Title"] = "Mis cursos asignados";
+    var esAdmin = User.IsInRole("Admin");
+    var activos = Model.Count(c => c.Estado);
+    var estudiantes = Model.Sum(c => c.Estudiantes);
+    var tareas = Model.Sum(c => c.Tareas);
+    var porCalificar = Model.Sum(c => c.EntregasPorCalificar);
+}
+
+<section class="section">
+    <div class="container">
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Panel del tutor</span>
+                <h1>@(esAdmin ? "Todos los cursos" : "Mis cursos asignados")</h1>
+                <p>
+                    @(esAdmin
+                        ? "Como administrador puede gestionar cualquier curso."
+                        : "Cursos en los que usted es el tutor asignado.")
+                </p>
+            </div>
+        </div>
+
+        @if (Model.Count > 0)
+        {
+            <div class="panel-metricas panel-metricas--cuatro">
+                <div class="panel-metrica">
+                    <span class="panel-metrica__icono">@Html.Icono("birrete", "icono--lg")</span>
+                    <div><strong>@activos</strong><span>@(activos == 1 ? "Curso activo" : "Cursos activos") de @Model.Count</span></div>
+                </div>
+                <div class="panel-metrica">
+                    <span class="panel-metrica__icono">@Html.Icono("usuarios", "icono--lg")</span>
+                    <div><strong>@estudiantes</strong><span>@(estudiantes == 1 ? "Estudiante" : "Estudiantes")</span></div>
+                </div>
+                <div class="panel-metrica">
+                    <span class="panel-metrica__icono">@Html.Icono("tareas", "icono--lg")</span>
+                    <div><strong>@tareas</strong><span>@(tareas == 1 ? "Tarea publicada" : "Tareas publicadas")</span></div>
+                </div>
+                <div class="panel-metrica @(porCalificar > 0 ? "panel-metrica--alerta" : "")">
+                    <span class="panel-metrica__icono">@Html.Icono("calificacion", "icono--lg")</span>
+                    <div><strong>@porCalificar</strong><span>@(porCalificar == 1 ? "Entrega por calificar" : "Entregas por calificar")</span></div>
+                </div>
+            </div>
+        }
+
+        @if (Model.Count == 0)
+        {
+            <div class="vacio">
+                <span class="vacio__icono">@Html.Icono("pizarra", "icono--lg")</span>
+                <h2>No tiene cursos asignados</h2>
+                <p>Cuando un administrador lo asigne como tutor de un curso, aparecerá aquí.</p>
+            </div>
+        }
+        else
+        {
+            <div class="rejilla tutor-cursos">
+                @foreach (var curso in Model)
+                {
+                    <article class="card tutor-curso @(curso.Estado ? "" : "tutor-curso--inactivo")">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <span class="estado @(curso.Estado ? "estado--exito" : "estado--neutro")">@(curso.Estado ? "Activo" : "Inactivo")</span>
+                            @if (curso.EntregasPorCalificar > 0)
+                            {
+                                <span class="status-pill tutor-pill--alerta">@curso.EntregasPorCalificar por calificar</span>
+                            }
+                        </div>
+
+                        <h2 class="tutor-curso__titulo">@curso.Nombre</h2>
+                        <ul class="datos-icono tutor-curso__fechas"><li>@Html.Icono("calendario")<span>@Formato.FechaCorta(curso.FechaInicio) – @Formato.FechaCorta(curso.FechaFin)</span></li></ul>
+
+                        <dl class="tutor-cifras">
+                            <div><dt>Estudiantes</dt><dd>@curso.Estudiantes</dd></div>
+                            <div><dt>Tareas</dt><dd>@curso.Tareas</dd></div>
+                            <div><dt>Material</dt><dd>@curso.Material</dd></div>
+                        </dl>
+
+                        <a class="btn btn-secundario w-100" asp-action="Curso" asp-route-id="@curso.Id">Entrar al curso<span class="visually-hidden"> @curso.Nombre</span></a>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

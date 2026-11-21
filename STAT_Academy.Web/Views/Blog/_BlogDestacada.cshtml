@@ -1,0 +1,47 @@
+@* Entrada destacada: bloque oscuro de marca con portada grande.
+   ViewData["Nivel"]: nivel del título ("h2" por defecto; "h3" dentro de una sección).
+   ViewData["SinGestion"]: true para no mostrar Editar / Desactivar (p. ej. en la portada). *@
+@model STAT_Academy.Web.Models.Blog.BlogResponse
+@{
+    var autor = string.IsNullOrWhiteSpace(Model.Autor) ? "Equipo STAT Academy" : Model.Autor;
+    var nivel = ViewData["Nivel"] as string == "h3" ? "h3" : "h2";
+    var idTitulo = $"blog-destacada-{Model.Id}";
+    var conGestion = ViewData["SinGestion"] as bool? != true;
+}
+
+<article class="blog-destacada fondo-oscuro @(Model.Estado ? "" : "blog-destacada--oculta")" aria-labelledby="@idTitulo">
+    <a class="blog-destacada__portada" asp-controller="Blog" asp-action="Details" asp-route-id="@Model.Id" tabindex="-1" aria-hidden="true">
+        @if (!string.IsNullOrEmpty(Model.ImagenPrincipal))
+        {
+            <img src="@Model.ImagenPrincipal" alt="" />
+        }
+        else
+        {
+            <span class="tarjeta-item__sin-imagen">@Html.Icono("articulo", "icono--xl")</span>
+        }
+    </a>
+    <div class="blog-destacada__cuerpo">
+        @if (Model.Estado)
+        {
+            <span class="blog-destacada__marca">Lo más reciente</span>
+        }
+        else
+        {
+            <span class="blog-destacada__marca blog-destacada__marca--oculta">Oculta: solo la ven los administradores</span>
+        }
+        @Html.Raw($"<{nivel} id=\"{idTitulo}\" class=\"blog-destacada__titulo\">")<a asp-controller="Blog" asp-action="Details" asp-route-id="@Model.Id">@Model.Titulo</a>@Html.Raw($"</{nivel}>")
+        <p class="blog-destacada__resumen">@Model.Resumen</p>
+        <ul class="datos-icono datos-icono--fila blog-destacada__datos">
+            <li>@Html.Icono("usuario")<span>@autor</span></li>
+            <li>@Html.Icono("calendario")<time datetime="@Model.FechaCreacion.ToString("o")">@Formato.Fecha(Model.FechaCreacion)</time></li>
+            <li>@Html.Icono("reloj")<span>@Model.MinutosLectura min de lectura</span></li>
+        </ul>
+        <a asp-controller="Blog" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-primary btn-lg blog-destacada__leer">Leer el artículo @Html.Icono("flecha-derecha", "icono--sm")</a>
+        @if (conGestion)
+        {
+            <div class="blog-gestion blog-gestion--oscura">
+                <partial name="_BlogAcciones" model="Model" />
+            </div>
+        }
+    </div>
+</article>

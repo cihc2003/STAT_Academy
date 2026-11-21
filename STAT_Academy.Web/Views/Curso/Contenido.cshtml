@@ -1,0 +1,132 @@
+@model STAT_Academy.Web.Models.Cursos.CursoContenidoViewModel
+@using STAT_Academy.Web.Helpers
+
+@{
+    ViewData["Title"] = Model.Curso.nombre;
+    var aula = Model.Aula;
+    var pendientes = aula.Tareas.Count(t => !t.Entregada && !t.Vencida);
+    var nota = aula.NotaFinal;
+}
+
+<section class="section section--compacta">
+    <div class="container">
+        <a class="enlace-volver" asp-controller="Curso" asp-action="MisCursos">@Html.Icono("flecha-izquierda", "icono--sm")Mis cursos</a>
+
+        <div class="section-heading">
+                        <h1>@Model.Curso.nombre</h1>
+            <p>@Model.Curso.descripcion</p>
+        </div>
+
+        <div class="aula-resumen">
+            <div class="aula-resumen__progreso">
+                <div class="d-flex justify-content-between align-items-baseline gap-2">
+                    <span class="aula-resumen__etiqueta">Avance del curso</span>
+                    <strong>@aula.Progreso %</strong>
+                </div>
+                <div class="progress aula-progreso" role="progressbar" aria-label="Avance del curso"
+                     aria-valuenow="@aula.Progreso" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" data-progreso="@aula.Progreso"></div>
+                </div>
+                <span class="small text-muted">
+                    Del @aula.FechaInicio.ToString("dd/MM/yyyy") al @aula.FechaFin.ToString("dd/MM/yyyy")
+                </span>
+            </div>
+
+            <dl class="tutor-cifras aula-resumen__cifras mb-0">
+                <div>
+                    <dt>Nota final</dt>
+                    <dd class="@(nota.Final < 70 ? "text-danger" : "")">@Formato.Nota(nota.Final)</dd>
+                </div>
+                <div><dt>Por entregar</dt><dd>@pendientes</dd></div>
+                <div><dt>Material</dt><dd>@Model.Material.Count</dd></div>
+            </dl>
+
+            <a class="btn btn-secundario aula-resumen__accion" asp-action="Calificaciones" asp-route-id="@aula.CursoId">
+                @Html.Icono("calificacion", "icono--sm")Ver mis calificaciones
+            </a>
+        </div>
+
+        <div class="aula">
+            @* ------------------------------ Tareas ------------------------------ *@
+            <section aria-labelledby="titulo-tareas">
+                <h2 id="titulo-tareas">Tareas</h2>
+
+                @if (aula.Tareas.Count == 0)
+                {
+                    <div class="vacio vacio--compacto">
+                        <span class="vacio__icono">@Html.Icono("tareas", "icono--lg")</span>
+                        <p>Su tutor todavía no ha publicado tareas.</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="aula-lista">
+                        @foreach (var tarea in aula.Tareas)
+                        {
+                            var limite = tarea.FechaLimite;
+
+                            <li class="aula-item aula-item--enlace @(tarea.Vencida && !tarea.Entregada ? "aula-item--cerrada" : "")">
+                                <div class="aula-item__fecha" aria-hidden="true">
+                                    <span>@(limite?.ToString("dd") ?? "—")</span>
+                                    <small>@(limite?.ToString("MMM", System.Globalization.CultureInfo.GetCultureInfo("es-CR")).TrimEnd('.').ToUpperInvariant() ?? "")</small>
+                                </div>
+                                <div class="aula-item__cuerpo">
+                                    <a class="aula-item__titulo stretched-link" asp-action="Tarea" asp-route-id="@tarea.Id">@tarea.Titulo</a>
+                                    <span class="small text-muted d-block">
+                                        @if (tarea.Calificada)
+                                        {
+                                            <text>Nota: <strong class="@(tarea.Calificacion < 70 ? "text-danger" : "text-body")">@Formato.Nota(tarea.Calificacion)</strong></text>
+                                        }
+                                        else if (tarea.Entregada)
+                                        {
+                                            <text>Entregada el @Formato.FechaHoraLocal(tarea.FechaEntrega), esperando nota</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Entrega hasta el @Formato.FechaHoraLocal(limite)</text>
+                                        }
+                                    </span>
+                                </div>
+                                <span class="status-pill @tarea.ClasePill">@tarea.Etiqueta</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+
+            @* ------------------------------ Material ------------------------------ *@
+            <section aria-labelledby="titulo-material">
+                <h2 id="titulo-material">Material</h2>
+
+                @if (Model.Material.Count == 0)
+                {
+                    <div class="vacio vacio--compacto">
+                        <span class="vacio__icono">@Html.Icono("archivo", "icono--lg")</span>
+                        <p>Todavía no hay material publicado.</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="lista-archivos">
+                        @foreach (var item in Model.Material)
+                        {
+                            <li class="lista-archivos__item">
+                                <span class="lista-archivos__tipo">@item.Tipo</span>
+                                @if (item.EsEnlace)
+                                {
+                                    <a class="lista-archivos__nombre" href="@item.UbicacionMaterial" target="_blank" rel="noopener" data-sin-carga>@item.Titulo<span class="visually-hidden"> (enlace externo, se abre en una pestaña nueva)</span></a>
+                                    @Html.Icono("externo", "icono--sm lista-archivos__icono")
+                                }
+                                else
+                                {
+                                    <a class="lista-archivos__nombre" asp-controller="Curso" asp-action="Material" asp-route-id="@item.Id" data-sin-carga>@item.Titulo<span class="visually-hidden"> (descargar)</span></a>
+                                    @Html.Icono("descargar", "icono--sm lista-archivos__icono")
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,112 @@
+@model STAT_Academy.Web.Models.Blog.BlogResponse
+
+@{
+    ViewData["Title"] = Model.Titulo;
+    var autor = string.IsNullOrWhiteSpace(Model.Autor) ? "Equipo STAT Academy" : Model.Autor;
+    var portada = Model.ImagenPrincipal;
+    var galeria = Model.Imagenes.Where(i => i.Url != portada).ToList();
+    var documentos = Model.Documentos.ToList();
+    var relacionadas = ViewBag.Relacionadas as List<STAT_Academy.Web.Models.Blog.BlogResponse> ?? new();
+}
+
+<article class="blog-articulo">
+    @* Portada panorámica a todo el ancho: encabezado visual de la entrada. *@
+    @if (!string.IsNullOrEmpty(portada))
+    {
+        <div class="blog-articulo__portada">
+            <img src="@portada" alt="" />
+        </div>
+    }
+
+    <header class="blog-articulo__cabecera">
+        <div class="container">
+            <a asp-action="Index" class="enlace-volver">@Html.Icono("flecha-izquierda", "icono--sm")Blog</a>
+
+            @if (!Model.Estado)
+            {
+                <aviso tipo="advertencia">Esta entrada está oculta: solo los administradores pueden verla.</aviso>
+            }
+
+            <h1 class="blog-articulo__titulo">@Model.Titulo</h1>
+        </div>
+    </header>
+
+    <div class="container blog-articulo__cuerpo">
+        @* El HTML lo limpió la API con una lista blanca (sin scripts, solo formato e imágenes
+           de nuestro almacenamiento), por eso se puede mostrar tal cual. *@
+        <div class="blog-contenido">@Html.Raw(Model.Contenido)</div>
+
+        <aside class="blog-articulo__lateral" aria-label="Datos de la entrada">
+            <div class="panel-tarjeta blog-ficha">
+                <span class="blog-autor">
+                    <span class="blog-autor__avatar blog-autor__avatar--grande" aria-hidden="true">@autor.Trim()[..1].ToUpperInvariant()</span>
+                    <strong>@autor</strong>
+                </span>
+                <ul class="datos-icono">
+                    <li>@Html.Icono("calendario")<span>Publicado el <time datetime="@Model.FechaCreacion.ToString("o")">@Formato.Fecha(Model.FechaCreacion)</time></span></li>
+                    <li>@Html.Icono("reloj")<span>@Model.MinutosLectura min de lectura</span></li>
+                    @if (Model.FechaEdicion.HasValue)
+                    {
+                        <li>@Html.Icono("editar")<span>Editado el @Formato.Fecha(Model.FechaEdicion)</span></li>
+                    }
+                    @if (galeria.Count > 0)
+                    {
+                        <li>@Html.Icono("imagen")<a href="#blog-galeria">@galeria.Count @(galeria.Count == 1 ? "imagen en la galería" : "imágenes en la galería")</a></li>
+                    }
+                </ul>
+                <div class="blog-gestion blog-gestion--ficha">
+                    <button type="button" class="btn btn-secundario btn-sm" data-copiar-enlace>@Html.Icono("enlace", "icono--sm")<span data-copiar-texto>Copiar enlace</span></button>
+                    <partial name="_BlogAcciones" model="Model" />
+                </div>
+            </div>
+
+            @if (documentos.Count > 0)
+            {
+                <div class="panel-tarjeta">
+                    <h2 class="panel-tarjeta__titulo">Documentos</h2>
+                    <ul class="lista-archivos">
+                        @foreach (var documento in documentos)
+                        {
+                            <li class="lista-archivos__item">
+                                <span class="lista-archivos__tipo">@documento.Extension</span>
+                                <a class="lista-archivos__nombre" asp-action="Documento" data-sin-carga asp-route-id="@Model.Id" asp-route-archivoId="@documento.Id">@documento.Nombre<span class="visually-hidden"> (descargar)</span></a>
+                                @Html.Icono("descargar", "icono--sm lista-archivos__icono")
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </aside>
+    </div>
+
+    @if (galeria.Count > 0)
+    {
+        <section id="blog-galeria" class="container blog-galeria-seccion" aria-labelledby="blog-galeria-titulo">
+            <h2 id="blog-galeria-titulo" class="blog-seccion">Galería</h2>
+            <div class="blog-galeria">
+                @foreach (var imagen in galeria)
+                {
+                    <a href="@imagen.Url" target="_blank" rel="noopener" data-sin-carga>
+                        <img src="@imagen.Url" alt="@imagen.Nombre" loading="lazy" />
+                        <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+                    </a>
+                }
+            </div>
+        </section>
+    }
+</article>
+
+@if (relacionadas.Count > 0)
+{
+    <section class="section section--alterna" aria-labelledby="blog-relacionadas">
+        <div class="container">
+            <h2 id="blog-relacionadas" class="blog-listado__titulo">Más artículos</h2>
+            <div class="blog-lista">
+                @foreach (var r in relacionadas)
+                {
+                    <partial name="_BlogTarjeta" model="r" />
+                }
+            </div>
+        </div>
+    </section>
+}

@@ -1,0 +1,61 @@
+﻿@{
+    ViewData["Title"] = "Contacto";
+    ViewData["Page"] = "Contacto";
+}
+
+<section class="encabezado-pagina">
+    <div class="container">
+        <h1>Contacto</h1>
+        <p>Cuéntenos qué quiere aprender y le ayudaremos a elegir el curso adecuado para sus objetivos.</p>
+    </div>
+</section>
+
+<section class="section section--compacta">
+    <div class="container contacto">
+        <form class="formulario contacto__form" action="#" method="post" aria-labelledby="contacto-form-titulo">
+            <h2 id="contacto-form-titulo" class="h4">Envíenos un mensaje</h2>
+            <p class="form-text mb-4">Todos los campos son obligatorios, salvo el teléfono.</p>
+            <div class="contacto__campos">
+                <div class="form-group">
+                    <label for="name">Nombre completo</label>
+                    <input id="name" name="name" type="text" class="form-control" autocomplete="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <input id="email" name="email" type="email" class="form-control" autocomplete="email" inputmode="email" placeholder="correo@ejemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Teléfono <span class="text-muted fw-normal">(opcional)</span></label>
+                    <input id="phone" name="phone" type="tel" class="form-control" autocomplete="tel" inputmode="tel" placeholder="+506 0000 0000">
+                </div>
+                <div class="form-group">
+                    <label for="subject">Asunto</label>
+                    <input id="subject" name="subject" type="text" class="form-control" required>
+                </div>
+                <div class="form-group contacto__completo">
+                    <label for="message">Mensaje</label>
+                    <textarea id="message" name="message" rows="6" class="form-control" required></textarea>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-lg" type="submit">@Html.Icono("enviar")Enviar mensaje</button>
+        </form>
+
+        <aside class="contacto__info" aria-labelledby="contacto-info-titulo">
+            <div class="panel-tarjeta">
+                <h2 id="contacto-info-titulo" class="h4">Información de contacto</h2>
+                <ul class="datos-icono datos-icono--grande">
+                    <li>@Html.Icono("ubicacion")<span>Avenida 8 calle 45, San José</span></li>
+                    <li>@Html.Icono("telefono")<span>+506 2412 8800</span></li>
+                    <li>@Html.Icono("correo")<a href="mailto:info@@statmedicalcr.com">info@@statmedicalcr.com</a></li>
+                    <li>@Html.Icono("enlace")<a href="https://statmedicalcr.com/" rel="noopener">statmedicalcr.com</a></li>
+                </ul>
+            </div>
+            <div class="contacto__mapa">
+                <iframe title="Mapa de ubicación de STATMEDICAL en San José"
+                        src="https://www.google.com/maps?q=Avenida%208%20calle%2045%2C%20San%20Jos%C3%A9%2C%20Costa%20Rica&amp;output=embed"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </aside>
+    </div>
+</section>

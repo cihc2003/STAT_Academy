@@ -1,0 +1,7 @@
+@* Botón de ojo junto a un campo de contraseña (dentro de .campo-contrasena).
+   site.js la muestra u oculta con cada clic, toque o tecla. *@
+<button type="button" class="ver-contrasena" data-ver-contrasena
+        aria-label="Mostrar contraseña" aria-pressed="false">
+    @Html.Icono("ojo", "ver-contrasena__ojo")
+    @Html.Icono("ojo-tachado", "ver-contrasena__tachado")
+</button>

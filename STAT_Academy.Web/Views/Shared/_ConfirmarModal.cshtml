@@ -1,0 +1,20 @@
+@* Ventana de confirmación para formularios con data-confirmar (la conecta site.js).
+   Atributos: data-confirmar="pregunta", data-confirmar-boton="texto del botón",
+   data-confirmar-peligro (botón rojo). Sin JavaScript, el formulario se envía directamente. *@
+<div class="modal fade" id="modal-confirmar" tabindex="-1" aria-labelledby="modal-confirmar-titulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content confirmar-modal">
+            <div class="modal-header">
+                <h2 class="modal-title h5" id="modal-confirmar-titulo">Confirmar acción</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" data-confirmar-texto></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-confirmar-aceptar>Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>

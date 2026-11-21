@@ -1,0 +1,178 @@
+@model STAT_Academy.Web.Models.Admin.CursoFormViewModel
+
+@{
+    ViewData["Title"] = Model.id == null ? "Nuevo curso" : "Editar curso";
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <a class="enlace-volver" asp-action="Courses">@Html.Icono("flecha-izquierda", "icono--sm")Cursos</a>
+
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>@(Model.id == null ? "Nuevo curso" : "Editar curso")</h1>
+                <p>Nombre, tutor, tipo, prerrequisitos, precio, fechas, portada y estado del curso.</p>
+            </div>
+        </div>
+
+        <form asp-action="CourseForm" method="post" enctype="multipart/form-data" class="form-card panel-form">
+            @Html.AntiForgeryToken()
+            <input asp-for="id" type="hidden" />
+
+            <div asp-validation-summary="All" class="aviso aviso--error"></div>
+
+            <h2 class="panel-form__seccion">Datos generales</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="nombre" class="form-label">Nombre</label>
+                    <input asp-for="nombre" class="form-control" />
+                    <span asp-validation-for="nombre" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    @{
+                        var tutores = ViewBag.Tutores as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+                    }
+                    <label asp-for="fk_tutor" class="form-label">Tutor</label>
+                    @if (tutores.Count == 0)
+                    {
+                        <div class="panel-aviso mb-0">
+                            <p>
+                                No hay tutores activos.
+                                <a asp-controller="Usuario" asp-action="UserForm">Cree un usuario con rol Tutor</a> para poder asignarlo.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <select asp-for="fk_tutor" asp-items="tutores" class="form-select" required>
+                            <option value="">Seleccione un tutor…</option>
+                        </select>
+                    }
+                    <span asp-validation-for="fk_tutor" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="descripcion" class="form-label">Descripción</label>
+                    <textarea asp-for="descripcion" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="descripcion" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="tipo" class="form-label"></label>
+                    <input asp-for="tipo" class="form-control" list="tipos-sugeridos" maxlength="50" autocomplete="off" aria-describedby="tipo-ayuda" />
+                    <datalist id="tipos-sugeridos">
+                        @foreach (var sugerido in STAT_Academy.Web.Models.Admin.CursoFormViewModel.TiposSugeridos)
+                        {
+                            <option value="@sugerido"></option>
+                        }
+                    </datalist>
+                    <div id="tipo-ayuda" class="form-text">Opcional. Por ejemplo: Virtual, Presencial o Taller.</div>
+                    <span asp-validation-for="tipo" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="prerrequisitos" class="form-label"></label>
+                    <textarea asp-for="prerrequisitos" class="form-control" rows="3" maxlength="500" aria-describedby="prerrequisitos-ayuda"></textarea>
+                    <div id="prerrequisitos-ayuda" class="form-text">Opcional. Conocimientos o cursos previos que se recomiendan, hasta 500 caracteres.</div>
+                    <span asp-validation-for="prerrequisitos" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <h2 class="panel-form__seccion mt-4">Precio, fechas y estado</h2>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="precio" class="form-label">Precio</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₡</span>
+                        <input asp-for="precio" class="form-control" type="number" min="0" step="0.01" inputmode="decimal" />
+                    </div>
+                    <span asp-validation-for="precio" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label" for="duracion">Duración</label>
+                    <input class="form-control" id="duracion" value="@(Model.id.HasValue ? Model.duracionSemanas + " semanas" : "Se calcula con las fechas")" readonly />
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="estado" class="form-label">Estado</label>
+                    <select asp-for="estado" class="form-select">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="fechaInicio" class="form-label">Fecha de inicio</label>
+                    <input asp-for="fechaInicio" class="form-control" type="date" />
+                    <span asp-validation-for="fechaInicio" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="fechaFin" class="form-label">Fecha de fin</label>
+                    <input asp-for="fechaFin" class="form-control" type="date" />
+                    <span asp-validation-for="fechaFin" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <h2 class="panel-form__seccion mt-4">Portada</h2>
+            <div class="row g-3">
+                <div class="col-12">
+                    <label asp-for="Portada" class="form-label visually-hidden"></label>
+                    <div class="portada-campo">
+                        <div class="portada-campo__vista" data-portada-vista>
+                            @if (!string.IsNullOrEmpty(Model.ImagenPortadaActual))
+                            {
+                                <img src="@Model.ImagenPortadaActual" alt="Portada actual del curso" />
+                            }
+                            else
+                            {
+                                <span class="portada-campo__vacio">Sin portada</span>
+                            }
+                        </div>
+                        <div class="portada-campo__controles">
+                            <input asp-for="Portada" type="file" class="form-control" accept="@STAT_Academy.Web.Models.Admin.CursoFormViewModel.AcceptImagenes" data-portada-input />
+                            <div class="form-text">
+                                JPG, PNG, GIF o WEBP de hasta 5 MB. Se ve mejor en formato horizontal (16:9).
+                                @if (!string.IsNullOrEmpty(Model.ImagenPortadaActual))
+                                {
+                                    <text>Si elige otra, reemplaza la actual.</text>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ImagenPortadaActual))
+                            {
+                                <button type="submit" form="quitar-portada" class="btn btn-outline-danger btn-sm mt-2">
+                                    Quitar portada
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-form__acciones">
+                <a asp-action="Courses" class="btn btn-outline-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-primary">
+                    @(Model.id == null ? "Guardar" : "Actualizar")
+                </button>
+            </div>
+        </form>
+
+        @if (Model.id != null && !string.IsNullOrEmpty(Model.ImagenPortadaActual))
+        {
+            <form id="quitar-portada" asp-action="QuitarPortadaCurso" asp-route-id="@Model.id" method="post" class="d-none"
+                  data-confirmar="¿Quitar la portada de este curso?" data-confirmar-boton="Quitar portada" data-confirmar-peligro>
+                @Html.AntiForgeryToken()
+            </form>
+        }
+    </section>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

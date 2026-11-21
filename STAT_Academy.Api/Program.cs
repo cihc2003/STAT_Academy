@@ -1,33 +1,232 @@
-using STAT_Academy.Api.Data;
-using STAT_Academy.Api.Services;
+using Azure.Core;
+using Azure.Identity;
+using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using STAT_Academy.Api.Auth;
+using STAT_Academy.Api.Configuration;
+using STAT_Academy.Api.Data;
+using STAT_Academy.Api.Errores;
+using STAT_Academy.Api.Seguridad;
+using STAT_Academy.Api.Services;
+using STAT_Academy.Api.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ---------------------------------------------------------------------------
+// Configuración obligatoria (secretos). Local: user-secrets. Azure: App Settings.
+// ---------------------------------------------------------------------------
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException(
+        "Falta ConnectionStrings:DefaultConnection. Configúrela con user-secrets o en Azure App Settings.");
+
+// Azure SQL serverless (GP_S) se pausa cuando no hay uso y tarda hasta ~1 minuto en reanudarse.
+// Con el tiempo de conexión por defecto (30 s) la primera petición tras la pausa fallaba.
+var conexionSql = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(connectionString);
+if (conexionSql.ConnectTimeout < 90)
+    conexionSql.ConnectTimeout = 90;
+connectionString = conexionSql.ConnectionString;
+
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.Seccion).Get<JwtOptions>() ?? new JwtOptions();
+if (string.IsNullOrWhiteSpace(jwtOptions.Key))
+    throw new InvalidOperationException(
+        "Falta Jwt:Key. Configúrela con user-secrets o en Azure App Settings (Jwt__Key).");
+
+var jwtKeyBytes = Convert.FromBase64String(jwtOptions.Key);
+if (jwtKeyBytes.Length < 32)
+    throw new InvalidOperationException("Jwt:Key debe tener al menos 32 bytes (256 bits) en Base64.");
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-
+builder.Services.AddScoped<CursoService>();
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<LoginService>();
+builder.Services.AddScoped<ProveedorService>();
+builder.Services.AddScoped<AuditoriaService>();
+builder.Services.AddScoped<ProductoService>();
+builder.Services.AddScoped<CarritoService>();
+builder.Services.AddScoped<EstudianteCursoService>();
+builder.Services.AddScoped<TareaService>();
+builder.Services.AddScoped<MaterialCursoService>();
+builder.Services.AddScoped<BlogService>();
+builder.Services.AddScoped<TutorService>();
+builder.Services.AddScoped<NotaFinalService>();
+builder.Services.AddScoped<AulaService>();
+builder.Services.AddScoped<TareaAdjuntoService>();
+builder.Services.AddSingleton<BlogContenidoService>();
+builder.Services.AddScoped<StockAlertaService>();
+builder.Services.AddScoped<CompraService>();
+builder.Services.AddScoped<FacturaService>();
+builder.Services.AddScoped<ContrasenaService>();
+builder.Services.AddScoped<CorreoService>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Errores no controlados: respuesta genérica { "message": "..." } y aviso a los administradores.
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = ctx =>
+        ctx.ProblemDetails.Extensions["traceId"] = ctx.HttpContext.TraceIdentifier);
+builder.Services.AddExceptionHandler<ManejadorErroresGlobal>();
+builder.Services.AddSingleton<ErrorAlertaService>();
+builder.Services.AddHostedService<ErrorAlertaEnvioService>();
+
+// ---------------------------------------------------------------------------
+// Azure Blob Storage (misma configuración que la rama Pruebas_Blob_Storage)
+//  - Local: credencial de Visual Studio o "az login" (rol Storage Blob Data Contributor).
+//  - Azure: Managed Identity del App Service. No se usan claves de cuenta.
+// ---------------------------------------------------------------------------
+builder.Services.Configure<PagosOptions>(
+    builder.Configuration.GetSection(PagosOptions.Seccion));
+
+builder.Services.Configure<BlobStorageOptions>(
+    builder.Configuration.GetSection(BlobStorageOptions.Seccion));
+
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<BlobStorageOptions>>().Value;
+    var env = sp.GetRequiredService<IHostEnvironment>();
+
+    if (!Uri.TryCreate(config.AccountUrl?.Trim(), UriKind.Absolute, out var accountUri))
+        throw new InvalidOperationException($"BlobStorage:AccountUrl no es válida: '{config.AccountUrl}'");
+
+    var tenantId = string.IsNullOrWhiteSpace(config.TenantId) ? null : config.TenantId.Trim();
+
+    TokenCredential credencial = env.IsDevelopment()
+        ? new ChainedTokenCredential(
+            new VisualStudioCredential(new VisualStudioCredentialOptions { TenantId = tenantId, ProcessTimeout = TimeSpan.FromSeconds(30) }),
+            new AzureCliCredential(new AzureCliCredentialOptions { TenantId = tenantId, ProcessTimeout = TimeSpan.FromSeconds(15) }))
+        : string.IsNullOrWhiteSpace(config.ManagedIdentityClientId)
+            ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
+            : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(config.ManagedIdentityClientId));
+
+    // Límites para que un problema de red falle rápido en lugar de quedarse "cargando"
+    var opcionesCliente = new BlobClientOptions();
+    opcionesCliente.Retry.MaxRetries = 2;
+    opcionesCliente.Retry.NetworkTimeout = TimeSpan.FromSeconds(30);
+
+    return new BlobServiceClient(accountUri, credencial, opcionesCliente);
+});
+
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+
+// ---------------------------------------------------------------------------
+// Autenticación JWT
+// ---------------------------------------------------------------------------
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Seccion));
+builder.Services.AddSingleton<TokenService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ValidadorSesion>();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(jwtKeyBytes),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1),
+            NameClaimType = ClaimTiposJwt.Nombre,
+            RoleClaimType = ClaimTiposJwt.Rol
+        };
+
+        // Revocación: el sello del token debe coincidir con la contraseña, el rol y el estado actuales.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = ctx => ctx.HttpContext.RequestServices
+                .GetRequiredService<ValidadorSesion>()
+                .ValidarAsync(ctx)
+        };
+    });
+
+// Límites de intentos en login, registro, recuperación y cambio de contraseña.
+builder.Services.AddLimitesSolicitudes();
+
+// Seguro por defecto: todo endpoint exige token salvo que lleve [AllowAnonymous].
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new()
+    {
+        Title = "STAT Academy API",
+        Version = "v1",
+        Description = "API for STAT Academy"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Pegue el token obtenido en POST /api/Login"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+    });
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+        connectionString,
+        sql => sql.EnableRetryOnFailure()));
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Primero, para atrapar cualquier excepción del resto del pipeline (también en Development:
+// el cliente nunca recibe trazas; el detalle queda en el log).
+app.UseExceptionHandler();
+
+// Encabezados básicos: la API solo responde JSON y archivos, nunca debe mostrarse en un marco.
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers.XFrameOptions = "DENY";
+    await next();
+});
+
+// Swagger expone el mapa completo de la API: solo en desarrollo, o si se habilita a propósito
+// (Swagger__Habilitado=true en App Settings).
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Habilitado"))
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "STAT Academy API v1");
+        c.ScriptBundlePath = "./swagger-ui-bundle.js?v=10.2.3";
+        c.ScriptPresetsPath = "./swagger-ui-standalone-preset.js?v=10.2.3";
+        c.StylesPath = "./swagger-ui.css?v=10.2.3";
+    });
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+// Después de la autenticación: algunos límites se cuentan por usuario.
+app.UseRateLimiter();
 app.UseAuthorization();
 
 app.MapControllers();

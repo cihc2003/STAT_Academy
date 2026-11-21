@@ -1,0 +1,30 @@
+@model STAT_Academy.Web.Models.CursoModel
+@* Tarjeta escaneable de curso: portada, nombre, tipo, inicio, duración, tutor, precio y acción.
+   Toda la tarjeta lleva al detalle (el enlace del título se extiende a la tarjeta). *@
+
+<article class="tarjeta-item tarjeta-curso">
+    <div class="tarjeta-item__media">
+        <partial name="_CursoPortada" model="Model" />
+    </div>
+    <div class="tarjeta-item__cuerpo">
+        <h3 class="tarjeta-item__titulo">
+            <a class="tarjeta-item__enlace" asp-controller="Curso" asp-action="Details" asp-route-id="@Model.Id">@Model.Nombre</a>
+        </h3>
+        @if (!string.IsNullOrWhiteSpace(Model.Tipo))
+        {
+            <span class="etiqueta">@Model.Tipo</span>
+        }
+        <ul class="datos-icono">
+            <li>@Html.Icono("calendario")<span>Inicia el <time datetime="@Model.Fecha_Inicio.ToString("yyyy-MM-dd")">@Formato.FechaCorta(Model.Fecha_Inicio)</time></span></li>
+            <li>@Html.Icono("reloj")<span>@Formato.Semanas(Model.Duracion_Semanas)</span></li>
+            @if (!string.IsNullOrWhiteSpace(Model.TutorNombre))
+            {
+                <li>@Html.Icono("usuario")<span>@Model.TutorNombre</span></li>
+            }
+        </ul>
+        <div class="tarjeta-item__pie">
+            <span class="precio">@Formato.PrecioCurso(Model.Precio_Base)</span>
+            <span class="tarjeta-item__accion" aria-hidden="true">Ver curso @Html.Icono("chevron-derecha", "icono--sm")</span>
+        </div>
+    </div>
+</article>

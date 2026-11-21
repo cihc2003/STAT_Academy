@@ -1,0 +1,72 @@
+@model STAT_Academy.Web.Models.Tutor.TutorEstudiantesPagina
+@using STAT_Academy.Web.Helpers
+
+@{
+    ViewData["Title"] = "Estudiantes de " + Model.Curso.Nombre;
+}
+
+<section class="section">
+    <div class="container">
+        <partial name="_CursoNav" model="Model.Curso" />
+
+        <h2>Estudiantes matriculados</h2>
+
+        @if (Model.Estudiantes.Count == 0)
+        {
+            <div class="info-block">
+                <p class="mb-0">Este curso todavía no tiene estudiantes matriculados.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-card panel-tabla">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Estudiante</th>
+                            <th>Matrícula</th>
+                            <th>Tareas entregadas</th>
+                            <th>Nota final</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var e in Model.Estudiantes)
+                        {
+                            var activa = e.EstadoMatricula == "Activo";
+
+                            <tr class="@(activa ? "" : "tutor-fila--oculta")">
+                                <td class="panel-tabla__principal">
+                                    <strong>@e.Nombre</strong>
+                                    <div class="text-muted small">@e.Email</div>
+                                </td>
+                                <td data-label="Matrícula">
+                                    <span class="status-pill @(activa ? "" : "tutor-pill--gris")">@e.EstadoMatricula</span>
+                                    <div class="text-muted small">desde @(e.FechaMatricula?.ToString("dd/MM/yyyy") ?? "—")</div>
+                                </td>
+                                <td data-label="Tareas entregadas">@e.TareasEntregadas / @e.TareasTotales</td>
+                                <td data-label="Nota final">
+                                    @if (e.NotaFinal.Final is decimal p)
+                                    {
+                                        <strong class="@(p < 70 ? "text-danger" : "")">@Formato.Nota(p)</strong>
+                                        @if (e.NotaFinal.EsAjustada)
+                                        {
+                                            <span class="status-pill tutor-pill--gris ms-1">Ajustada</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Sin notas</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-muted small mt-2">
+                La nota final promedia las tareas calificadas y las vencidas sin entregar (cuentan 0).
+                Puede ajustarla en <a asp-action="Calificaciones" asp-route-id="@Model.Curso.Id">Calificaciones</a>.
+            </p>
+        }
+    </div>
+</section>

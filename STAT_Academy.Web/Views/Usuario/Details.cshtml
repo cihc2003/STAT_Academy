@@ -1,0 +1,88 @@
+﻿@using STAT_Academy.Web.Helpers
+@using STAT_Academy.Web.Models.Usuarios
+@model UsuarioResponse
+
+@{
+    ViewData["Title"] = Model.nombre;
+    var esYo = ViewBag.EsUsuarioActual == true;
+    var inicial = string.IsNullOrWhiteSpace(Model.nombre) ? "?" : Model.nombre.Trim()[..1].ToUpperInvariant();
+    var volver = Url.Action("Details", new { id = Model.id });
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section class="usuarios">
+        <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Volver a usuarios</a>
+
+        <div class="usuario-perfil mt-3">
+            <div class="usuario-perfil__cabecera">
+                <span class="usuario-avatar usuario-avatar--grande @TiposUsuario.Clase(Model.fk_Tipo_Usuario)" aria-hidden="true">@inicial</span>
+                <div class="usuario-perfil__titulo">
+                    <h1 class="mb-1">
+                        @Model.nombre
+                        @if (esYo)
+                        {
+                            <span class="usuario-yo">(su cuenta)</span>
+                        }
+                    </h1>
+                    <p class="text-muted mb-2">@Model.email</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="usuario-tipo @TiposUsuario.Clase(Model.fk_Tipo_Usuario)">@Model.TipoTexto</span>
+                        <span class="usuario-estado @(Model.activo ? "usuario-estado--activo" : "usuario-estado--inactivo")">
+                            @(Model.activo ? "Activo" : "Inactivo")
+                        </span>
+                    </div>
+                </div>
+                <div class="usuario-perfil__acciones">
+                    <a class="btn btn-primary" asp-action="UserForm" asp-route-id="@Model.id">Editar</a>
+
+                    @if (Model.activo && !esYo)
+                    {
+                        <form asp-action="ToggleUser" asp-route-id="@Model.id" method="post"
+                              data-confirmar="¿Desactivar a @Model.nombre? No podrá iniciar sesión hasta que se active de nuevo."
+                              data-confirmar-boton="Desactivar" data-confirmar-peligro>
+                            <input type="hidden" name="volver" value="@volver" />
+                            <button class="btn btn-outline-danger" type="submit">Desactivar</button>
+                        </form>
+                    }
+                    else if (!Model.activo)
+                    {
+                        <form asp-action="ActivateUser" asp-route-id="@Model.id" method="post"
+                              data-confirmar="¿Activar a @Model.nombre? Podrá volver a iniciar sesión."
+                              data-confirmar-boton="Activar">
+                            <input type="hidden" name="volver" value="@volver" />
+                            <button class="btn btn-outline-success" type="submit">Activar</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <h2 class="usuario-perfil__seccion">Actividad de la cuenta</h2>
+            <dl class="usuario-datos">
+                <div>
+                    <dt>Fecha de registro</dt>
+                    <dd>@Formato.FechaHora(Model.fecha_Registro, "Sin dato")</dd>
+                    <dd class="usuario-datos__nota">@(Model.fecha_Registro == null ? "La cuenta se creó antes de que se guardara este dato." : Formato.Hace(Model.fecha_Registro))</dd>
+                </div>
+                <div>
+                    <dt>Último inicio de sesión</dt>
+                    <dd>@Formato.FechaHora(Model.ultimo_Login, "Nunca")</dd>
+                    <dd class="usuario-datos__nota">@(Model.ultimo_Login == null ? "Todavía no ha iniciado sesión." : Formato.Hace(Model.ultimo_Login))</dd>
+                </div>
+                <div>
+                    <dt>Última modificación</dt>
+                    <dd>@Formato.FechaHora(Model.fecha_Edicion, "Sin cambios")</dd>
+                    <dd class="usuario-datos__nota">@(Model.fecha_Edicion == null ? "No se han registrado cambios." : Formato.Hace(Model.fecha_Edicion))</dd>
+                </div>
+                <div>
+                    <dt>Intentos fallidos de acceso</dt>
+                    <dd>@Model.intentos_login</dd>
+                    <dd class="usuario-datos__nota">Desde el último inicio de sesión correcto.</dd>
+                </div>
+            </dl>
+            <p class="small text-muted mb-0">Horas en tiempo de Costa Rica.</p>
+        </div>
+    </section>
+</div>
+

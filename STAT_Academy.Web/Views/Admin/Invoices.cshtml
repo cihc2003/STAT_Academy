@@ -1,0 +1,196 @@
+@model STAT_Academy.Web.Models.Facturas.FacturasAdminViewModel
+
+@{
+    ViewData["Title"] = "Facturas y pagos";
+    var esPagos = Model.Vista == "pagos";
+
+    var estadosPago = new[] { ("PENDIENTE", "Por verificar"), ("APROBADO", "Aprobados"), ("RECHAZADO", "Rechazados"), ("TODOS", "Todos") };
+    var estadosFactura = new[] { ("", "Todas"), ("PENDIENTE_PAGO", "Pendientes de pago"), ("EN_VERIFICACION", "En verificación"), ("RECHAZADA", "Pago rechazado"), ("PAGADA", "Pagadas") };
+
+    var estadoTexto = (esPagos ? estadosPago : estadosFactura).FirstOrDefault(e => e.Item1 == (Model.Estado ?? "")).Item2;
+    // El estado inicial de cada vista (por verificar / todas) no cuenta como filtro aplicado.
+    var hayEstado = estadoTexto != null && (esPagos ? Model.Estado != "PENDIENTE" : !string.IsNullOrEmpty(Model.Estado));
+    var hayBusqueda = !string.IsNullOrWhiteSpace(Model.Buscar);
+    var cantidad = ((Paginacion)ViewBag.Paginacion).Total;
+    var q = Context.Request.Query;
+
+    string Inicial(string? nombre) => string.IsNullOrWhiteSpace(nombre) ? "?" : nombre.Trim()[..1].ToUpperInvariant();
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Facturas y pagos</h1>
+                <p>Revise los comprobantes de SINPE Móvil y transferencia, y apruebe o rechace cada pago.</p>
+            </div>
+        </div>
+
+        <nav class="panel-pestanas" aria-label="Vista">
+            <a asp-action="Invoices" asp-route-vista="pagos" aria-current="@(esPagos ? "page" : null)">
+                Comprobantes
+                @if (Model.Pendientes > 0)
+                {
+                    <span class="panel-pestanas__badge" title="Por verificar">@Model.Pendientes</span>
+                }
+            </a>
+            <a asp-action="Invoices" asp-route-vista="facturas" aria-current="@(!esPagos ? "page" : null)">Facturas</a>
+        </nav>
+
+        <form class="panel-filtros" method="get" asp-action="Invoices" role="search">
+            <input type="hidden" name="vista" value="@Model.Vista" />
+            <div class="panel-filtros__buscar">
+                <label class="panel-filtros__etiqueta" for="buscar">Buscar</label>
+                @Html.Icono("buscar", "panel-filtros__lupa")
+                <input class="form-control" id="buscar" name="buscar" type="search" value="@Model.Buscar"
+                       placeholder="Nombre, correo o número de compra" maxlength="100" />
+            </div>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="estado">Estado</label>
+                <select class="form-select @(hayEstado ? "panel-filtros__activo" : "")" id="estado" name="estado" data-autoenviar>
+                    @foreach (var (valor, texto) in esPagos ? estadosPago : estadosFactura)
+                    {
+                        <option value="@valor" selected="@((Model.Estado ?? "") == valor)">@texto</option>
+                    }
+                </select>
+            </div>
+            @if (FiltrosPanel.Valor(q, "tamano") is string tamano)
+            {
+                <input type="hidden" name="tamano" value="@tamano" />
+            }
+            <div class="panel-filtros__acciones">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+            </div>
+        </form>
+
+        <div class="panel-resultados" aria-live="polite">
+            <span><strong>@cantidad</strong> @(esPagos ? (cantidad == 1 ? "comprobante" : "comprobantes") : (cantidad == 1 ? "factura" : "facturas"))</span>
+            @if (hayBusqueda)
+            {
+                <a class="panel-chip" asp-action="Invoices" asp-route-vista="@Model.Vista" asp-route-estado="@Model.Estado" >«@Model.Buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (hayEstado)
+            {
+                <a class="panel-chip" asp-action="Invoices" asp-route-vista="@Model.Vista" asp-route-buscar="@Model.Buscar" >@estadoTexto @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (hayBusqueda || hayEstado)
+            {
+                <a class="panel-resultados__limpiar" asp-action="Invoices" asp-route-vista="@Model.Vista">Limpiar filtros</a>
+            }
+        </div>
+
+        <div class="table-card panel-tabla">
+            @if (esPagos)
+            {
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Compra</th>
+                            <th scope="col">Método</th>
+                            <th scope="col" class="text-end">Monto</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col"><span class="visually-hidden">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Pagos.Count == 0)
+                        {
+                            <tr><td colspan="6" class="panel-tabla__vacio"><strong>No hay comprobantes con este filtro.</strong>Cuando un cliente envíe uno, aparecerá aquí.</td></tr>
+                        }
+                        @foreach (var p in Model.Pagos)
+                        {
+                            var (texto, clase) = EstadoPago.Comprobante(p.estado);
+                            <tr>
+                                <td class="panel-tabla__principal">
+                                    <div class="panel-celda">
+                                        <span class="usuario-avatar usuario-tipo--cliente" aria-hidden="true">@Inicial(p.usuarioNombre)</span>
+                                        <div class="panel-celda__texto">
+                                            <span class="panel-celda__nombre">@p.usuarioNombre</span>
+                                            <span class="panel-celda__sub">@p.usuarioEmail</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="Compra">
+                                    <span>
+                                        <span class="panel-dato">Compra #@p.facturaId</span>
+                                        <span class="panel-dato__sub">Enviado el @EstadoPago.Fecha(p.fechaEnvio)</span>
+                                    </span>
+                                </td>
+                                <td data-label="Método">
+                                    <span>
+                                        <span class="panel-dato">@EstadoPago.Metodo(p.metodo)</span>
+                                        @if (!string.IsNullOrWhiteSpace(p.referencia))
+                                        {
+                                            <span class="panel-dato__sub">Ref. @p.referencia</span>
+                                        }
+                                    </span>
+                                </td>
+                                <td data-label="Monto" class="text-end"><span class="panel-dato">@Formato.Colones(p.monto)</span></td>
+                                <td data-label="Estado"><span class="status-pill @clase">@texto</span></td>
+                                <td class="panel-tabla__acciones">
+                                    <a class="btn btn-sm @(p.estado == "PENDIENTE" ? "btn-primary" : "btn-outline-secondary")"
+                                       asp-action="Invoice" asp-route-id="@p.facturaId">
+                                        @(p.estado == "PENDIENTE" ? "Revisar" : "Ver")
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Compra</th>
+                            <th scope="col">Detalle</th>
+                            <th scope="col" class="text-end">Total</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col"><span class="visually-hidden">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Facturas.Count == 0)
+                        {
+                            <tr><td colspan="6" class="panel-tabla__vacio"><strong>No hay facturas con este filtro.</strong>Pruebe con otro estado o búsqueda.</td></tr>
+                        }
+                        @foreach (var f in Model.Facturas)
+                        {
+                            var (texto, clase) = EstadoPago.Factura(f.estado);
+                            <tr>
+                                <td class="panel-tabla__principal">
+                                    <div class="panel-celda">
+                                        <span class="usuario-avatar usuario-tipo--cliente" aria-hidden="true">@Inicial(f.usuarioNombre)</span>
+                                        <div class="panel-celda__texto">
+                                            <span class="panel-celda__nombre">@f.usuarioNombre</span>
+                                            <span class="panel-celda__sub">@f.usuarioEmail</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="Compra">
+                                    <span>
+                                        <span class="panel-dato">Compra #@f.id</span>
+                                        <span class="panel-dato__sub">@EstadoPago.Fecha(f.fecha)</span>
+                                    </span>
+                                </td>
+                                <td data-label="Detalle" class="panel-tabla__texto">@f.descripcion</td>
+                                <td data-label="Total" class="text-end"><span class="panel-dato">@Formato.Colones(f.total)</span></td>
+                                <td data-label="Estado"><span class="status-pill @clase">@texto</span></td>
+                                <td class="panel-tabla__acciones">
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="Invoice" asp-route-id="@f.id">Ver<span class="visually-hidden"> compra #@f.id</span></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <partial name="_PanelPaginacion" model="(Paginacion)ViewBag.Paginacion" />
+    </section>
+</div>

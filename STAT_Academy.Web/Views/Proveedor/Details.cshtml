@@ -1,0 +1,76 @@
+@model STAT_Academy.Web.Models.Proveedor.ProveedorResponse
+
+@{
+    ViewData["Title"] = Model.nombre;
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <a class="enlace-volver" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Proveedores</a>
+
+        <div class="panel-tarjeta">
+            <div class="usuario-perfil__cabecera mb-4">
+                <span class="panel-celda__icono">@Html.Icono("camion")</span>
+                <div class="usuario-perfil__titulo">
+                    <span class="eyebrow">Proveedor</span>
+                    <h1 class="mb-1">@Model.nombre</h1>
+                    <span class="usuario-estado @(Model.estado ? "usuario-estado--activo" : "usuario-estado--inactivo")">
+                        @(Model.estado ? "Activo" : "Inactivo")
+                    </span>
+                </div>
+                <div class="usuario-perfil__acciones">
+                    <a class="btn btn-primary" asp-action="SupplierForm" asp-route-id="@Model.id">Editar</a>
+                    @if (Model.estado)
+                    {
+                        <form asp-action="ToggleSupplier" asp-route-id="@Model.id" method="post"
+                              data-confirmar="¿Desactivar al proveedor «@Model.nombre»?"
+                              data-confirmar-boton="Desactivar" data-confirmar-peligro>
+                            @Html.AntiForgeryToken()
+                            <button class="btn btn-outline-danger" type="submit">Desactivar</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <dl class="panel-datos">
+                <div>
+                    <dt>Contacto</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.contacto) ? "Sin dato" : Model.contacto)</dd>
+                </div>
+                <div>
+                    <dt>Teléfono</dt>
+                    <dd>
+                        @if (string.IsNullOrWhiteSpace(Model.telefono))
+                        {
+                            <text>Sin dato</text>
+                        }
+                        else
+                        {
+                            <a href="tel:@Model.telefono">@Model.telefono</a>
+                        }
+                    </dd>
+                </div>
+                <div>
+                    <dt>Correo electrónico</dt>
+                    <dd>
+                        @if (string.IsNullOrWhiteSpace(Model.email))
+                        {
+                            <text>Sin dato</text>
+                        }
+                        else
+                        {
+                            <a href="mailto:@Model.email">@Model.email</a>
+                        }
+                    </dd>
+                </div>
+                <div>
+                    <dt>Fecha de registro</dt>
+                    <dd>@Model.fecha_creacion.ToString("dd/MM/yyyy HH:mm")</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+</div>
+

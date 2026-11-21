@@ -1,0 +1,65 @@
+@{
+    // Menú lateral de Administración: ocupa toda la altura a la izquierda en escritorio
+    // y pasa a ser una tira horizontal desplazable en tabletas y teléfonos.
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    var accion = ViewContext.RouteData.Values["action"]?.ToString();
+
+    bool Es(string c, params string[] acciones) =>
+        controlador == c && (acciones.Length == 0 || acciones.Contains(accion));
+
+    var secciones = new[]
+    {
+        new { Grupo = "General", Texto = "Panel de control", Controlador = "Admin", Accion = "Dashboard",
+              Activo = Es("Admin", "Dashboard"),
+              Icono = "panel" },
+        new { Grupo = "Gestión", Texto = "Usuarios", Controlador = "Usuario", Accion = "Index",
+              Activo = Es("Usuario"),
+              Icono = "usuarios" },
+        new { Grupo = "Gestión", Texto = "Cursos", Controlador = "Admin", Accion = "Courses",
+              Activo = Es("Admin", "Courses", "CourseForm"),
+              Icono = "birrete" },
+        new { Grupo = "Gestión", Texto = "Productos", Controlador = "Admin", Accion = "Products",
+              Activo = Es("Admin", "Products", "ProductForm"),
+              Icono = "caja" },
+        new { Grupo = "Gestión", Texto = "Proveedores", Controlador = "Proveedor", Accion = "Index",
+              Activo = Es("Proveedor"),
+              Icono = "camion" },
+        new { Grupo = "Gestión", Texto = "Facturas y pagos", Controlador = "Admin", Accion = "Invoices",
+              Activo = Es("Admin", "Invoices", "Invoice"),
+              Icono = "factura" },
+        new { Grupo = "Enseñanza", Texto = "Panel del tutor", Controlador = "Tutor", Accion = "Index",
+              Activo = Es("Tutor"),
+              Icono = "pizarra" }
+    };
+}
+
+<aside class="admin-sidebar" aria-label="Administración">
+    <div class="admin-sidebar__marca">
+        @Html.Logo("admin-sidebar__logo admin-sidebar__logo--marca")
+        <div>
+            <strong>Administración</strong>
+            <small>STAT Academy</small>
+        </div>
+    </div>
+
+    <nav class="admin-sidebar__nav">
+        @foreach (var grupo in secciones.GroupBy(s => s.Grupo))
+        {
+            <p class="admin-sidebar__grupo">@grupo.Key</p>
+            @foreach (var s in grupo)
+            {
+                <a asp-controller="@s.Controlador" asp-action="@s.Accion"
+                   class="admin-sidebar__link @(s.Activo ? "admin-sidebar__link--activo" : "")"
+                   aria-current="@(s.Activo ? "page" : null)">
+                    @Html.Icono(s.Icono, "admin-sidebar__icono")
+                    <span>@s.Texto</span>
+                </a>
+            }
+        }
+    </nav>
+
+    <a class="admin-sidebar__sitio" asp-controller="Home" asp-action="Index">
+        @Html.Icono("flecha-izquierda", "admin-sidebar__icono")
+        <span>Volver al sitio</span>
+    </a>
+</aside>

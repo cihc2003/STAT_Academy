@@ -1,0 +1,181 @@
+@model STAT_Academy.Web.Models.Facturas.FacturaDetalle
+@using STAT_Academy.Web.Models.Facturas
+
+@{
+    ViewData["Title"] = $"Compra #{Model.id}";
+    var (estadoTexto, estadoClase) = EstadoPago.Factura(Model.estado);
+    var formulario = ViewBag.Formulario as EnviarComprobanteViewModel ?? new EnviarComprobanteViewModel { FacturaId = Model.id };
+    var ultimo = Model.pagos.FirstOrDefault();
+    var i = Model.instrucciones;
+    var tieneCursos = Model.lineas.Any(l => l.tipo == "CURSO");
+}
+
+<div class="container admin-shell admin-shell--perfil">
+    <partial name="_PerfilNav" />
+
+    <div class="perfil-contenido">
+        <a class="enlace-volver no-print" asp-action="Index">@Html.Icono("flecha-izquierda", "icono--sm")Facturas y pedidos</a>
+
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Comprobante de compra</span>
+                <h1>Compra #@Model.id</h1>
+                <p class="factura-estado">
+                    <span>@EstadoPago.Fecha(Model.fecha)</span>
+                    <span class="status-pill @estadoClase">@estadoTexto</span>
+                </p>
+            </div>
+            <div class="panel-encabezado__acciones no-print">
+                <button class="btn btn-secundario" type="button" data-imprimir>@Html.Icono("imprimir", "icono--sm")Imprimir comprobante</button>
+            </div>
+        </div>
+
+        @* Mensaje según el estado del pago *@
+        @switch (Model.estado)
+        {
+            case "PAGADA":
+                <aviso tipo="exito" role="status">
+                    Pago confirmado.
+                    @if (tieneCursos)
+                    {
+                        <text>Ya tiene acceso a su curso en <a asp-controller="Curso" asp-action="MisCursos">Mis cursos</a>.</text>
+                    }
+                </aviso>
+                break;
+            case "EN_VERIFICACION":
+                <aviso tipo="info" role="status">
+                    Recibimos su comprobante el @EstadoPago.Fecha(ultimo!.fechaEnvio). Lo estamos verificando y
+                    le avisaremos por correo cuando se apruebe.
+                </aviso>
+                break;
+            case "RECHAZADA":
+                <aviso tipo="error" role="status">
+                    <strong>Su último comprobante no fue aprobado.</strong>
+                    @if (!string.IsNullOrWhiteSpace(ultimo?.observacion))
+                    {
+                        <div>Motivo: @ultimo.observacion</div>
+                    }
+                    <div>Revise el pago y envíe un nuevo comprobante.</div>
+                </aviso>
+                break;
+        }
+
+        <div class="factura-columnas">
+        <div class="factura-columnas__principal">
+        <section class="panel-tarjeta" aria-labelledby="factura-detalle">
+            <h2 id="factura-detalle" class="panel-tarjeta__titulo">Detalle de la compra</h2>
+            <partial name="_FacturaLineas" model="Model" />
+        </section>
+
+        @if (Model.pagos.Count > 0)
+        {
+            <section class="panel-tarjeta">
+                <h2 class="panel-tarjeta__titulo">Pagos enviados</h2>
+                <ul class="list-unstyled mb-0">
+                    @foreach (var p in Model.pagos)
+                    {
+                        var (texto, clase) = EstadoPago.Comprobante(p.estado);
+                        <li class="py-2 border-bottom">
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <span>
+                                    <strong>@EstadoPago.Metodo(p.metodo)</strong>, @Formato.Colones(p.monto)
+                                    <div class="small text-muted">
+                                        @* Una sola línea de texto: evita espacios sueltos antes de las comas *@
+                                        @($"Enviado el {EstadoPago.Fecha(p.fechaEnvio)}"
+                                          + (string.IsNullOrWhiteSpace(p.referencia) ? "" : $", ref. {p.referencia}")
+                                          + (p.fechaRevision is DateTime revision ? $", revisado el {EstadoPago.Fecha(revision)}" : ""))
+                                    </div>
+                                    @if (p.estado == "RECHAZADO" && !string.IsNullOrWhiteSpace(p.observacion))
+                                    {
+                                        <div class="small text-danger">Motivo: @p.observacion</div>
+                                    }
+                                </span>
+                                <span class="d-flex align-items-start gap-2">
+                                    <span class="status-pill @clase">@texto</span>
+                                    <a class="btn btn-sm btn-secundario no-print" asp-action="Comprobante" asp-route-id="@p.id" target="_blank" rel="noopener">Ver comprobante</a>
+                                </span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+        </div>
+
+        <div class="factura-columnas__lateral">
+        @if (!Model.pagada)
+        {
+            <section class="panel-tarjeta">
+                <h2 class="panel-tarjeta__titulo">Cómo pagar</h2>
+                <p class="mb-3">
+                    Pague <strong>@Formato.Colones(Model.total)</strong> con una de estas opciones e indique
+                    <strong>Compra #@Model.id</strong> en el detalle de la transferencia.
+                </p>
+
+                <div class="pago-opciones">
+                    <div class="pago-opcion">
+                        <h3 class="h6">SINPE Móvil</h3>
+                        <p class="pago-dato">@i.sinpeTelefono</p>
+                        <p class="text-muted small mb-0">A nombre de @i.sinpeNombre</p>
+                    </div>
+                    <div class="pago-opcion">
+                        <h3 class="h6">Transferencia o depósito</h3>
+                        <p class="mb-1">@i.banco</p>
+                        <p class="pago-dato">@i.cuentaIban</p>
+                        <p class="text-muted small mb-0">
+                            A nombre de @i.cuentaTitular
+                            @if (!string.IsNullOrWhiteSpace(i.cedulaJuridica))
+                            {
+                                <text>, cédula jurídica @i.cedulaJuridica</text>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </section>
+        }
+
+        @if (Model.puedeEnviarComprobante)
+        {
+            <section class="panel-tarjeta no-print">
+                <h2 class="panel-tarjeta__titulo">Enviar comprobante de pago</h2>
+                <p class="text-muted">
+                    Suba la captura o el PDF del comprobante (imagen JPG, PNG o WEBP de hasta 5 MB, o PDF de hasta 10 MB).
+                </p>
+
+                <form asp-action="EnviarComprobante" method="post" enctype="multipart/form-data"
+                      data-un-solo-envio>
+                    <input type="hidden" name="FacturaId" value="@Model.id" />
+
+                    <fieldset class="mb-3">
+                        <legend class="form-label fs-6">¿Cómo pagó?</legend>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Metodo" id="metodo-sinpe" value="SINPE" checked="@(formulario.Metodo != "TRANSFERENCIA")" />
+                            <label class="form-check-label" for="metodo-sinpe">SINPE Móvil</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Metodo" id="metodo-transferencia" value="TRANSFERENCIA" checked="@(formulario.Metodo == "TRANSFERENCIA")" />
+                            <label class="form-check-label" for="metodo-transferencia">Transferencia o depósito</label>
+                        </div>
+                    </fieldset>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="referencia">Número de referencia o comprobante <span class="text-muted">(opcional)</span></label>
+                        <input class="form-control" id="referencia" name="Referencia" maxlength="100" autocomplete="off" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="archivo">Comprobante</label>
+                        <input class="form-control" id="archivo" name="Archivo" type="file" required
+                               accept="@EnviarComprobanteViewModel.Aceptados" aria-describedby="archivo-ayuda" />
+                        <div class="form-text" id="archivo-ayuda">JPG, PNG, WEBP o PDF de hasta 10 MB.</div>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">Enviar comprobante</button>
+                </form>
+            </section>
+        }
+
+        </div>
+        </div>
+    </div>
+</div>

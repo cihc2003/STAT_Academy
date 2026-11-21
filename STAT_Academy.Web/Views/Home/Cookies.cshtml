@@ -1,0 +1,74 @@
+@using STAT_Academy.Web.Models.Cuenta
+@{
+    ViewData["Title"] = "Política de cookies";
+}
+@*
+    Lista revisada contra el código el 16/11/2026: cookie de autenticación (Program.cs, SesionWeb.cs),
+    antifalsificación (formularios con [ValidateAntiForgeryToken]), TempData (proveedor por cookie,
+    predeterminado de MVC) y localStorage "stat-pulso-pausado" (site.js). Si se agrega una cookie nueva
+    (analítica, publicidad, sesión), actualice esta página y TerminosVigentes.Version.
+*@
+
+<section class="encabezado-pagina">
+    <div class="container">
+        <h1>Política de cookies</h1>
+        <p>Qué cookies usa STAT Academy, para qué sirven y cómo puede administrarlas.</p>
+    </div>
+</section>
+
+<section class="section section--compacta">
+    <div class="container contenedor-lectura documento-legal">
+        <p class="documento-legal__fecha">Última actualización: @TerminosVigentes.FechaVisible</p>
+
+        <h2>Qué es una cookie</h2>
+        <p>Una cookie es un archivo pequeño que el sitio guarda en su navegador para recordar información entre una página y otra, por ejemplo, que usted ya inició sesión.</p>
+
+        <h2>Qué cookies usamos</h2>
+        <p>STAT Academy solo usa cookies <strong>técnicas o necesarias</strong>: sin ellas no es posible iniciar sesión, enviar formularios de forma segura ni mostrarle mensajes de confirmación. No usamos cookies de publicidad, de perfiles ni de analítica, y no vendemos ni compartimos la información de estas cookies.</p>
+
+        <ul class="lista-cookies">
+            <li class="lista-cookies__item">
+                <h3 class="lista-cookies__nombre">Sesión y autenticación</h3>
+                <p>Mantiene su sesión abierta mientras navega y permite saber si usted es estudiante, tutor o administrador. Su contenido va cifrado y el navegador no permite leerlo desde JavaScript.</p>
+                <dl class="lista-cookies__datos">
+                    <div><dt>Nombre</dt><dd><code>.AspNetCore.Cookies</code></dd></div>
+                    <div><dt>Duración</dt><dd>Hasta cerrar el navegador; la sesión vence tras 30 minutos sin actividad.</dd></div>
+                    <div><dt>Tipo</dt><dd>Propia, necesaria</dd></div>
+                </dl>
+            </li>
+            <li class="lista-cookies__item">
+                <h3 class="lista-cookies__nombre">Protección de formularios (antifalsificación)</h3>
+                <p>Comprueba que los formularios que envía (registro, inicio de sesión, compras, entregas) salen de este sitio y no de una página de terceros que intente suplantarlo.</p>
+                <dl class="lista-cookies__datos">
+                    <div><dt>Nombre</dt><dd><code>.AspNetCore.Antiforgery.*</code></dd></div>
+                    <div><dt>Duración</dt><dd>Hasta cerrar el navegador.</dd></div>
+                    <div><dt>Tipo</dt><dd>Propia, necesaria</dd></div>
+                </dl>
+            </li>
+            <li class="lista-cookies__item">
+                <h3 class="lista-cookies__nombre">Mensajes temporales</h3>
+                <p>Guarda por un momento los avisos que se muestran después de una acción, como «Cuenta creada correctamente», y se borra en cuanto el mensaje aparece.</p>
+                <dl class="lista-cookies__datos">
+                    <div><dt>Nombre</dt><dd><code>.AspNetCore.Mvc.CookieTempData</code></dd></div>
+                    <div><dt>Duración</dt><dd>Hasta mostrar el mensaje o cerrar el navegador.</dd></div>
+                    <div><dt>Tipo</dt><dd>Propia, necesaria</dd></div>
+                </dl>
+            </li>
+        </ul>
+
+        <h2>Preferencias guardadas en su navegador</h2>
+        <p>Si pausa la animación de la portada, el sitio recuerda esa preferencia en el almacenamiento local de su navegador (<code>stat-pulso-pausado</code>). No es una cookie, no viaja a nuestros servidores y puede borrarla cuando quiera desde la configuración del navegador.</p>
+
+        <h2>Contenido de terceros</h2>
+        <p>Algunas páginas muestran contenido de otros servicios, como el mapa de Google Maps en la página de contacto o documentos y videos de Google Drive dentro de los cursos. Esos servicios pueden guardar sus propias cookies según sus políticas, sobre las que STAT Academy no tiene control. Puede consultarlas en el sitio de cada proveedor.</p>
+
+        <h2>Cómo administrar las cookies</h2>
+        <p>Puede borrar o bloquear las cookies desde la configuración de su navegador. Tenga en cuenta que, si bloquea las cookies necesarias, no podrá iniciar sesión ni completar formularios en STAT Academy.</p>
+
+        <h2>Cambios en esta política</h2>
+        <p>Si empezamos a usar cookies nuevas, actualizaremos esta página y la fecha de arriba. Si el cambio requiere su consentimiento, se lo pediremos antes de activarlas.</p>
+
+        <h2>Contacto</h2>
+        <p>Si tiene preguntas sobre esta política, escríbanos a <a href="mailto:info@@statmedicalcr.com">info@@statmedicalcr.com</a>. También puede leer nuestros <a asp-controller="Home" asp-action="Terminos">términos y condiciones</a> y nuestra <a asp-controller="Home" asp-action="Privacy">política de privacidad</a>.</p>
+    </div>
+</section>

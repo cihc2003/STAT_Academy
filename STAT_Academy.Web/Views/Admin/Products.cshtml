@@ -1,0 +1,200 @@
+@model IEnumerable<STAT_Academy.Web.Models.Admin.ProductoViewModel>
+
+@{
+    ViewData["Title"] = "Productos";
+    var q = Context.Request.Query;
+    var buscar = FiltrosPanel.Valor(q, "search");
+    var categoria = FiltrosPanel.Valor(q, "categoria");
+    var estado = FiltrosPanel.Valor(q, "estado");
+    var existencias = ViewBag.Existencias as string;
+    var categorias = ViewBag.Categorias as List<string> ?? new();
+    var totalProductos = (int)(ViewBag.TotalProductos ?? 0);
+    var totalStockBajo = (int)(ViewBag.TotalStockBajo ?? 0);
+    var hayFiltros = buscar != null || categoria != null || estado != null || existencias != null;
+    var cantidad = ((Paginacion)ViewBag.Paginacion).Total;
+}
+
+<div class="container admin-shell">
+    <partial name="_AdminNav" />
+
+    <section>
+        <div class="panel-encabezado">
+            <div>
+                <span class="eyebrow">Administración</span>
+                <h1>Productos</h1>
+                <p>Catálogo de la tienda, existencias e imágenes.</p>
+            </div>
+            <div class="panel-encabezado__acciones">
+                <a class="btn btn-primary" asp-action="ProductForm">@Html.Icono("mas")Nuevo producto</a>
+            </div>
+        </div>
+
+        @if (totalStockBajo > 0 && existencias != "bajo")
+        {
+            <div class="panel-aviso" role="status">
+                <p>
+                    <strong>@totalStockBajo @(totalStockBajo == 1 ? "producto tiene" : "productos tienen")</strong>
+                    las existencias en el mínimo o por debajo. Conviene reponerlos.
+                </p>
+                <a class="btn btn-sm btn-primary" asp-action="Products" asp-route-existencias="bajo">Ver solo stock bajo</a>
+            </div>
+        }
+
+        <form class="panel-filtros panel-filtros--amplio" method="get" asp-action="Products" role="search">
+            <div class="panel-filtros__buscar">
+                <label class="panel-filtros__etiqueta" for="search">Buscar</label>
+                @Html.Icono("buscar", "panel-filtros__lupa")
+                <input class="form-control" id="search" name="search" type="search" value="@buscar"
+                       placeholder="Nombre, categoría o descripción" maxlength="100" />
+            </div>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="categoria">Categoría</label>
+                <select class="form-select @FiltrosPanel.Activo(categoria)" id="categoria" name="categoria" data-autoenviar>
+                    <option value="">Todas</option>
+                    @foreach (var c in categorias)
+                    {
+                        <option value="@c" selected="@(string.Equals(c, categoria, StringComparison.OrdinalIgnoreCase))">@c</option>
+                    }
+                </select>
+            </div>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="existencias">Existencias</label>
+                <select class="form-select @FiltrosPanel.Activo(existencias)" id="existencias" name="existencias" data-autoenviar>
+                    <option value="">Todas</option>
+                    <option value="bajo" selected="@(existencias == "bajo")">Stock bajo</option>
+                    <option value="agotado" selected="@(existencias == "agotado")">Agotados</option>
+                </select>
+            </div>
+            <div class="panel-filtros__campo">
+                <label class="panel-filtros__etiqueta" for="estado">Estado</label>
+                <select class="form-select @FiltrosPanel.Activo(estado)" id="estado" name="estado" data-autoenviar>
+                    <option value="">Todos</option>
+                    <option value="true" selected="@(estado == "true")">Activos</option>
+                    <option value="false" selected="@(estado == "false")">Inactivos</option>
+                </select>
+            </div>
+            @if (FiltrosPanel.Valor(q, "tamano") is string tamano)
+            {
+                <input type="hidden" name="tamano" value="@tamano" />
+            }
+            <div class="panel-filtros__acciones">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+            </div>
+        </form>
+
+        <div class="panel-resultados" aria-live="polite">
+            <span><strong>@cantidad</strong> de @totalProductos @(totalProductos == 1 ? "producto" : "productos")</span>
+            @if (buscar != null)
+            {
+                <a class="panel-chip" asp-action="Products" asp-all-route-data="@FiltrosPanel.Sin(q, "search")" >«@buscar» @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (categoria != null)
+            {
+                <a class="panel-chip" asp-action="Products" asp-all-route-data="@FiltrosPanel.Sin(q, "categoria")" >@categoria @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (existencias != null)
+            {
+                <a class="panel-chip" asp-action="Products" asp-all-route-data="@FiltrosPanel.Sin(q, "existencias", "stockBajo")" >@(existencias == "agotado" ? "Agotados" : "Stock bajo") @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (estado != null)
+            {
+                <a class="panel-chip" asp-action="Products" asp-all-route-data="@FiltrosPanel.Sin(q, "estado")" >@(estado == "true" ? "Activos" : "Inactivos") @Html.Icono("cerrar", "icono--sm")<span class="visually-hidden">Quitar filtro</span></a>
+            }
+            @if (hayFiltros)
+            {
+                <a class="panel-resultados__limpiar" asp-action="Products">Limpiar filtros</a>
+            }
+        </div>
+
+        <div class="table-card panel-tabla">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Producto</th>
+                        <th scope="col">Categoría</th>
+                        <th scope="col">Precio</th>
+                        <th scope="col">Existencias</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col"><span class="visually-hidden">Acciones</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="panel-tabla__vacio">
+                                <strong>No se encontraron productos.</strong>
+                                @(!hayFiltros ? "Agregue el primero con el botón «Nuevo producto»." : "Pruebe con otro filtro.")
+                            </td>
+                        </tr>
+                    }
+
+                    @foreach (var producto in Model)
+                    {
+                        <tr class="@(producto.estado ? "" : "usuarios-fila--inactiva")">
+                            <td class="panel-tabla__principal">
+                                <div class="panel-celda">
+                                    <div class="panel-celda__texto">
+                                        <a class="panel-celda__nombre" asp-action="ProductForm" asp-route-id="@producto.id">@producto.nombre</a>
+                                        @if (!string.IsNullOrWhiteSpace(producto.descripcion))
+                                        {
+                                            <span class="panel-celda__sub">@producto.descripcion</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td data-label="Categoría">@producto.categoria</td>
+                            <td data-label="Precio"><span class="panel-dato">@Formato.Colones(producto.precio_base)</span></td>
+                            <td data-label="Existencias">
+                                <span class="panel-existencias">
+                                    <span class="panel-existencias__cifra">
+                                        <strong class="@(producto.stock_bajo && producto.estado ? "text-danger" : "")">@producto.stock</strong>
+                                        <span class="panel-existencias__minimo">/ mín. @producto.min_stock</span>
+                                    </span>
+                                    @if (producto.estado && producto.stock <= 0)
+                                    {
+                                        <span class="usuario-estado usuario-estado--peligro">Agotado</span>
+                                    }
+                                    else if (producto.estado && producto.stock_bajo)
+                                    {
+                                        <span class="usuario-estado usuario-estado--alerta">Stock bajo</span>
+                                    }
+                                </span>
+                            </td>
+                            <td data-label="Estado">
+                                <span class="usuario-estado @(producto.estado ? "usuario-estado--activo" : "usuario-estado--inactivo")">
+                                    @(producto.estado ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                            <td class="panel-tabla__acciones">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="ProductForm" asp-route-id="@producto.id"
+                                   aria-label="Editar @producto.nombre">Editar</a>
+
+                                @if (producto.estado)
+                                {
+                                    <form asp-action="ToggleProduct" asp-route-id="@producto.id" method="post" class="d-inline"
+                                          data-confirmar="¿Eliminar «@producto.nombre» de la tienda? Podrá reactivarlo después."
+                                          data-confirmar-boton="Eliminar" data-confirmar-peligro>
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="ToggleProductOn" asp-route-id="@producto.id" method="post" class="d-inline"
+                                          data-confirmar="¿Volver a mostrar «@producto.nombre» en la tienda?"
+                                          data-confirmar-boton="Reactivar">
+                                        @Html.AntiForgeryToken()
+                                        <button class="btn btn-sm btn-outline-success" type="submit">Reactivar</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_PanelPaginacion" model="(Paginacion)ViewBag.Paginacion" />
+    </section>
+</div>
+

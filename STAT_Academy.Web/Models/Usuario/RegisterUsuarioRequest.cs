@@ -1,0 +1,11 @@
+﻿namespace STAT_Academy.Web.Models.Usuarios;
+
+public class RegisterUsuarioRequest
+{
+    public string nombre { get; set; } = string.Empty;
+    public string email { get; set; } = string.Empty;
+    public string password { get; set; } = string.Empty;
+    public int fk_Tipo_Usuario { get; set; }
+    public bool aceptaTerminos { get; set; }
+    public string versionTerminos { get; set; } = string.Empty;
+}
